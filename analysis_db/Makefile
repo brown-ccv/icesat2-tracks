@@ -44,6 +44,7 @@ download=False
 test_flag	= False
 ### ------
 
+
 ifeq ($(beam), False)
 	# load nc file list from batch_key folder
 	beam_list_json := $(shell ls $(scratch_folder)/$(batch_key)/) #$(shell jq -r .[] $(config_folder)config.json)
@@ -57,6 +58,7 @@ ifeq ($(beam), False)
 else
 	beam_list= $(beam)
 endif
+
 
 # beam_list_rar := $(basename $(beam_list_json))
 # beam_list := $(foreach i, $(beam_list_rar) , $(subst processed_ATL03_,,$(i))  )
@@ -171,3 +173,11 @@ print-%  : ; @echo $* = $($*)
 # sendmail :
 # 					@echo "---- Sendmail ----" >> $(logfile)
 # 					$(mailer)
+
+
+### Convert file Name to ATL10 file
+
+.PHONY: ATL03_to_ATL10
+
+ATL03_to_ATL10:
+	python3 A10_find_ATL10.py ../track_lists/batch02_tracks.json $(hemis)
