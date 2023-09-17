@@ -121,7 +121,7 @@ if plot_flag:
 
 def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     """
-    converts a GeoDataFrame from Sliderule to GeoDataFrames for each beam witht the correct columns and names
+    converts a GeoDataFrame from Sliderule to GeoDataFrames for each beam with the correct columns and names
     inputs:
         table_data: GeoDataFrame with the data
         split_by_beam: True/False. If True the data is split by beam

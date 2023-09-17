@@ -29,7 +29,7 @@ xr.set_options(display_style='text')
 # %matplotlib widget
 
 
-# %% Select region and retrive batch of tracks
+# Select region and retrive batch of tracks
 
 # define file with ID:
 track_name, batch_key , ID_flag = '20190219073735_08070210_005_01', 'SH_testSLsinglefile' , False
