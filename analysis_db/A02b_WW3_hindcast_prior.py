@@ -1,4 +1,4 @@
-
+# %%
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
 
@@ -38,6 +38,11 @@ track_name, batch_key, ID_flag = io.init_from_input(sys.argv) # loads standard e
 #track_name, batch_key, ID_flag = 'NH_20190301_09600205', 'NH_batch05', True
 
 #track_name, batch_key, ID_flag = 'NH_20210228_10231005', 'NH_batch07', True
+
+#track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_publish', True 
+
+#track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_testSLsinglefile2', True 
+
 track_name_short = track_name[0:-16]
 
 ID, track_names, hemis, batch = io.init_data(track_name, batch_key, ID_flag, mconfig['paths']['work'] )
@@ -68,6 +73,7 @@ file_name_base      = 'LOPS_WW3-GLOB-30M_'
 load_path   = mconfig['paths']['work'] +batch_key+'/B01_regrid/'
 #Gd          = io.load_pandas_table_dict(track_name + '_B01_binned' , load_path)  #
 Gd          = h5py.File(load_path +'/'+track_name + '_B01_binned.h5', 'r')
+
 
 # %%
 G1 = dict()
@@ -113,7 +119,10 @@ else:
 
 # load .json to get time
 #ID['tracks']['ATL07'].split('_')[1]
-timestamp       = pd.to_datetime(ID['tracks']['ATL07'].split('_')[1])
+
+
+#timestamp       = pd.to_datetime(ID['tracks']['ATL03'].split('_')[1])
+timestamp       = pd.to_datetime(ID['pars']['start']['delta_time'], unit='s')
 #timestamp       = pd.to_datetime(G1[['year', 'month', 'day', 'hour', 'minute', 'second']]).mean()
 time_range      = np.datetime64(timestamp) - np.timedelta64(dtime, 'h') , np.datetime64(timestamp) + np.timedelta64(dtime, 'h')
 #print(time_range)
@@ -419,3 +428,5 @@ except:
     target_name = 'A02_'+track_name+'hindcast_fail'
 
 MT.json_save(target_name, save_path, str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) )
+
+# %%

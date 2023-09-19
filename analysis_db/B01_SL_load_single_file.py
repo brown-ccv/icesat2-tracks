@@ -22,6 +22,8 @@ import ICEsat2_SI_tools.io as io
 import spicke_remover
 
 import h5py, imp, copy
+import datetime
+
 
 xr.set_options(display_style='text')
 
@@ -31,14 +33,20 @@ xr.set_options(display_style='text')
 
 # Select region and retrive batch of tracks
 
+track_name, batch_key, ID_flag = io.init_from_input(sys.argv) # loads standard experiment
 # define file with ID:
-track_name, batch_key , ID_flag = '20190219073735_08070210_005_01', 'SH_testSLsinglefile' , False
+#track_name, batch_key , ID_flag = '20190219073735_08070210_005_01', 'SH_testSLsinglefile2' , False
+#track_name, batch_key , ID_flag = '20190502052058_05180312_005_01', 'SH_testSLsinglefile2' , False
 
+#20190502052058_05180312_005_01
 plot_flag = True
 
 
 save_path  = mconfig['paths']['work'] +'/'+batch_key+'/B01_regrid/'
 MT.mkdirs_r(save_path)
+
+save_path_json  = mconfig['paths']['work'] +'/'+ batch_key +'/A01b_ID/'
+MT.mkdirs_r(save_path_json)
 
 #ID, _, _, _ = io.init_data(track_name, batch_key, True, mconfig['paths']['work'],  )
 ATL03_track_name = 'ATL03_'+track_name+'.h5'
@@ -119,16 +127,21 @@ def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     else:
         return table_data
 
+# %%
 # define reference point and then define 'x'
 table_data = copy.copy(gdf)
-
+imp.reload(sct)
 # the reference point is defined as the most equatorward point of the polygon. 
 # It's distance from the equator is  subtracted from the distance of each photon.
 table_data = sct.define_x_coordinate_from_data(table_data)
+table_time = table_data['time']
+table_data.drop(columns=['time'], inplace=True)
+#table_data['time'] = np.datetime_as_string(table_data['time'])#.view('<M8[s]')
 
 # fake 'across'
 table_data['across'] = table_data['x']*0 +table_data['spot']
 
+#table_data['time'].astype('<S30').view('<M8[s]')
 # add spike remover
 
 # renames columns and splits beams
@@ -140,5 +153,43 @@ ID_name = sct.create_ID_name(gdf.iloc[0], segment=segment)
 print( ID_name )
 io.write_track_to_HDF5(Ti, ID_name + '_B01_binned'     , save_path) # regridding heights
 
+
+
+
+# %%
+print('write A01b .json')
+DD= {'case_ID':  ID_name ,  'tracks' : {} }
+
+DD['tracks']['ATL03']   = 'ATL10-' +track_name
+
+
+start_pos = abs(table_data.lats).argmin()
+end_pos = abs(table_data.lats).argmax()
+
+
+
+# add other pars:
+DD['pars'] ={
+'poleward': sct.ascending_test(gdf), 'region': '0',
+'start': {'longitude': table_data.lons[start_pos], 'latitude': table_data.lats[start_pos]
+, 'seg_dist_x': table_data.x[start_pos]
+, 'delta_time': datetime.datetime.timestamp(table_time[start_pos])
+ #'0'#np.datetime64(table_data.index[end_pos]) #table_data.index[start_pos]
+},
+'end': {'longitude': table_data.lons[end_pos], 'latitude': table_data.lats[end_pos]
+, 'seg_dist_x': table_data.x[end_pos]
+, 'delta_time': datetime.datetime.timestamp(table_time[end_pos])
+ #table_data.index[end_pos]
+},
+    }
+
+
+#DD['pars']['start']['delta_time'] = str(table_data.index[start_pos])
+
+MT.json_save2(name='A01b_ID_'+ID_name, path=save_path_json, data= DD)
+
+#DD['pars']['start']['delta_time'] = str(table_data.index[start_pos])
+
 print('done')
+
 # %%

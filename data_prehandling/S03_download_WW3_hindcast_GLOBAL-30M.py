@@ -1,3 +1,4 @@
+# %%
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
 
@@ -27,6 +28,7 @@ var_list = [ 'dir', 'dp','fp', 'hs', 'ice', 'lm', 'spr', 't01', 't02', 't0m1', '
 'ptp0',  'ptp1',  'ptp2',  'ptp3',  'ptp4',  'ptp5',
 'phs0',  'phs1',  'phs2',  'phs3',  'phs4',  'phs5']
 
+# %%
 
 flist_parameters= list()
 subpath = 'GLOBMULTI_ERA5_GLOBCUR_01/'
@@ -89,3 +91,5 @@ for year in np.arange(2018, 2022):
 
 
 print( flist_parameters )
+
+# %%

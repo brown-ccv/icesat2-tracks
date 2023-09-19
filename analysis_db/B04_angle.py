@@ -60,7 +60,8 @@ track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard
 #track_name, batch_key, test_flag = '20190210143705_06740210_004_01', 'SH_batch02', False
 #track_name, batch_key, test_flag = 'NH_20190301_09580203', 'NH_batch05', True
 #track_name, batch_key, test_flag = 'SH_20190210_06740210', 'SH_publish', True
-#track_name, batch_key, test_flag = 'SH_20190219_08070212', 'SH_batchminimal', True 
+#track_name, batch_key, test_flag = 'SH_20190219_08070212', 'SH_batchminimal', True
+track_name, batch_key , test_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
 
 
 
@@ -105,11 +106,14 @@ load_path   = mconfig['paths']['work'] +batch_key+'/A02_prior/'
 try:
     Prior = MT.load_pandas_table_dict('/A02_'+track_name, load_path)['priors_hindcast']
 except:
-    print('Prior not founds exit')
+    print('Prior not found. exit')
     MT.json_save('B04_fail', plot_path,  {'time':time.asctime( time.localtime(time.time()) ) , 'reason': 'Prior not found'})
-    print('exit()')
     exit()
 
+if np.isnan(Prior['mean']['dir']): 
+    print('Prior failed, entries are nan. exit.')
+    MT.json_save('B04_fail', plot_path,  {'time':time.asctime( time.localtime(time.time()) ) , 'reason': 'Prior not found'})
+    exit()
 
 #### Define Prior
 # Use partitions
@@ -816,3 +820,5 @@ plt.xlim(- 90, 90)
 F.save_pup(path= plot_path, name = 'B04_marginal_distributions')
 
 MT.json_save('B04_success', plot_path, {'time':'time.asctime( time.localtime(time.time()) )'})
+
+# %%

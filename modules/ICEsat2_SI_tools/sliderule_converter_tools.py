@@ -365,7 +365,8 @@ def define_x_coordinate_from_data(table_data):
     else:
         start_point_dist = table_data['distance'].max()
         table_data['x']  = start_point_dist - table_data['distance']
-
+    table_data.sort_values(by='x', inplace=True)
+    table_data.reset_index(inplace=True)
     return table_data
 
 
