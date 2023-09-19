@@ -38,6 +38,9 @@ track_name, batch_key, ID_flag = io.init_from_input(sys.argv) # loads standard e
 #track_name, batch_key , ID_flag = '20190219073735_08070210_005_01', 'SH_testSLsinglefile2' , False
 #track_name, batch_key , ID_flag = '20190502052058_05180312_005_01', 'SH_testSLsinglefile2' , False
 
+track_name, batch_key , ID_flag = '20190504201233_05580312_005_01', 'SH_testSLsinglefile2' , False
+
+
 #20190502052058_05180312_005_01
 plot_flag = True
 
@@ -146,6 +149,11 @@ table_data['across'] = table_data['x']*0 +table_data['spot']
 
 # renames columns and splits beams
 Ti = make_B01_dict(table_data, split_by_beam=True, to_hdf5=True) 
+
+for kk in Ti.keys():
+    Ti[kk]['dist'] = Ti[kk]['x'].copy()
+
+#Ti[kk]['dist'] = Ti[kk]['x'].copy()
 #Ti['gt1l'].drop('geometry', axis=1, inplace=True)
 
 segment = track_name.split('_')[1][-2:]
