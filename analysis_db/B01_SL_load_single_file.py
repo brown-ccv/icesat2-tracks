@@ -152,6 +152,8 @@ Ti = make_B01_dict(table_data, split_by_beam=True, to_hdf5=True)
 
 for kk in Ti.keys():
     Ti[kk]['dist'] = Ti[kk]['x'].copy()
+    Ti[kk]['heights_c_weighted_mean'] = Ti[kk]['h_mean'].copy()
+    Ti[kk]['heights_c_std'] = Ti[kk]['h_sigma'].copy()
 
 #Ti[kk]['dist'] = Ti[kk]['x'].copy()
 #Ti['gt1l'].drop('geometry', axis=1, inplace=True)
