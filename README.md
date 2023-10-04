@@ -1,38 +1,6 @@
 # ICESAT2 Track Analysis
 
-## Setting up for development locally
-
-Prerequisites:
-- A POSIX-compatible system (Linux or macOS)
-- Python 3.9 (run `python --version` to check that your version of python is correct)
-- MPI (e.g. from `brew install open-mpi`)
-
-> [!IMPORTANT]  
-> Windows is not supported for development work – use [WSL](https://learn.microsoft.com/en-us/windows/wsl/) on Windows hosts
-
-Installation:
-- Create a new virtual environment named `.venv`:
-  ```shell
-  python -m venv .venv
-  ```
-- Activate the environment
-    ```shell
-    source ".venv/bin/activate"
-    ```
-- Upgrade pip
-  ```shell
-  pip install --upgrade pip
-  ```
-- Install or update the environment with the dependencies for this project:
-  ```shell
-  pip install --upgrade --editable ".[dev]"
-  ```
-- Check the module `icesat2_tracks` is available by loading the module:
-  ```shell
-  python -c "import icesat2_tracks; print(icesat2_tracks.__version__)"
-  ```
-
-## Installing using Conda on Oscar (Deprecated)
+## Installing on Oscar
 
 If any of these commands fail, check the conda configuration (listed below) before retrying for possible fixes.
 

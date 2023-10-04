@@ -38,5 +38,3 @@ analysis_db/support_files/
 *.egg-info/
 .installed.cfg
 *.egg
-.venv/
-venv/
