@@ -32,7 +32,7 @@ Installation:
   python -c "import icesat2_tracks; print(icesat2_tracks.__version__)"
   ```
 
-## Installing using Conda on Oscar (Deprecated)
+## Installing on Oscar (Deprecated)
 
 If any of these commands fail, check the conda configuration (listed below) before retrying for possible fixes.
 
