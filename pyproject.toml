@@ -4,7 +4,7 @@ version = "0.0.0"  # Required
 description = "Tools to analyze wave tracks using icesat2 data"  # Optional
 readme = "README.md" # Optional
 license = "LICENSE.txt"
-authors = ["Momme C. Hell <momme_hell@brown.edu"]
+authors = ["Momme C. Hell <momme_hell@brown.edu>"]
 keywords = ["earth observation", "icesat2"]  # Optional
 classifiers = [  # Optional
   # How mature is this project? Common values are
