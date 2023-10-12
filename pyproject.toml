@@ -105,14 +105,14 @@ classifiers = [  # Optional
 # https://packaging.python.org/discussions/install-requires-vs-requirements/    # noqa
 # THIS PROJECT NEEDS MPI PRE-installed IN OUR LOCAL SYSTEM
 dependencies = [ # Optional
-  "piecewise_regression",
+ "piecewise_regression",
   "numba",
   "xarray",
   "mpi4py",
-  "icesat2-toolkit==1.0.0.22"
+  "icesat2-toolkit==1.0.0.22",
 ]
 
-# List additional groups of dependencies here (e.g. development
+# List additional groups of dependencies   here (e.g. development
 # dependencies). Users will be able to install these using the "extras"
 # syntax, for example:
 #
