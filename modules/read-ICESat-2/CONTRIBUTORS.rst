@@ -1,2 +1,0 @@
-- `Matt Siegfried (Colorado School of Mines) <https://geophysics.mines.edu/project/siegfried-matthew/>`_
-- `Tyler Sutterley (University of Washington) <http://psc.apl.uw.edu/people/investigators/tyler-sutterley/>`_

@@ -105,7 +105,7 @@ classifiers = [  # Optional
 # https://packaging.python.org/discussions/install-requires-vs-requirements/    # noqa
 # THIS PROJECT NEEDS MPI PRE-installed IN OUR LOCAL SYSTEM
 dependencies = [ # Optional
- "piecewise_regression",
+  "piecewise_regression",
   "numba",
   "xarray",
   "mpi4py",
@@ -143,7 +143,7 @@ test = ["coverage"]
 # which executes the function `main` from this package when invoked.
 [project.scripts]  # Optional
 #TODO: ADD ANY SCRIPTS WE WANT TO HAVE
-#sample = "sample:main"
+download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
@@ -156,5 +156,6 @@ test = ["coverage"]
 [build-system]
 # These are the assumed default build requirements from pip:
 # https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=43.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["setuptools>=43.0.0", "wheel","hatchling"]
+#build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
