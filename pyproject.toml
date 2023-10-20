@@ -156,6 +156,7 @@ download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
 [build-system]
 # These are the assumed default build requirements from pip:
 # https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=43.0.0", "wheel","hatchling"]
-#build-backend = "setuptools.build_meta"
-build-backend = "hatchling.build"
+#requires = ["setuptools>=43.0.0", "wheel","hatchling"]
+#build-backend = "hatchling.build"
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
