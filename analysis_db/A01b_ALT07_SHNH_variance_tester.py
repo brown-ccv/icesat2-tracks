@@ -12,9 +12,16 @@ This script opens an ATL07 track and tests if there is sufficient data and maybe
 
 # exec(open(os.environ['PYTHONSTARTUP']).read())
 # exec(open(STARTUP_2019_DP).read())
-sys.path
-exec(open(os.environ['PYTHONSTARTUP']).read())
-exec(open(STARTUP_2021_IceSAT2).read())
+#sys.path
+#exec(open(os.environ['PYTHONSTARTUP']).read())
+#exec(open(STARTUP_2021_IceSAT2).read())
+
+sys.path.insert(0, "./modules")
+sys.path.insert(0, "./modules/ICEsat2_SI_tools")
+import config.IceSAT2_startup
+
+#STARTUP_2021_IceSAT2="config/2021_IceSAT2_startup.py"
+#exec(open(STARTUP_2021_IceSAT2).read())
 
 from threadpoolctl import threadpool_info, threadpool_limits
 from pprint import pprint
