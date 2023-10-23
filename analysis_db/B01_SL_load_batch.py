@@ -10,8 +10,7 @@ exec(open(STARTUP_2021_IceSAT2).read())
 
 import geopandas as gpd
 
-from sliderule import icesat2
-from sliderule import sliderule
+from sliderule import sliderule, icesat2, earthdata
 
 import shapely
 from ipyleaflet import basemaps, Map, GeoData
@@ -19,7 +18,7 @@ from ipyleaflet import basemaps, Map, GeoData
 import ICEsat2_SI_tools.sliderule_converter_tools as sct
 import ICEsat2_SI_tools.io as io
 
-import spicke_remover
+#import spicke_remover
 
 import h5py, imp, copy
 
@@ -27,7 +26,6 @@ xr.set_options(display_style='text')
 
 # %matplotlib inline
 # %matplotlib widget
-
 
 plot_flag = True
 load_path_RGT = mconfig['paths']['analysis'] +'../analysis_db/support_files/'
@@ -39,8 +37,9 @@ MT.mkdirs_r(save_path)
 save_path_json = mconfig['paths']['work'] +'/'+ batch_key +'/A01b_ID/'
 
 # %% Configure SL Session #
-icesat2.init("slideruleearth.io", True) 
-asset = 'nsidc-s3'
+
+sliderule.authenticate("brown", ps_username="mhell", ps_password="Oijaeth9quuh")
+icesat2.init("slideruleearth.io", organization="brown", desired_nodes=3, time_to_live=90) #minutes
 
 # %% Select region and retrive batch of tracks
 
@@ -103,11 +102,10 @@ params['t1'] = '2019-05-20T00:00:00'
 #params['t1'] = '2019-06-10T00:00:00'
 
 # get granuale list
-release = '005'
-granules_list = icesat2.cmr(polygon=params['poly'] , time_start=params['t0'], time_end=params['t1'], version=release)
+granules_list = earthdata.cmr(short_name='ATL03', polygon=params['poly'], time_start=params['t0'], time_end=params['t1'],) 
 
 # %% download data from Sliderule
-gdf = icesat2.atl06p(params, asset="nsidc-s3", resources=granules_list)
+gdf = icesat2.atl06p(params, resources=granules_list)
 
 # %%
 imp.reload(sct)
@@ -242,7 +240,7 @@ for rgt in RGT_common:
     ID_name = sct.create_ID_name(tmp.iloc[0])
     print( ID_name )
 
-    #io.write_track_to_HDF5(Ti, ID_name + '_B01_binned'     , save_path) # regridding heights
+    io.write_track_to_HDF5(Ti, ID_name + '_B01_binned'     , save_path) # regridding heights
 
     # save stats
     D_b_size[rgt] = pd.Series( [Ti[k].shape[0] for k in beam_list], name = rgt)
@@ -256,7 +254,7 @@ for rgt in RGT_common:
 print('save Granule list to file')
 #granules_list
 
-#MT.json_save2(name='B01_SL_batch_granule_list', path=save_path_json, data= granules_list)
+MT.json_save2(name='B01_SL_batch_granule_list', path=save_path_json, data= granules_list)
 
 
 print('format tables ')

@@ -70,7 +70,7 @@ track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard
 
 #track_name, batch_key, test_flag = 'NH_20190302_09830203',  'NH_batch06', True
 
-#track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_batchminimal', True 
+#track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_publish', True 
 
 #track_name, batch_key , test_flag = 'SH_20190219_08070210', 'SH_testSLsinglefile2' , True
 #track_name, batch_key , test_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
@@ -88,7 +88,7 @@ load_file   = load_path + 'processed_' + ATlevel + '_' + track_name + '.h5'
 save_path   = mconfig['paths']['work'] + '/'+ batch_key+ '/B02_spectra/'
 save_name   = 'B02_'+track_name
 
-plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + track_name + '/B_spectra/'
+plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + track_name + '/B03_spectra/'
 MT.mkdirs_r(plot_path)
 MT.mkdirs_r(save_path)
 bad_track_path =mconfig['paths']['work'] +'bad_tracks/'+ batch_key+'/'
@@ -210,12 +210,11 @@ for k in all_beams:
 
 xlims   = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
 
-dist_lim = 2000e3 # maximum distanc in the sea ice tha tis analysed:
+# dist_lim = 200e3 # maximum distance analysed in the sea ice:
 
-
-if (xlims[1]- xlims[0]) > dist_lim:
-    xlims = xlims[0], xlims[0]+dist_lim
-    print('-reduced xlims length to ' , xlims[0]+dist_lim , 'm')
+# if (xlims[1]- xlims[0]) > dist_lim:
+#     xlims = xlims[0], xlims[0]+dist_lim
+#     print('-reduced xlims length to ' , xlims[0]+dist_lim , 'm')
 
 #nan_fraction= list()
 for k in all_beams:
@@ -242,17 +241,25 @@ G_rar_fft= dict()
 Pars_optm = dict()
 #imp.reload(spec)
 
-k=all_beams[0]
+k=all_beams[1]
 for k in all_beams:
 
     tracemalloc.start()
     # -------------------------------  use gridded data
+
+    # sliderule version
     hkey= 'h_mean'
+    hkey_sigma = 'h_sigma' 
+
+    #old version
+    # hkey= 'heights'
+    # hkey_sigma = 'heights_c_std'
+
     Gi  = io.get_beam_hdf_store(Gd[k])
     x_mask= (Gi['x']>xlims[0]) & (Gi['x']<xlims[1])
     if sum(x_mask)/ (xlims[1] - xlims[0]) < 0.005:
         print('------------------- not data in beam found; skip')
-        continue
+        #continue
 
     Gd_cut  = Gi[x_mask]
     x       = Gd_cut['x']
@@ -263,16 +270,20 @@ for k in all_beams:
     #xlims   = x.iloc[0], x.iloc[-1]
     dd      = np.copy(Gd_cut[hkey])
 
-    dd_error = np.copy(Gd_cut['h_sigma'])
+    dd_error = np.copy(Gd_cut[hkey_sigma])
+    # plt.hist(dd_error)#, bins=np.linspace(0, 2, 40))
+    # plt.show()
+
     dd_error[np.isnan(dd_error)] = 100
-    #plt.hist(1/dd_weight, bins=40)
-    F = M.figure_axis_xy(6, 3)
-    plt.subplot(2, 1, 1)
+
+    # F = M.figure_axis_xy(6, 3)
+    # plt.subplot(2, 1, 1)
     #plt.plot(x, dd, 'gray', label='displacement (m) ')
 
     # compute slope spectra !!
     dd      = np.gradient(dd)
     dd, _   = spicke_remover.spicke_remover(dd, spreed=10, verbose=False)
+    #dd, _   = spicke_remover.spicke_remover(dd, spreed=30, verbose=True)
     dd_nans = (np.isnan(dd) ) + (Gd_cut['N_photos'] <= 5)
 
     # dd_filled = np.copy(dd)
@@ -284,11 +295,11 @@ for k in all_beams:
     x_no_nans  = x[~dd_nans]
     dd_error_no_nans = dd_error[~dd_nans]
 
-    plt.plot(x_no_nans, dd_no_nans, '.', color=  'black', markersize=1, label='slope (m/m)')
-    plt.legend()
-    #plt.show()
-    plt.close('all')
-
+    #plt.figure()
+    # plt.plot(x_no_nans, dd_no_nans, '.', color=  'black', markersize=1, label='slope (m/m)')
+    # plt.legend()
+    # plt.show()
+    # plt.close('all')
 
     print('gFT')
     #S_pwelch_k2 = np.arange(S_pwelch_k[1], S_pwelch_k[-1], S_pwelch_dk*2 )
@@ -534,5 +545,11 @@ G_fft_DS.attrs['name']= 'FFT_power_spectra'
 G_fft_DS.to_netcdf(save_path+save_name+'_FFT.nc')
 
 print('saved and done')
+
+# %%
+# np.log(G_gFT_DS.mean('beam').gFT_PSD_data).plot()
+# plt.plot(G_gFT_DS.k,  np.log(G_gFT_DS.mean('beam').gFT_PSD_data) )
+# #plt.plot(G_gFT_DS.k,  np.log(G_gFT_DS.mean('beam').model_error_k_cos) )
+# plt.plot(G_fft_DS.k,  np.log(G_fft_DS.mean('beam').power_spec) )
 
 # %%

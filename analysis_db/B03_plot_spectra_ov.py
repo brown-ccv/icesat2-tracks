@@ -405,7 +405,7 @@ MT.mkdirs_r(plot_path+'B03_spectra/')
 
 x_pos_sel =  np.arange(Gk.x.size)[~np.isnan(Gk.mean('beam').mean('k').gFT_PSD_data.data)]
 x_pos_max = Gk.mean('beam').mean('k').gFT_PSD_data[~np.isnan(Gk.mean('beam').mean('k').gFT_PSD_data)].argmax().data
-xpp = x_pos_sel[ [int(i) for i in np.round(np.linspace(0, x_pos_sel.size-1, 4))]]
+xpp = x_pos_sel[ [int(i) for i in np.round(np.linspace(0, x_pos_sel.size-1, 8))]]
 xpp = np.insert(xpp, 0, x_pos_max)
 
 for i in xpp:

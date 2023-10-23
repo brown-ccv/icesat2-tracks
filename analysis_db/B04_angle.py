@@ -61,7 +61,7 @@ track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard
 #track_name, batch_key, test_flag = 'NH_20190301_09580203', 'NH_batch05', True
 #track_name, batch_key, test_flag = 'SH_20190210_06740210', 'SH_publish', True
 #track_name, batch_key, test_flag = 'SH_20190219_08070212', 'SH_batchminimal', True
-track_name, batch_key , test_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
+#track_name, batch_key , test_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
 
 
 
@@ -136,6 +136,9 @@ Pperiod = Pperiod[~np.isnan(list(Pspread))]
 Pdir    = Pdir[~np.isnan(list(Pspread))]
 Pspread = Pspread[~np.isnan(list(Pspread))]
 
+
+# this is a hack since the current data does not have a spread
+Pspread[Pspread ==0] = 20
 
 # reset dirs:
 Pdir[Pdir > 180]    =  Pdir[Pdir > 180] - 360
@@ -528,7 +531,7 @@ for gi in zip(ggg.flatten(), xxx.flatten()):
     k_prime_max= 0.02 #[mask][0] # chose a test wavenumber
     amp_Z= 1
     prior_sel= {'alpha': ( Prior_smth.sel(k =k_prime_max, method='nearest').Prior_direction.data,
-                         Prior_smth.sel(k =k_prime_max, method='nearest').Prior_spread.data) }
+                           Prior_smth.sel(k =k_prime_max, method='nearest').Prior_spread.data) }
     SM.fitting_kargs = fitting_kargs = {'prior': prior_sel , 'prior_weight' : 3 }
     # test if it works
     SM.params.add('K_prime', k_prime_max ,  vary=False  , min=k_prime_max*0.5, max=k_prime_max*1.5)
@@ -636,14 +639,15 @@ for gi in zip(ggg.flatten(), xxx.flatten()):
         k_list = k_list[0:max_wavenumbers]
         weight_list = weight_list[0:max_wavenumbers]
 
-    # A= dict()
-    # for k_pair in zip(k_list, weight_list):
-    #     kk, I = get_instance(k_pair)
-    #     A[kk] = I
+    # # parallel version tends to fail... 
+    # with futures.ProcessPoolExecutor(max_workers=Nworkers) as executor:
+    #     A = dict( executor.map(get_instance, zip(k_list, weight_list)   ))
 
-    with futures.ProcessPoolExecutor(max_workers=Nworkers) as executor:
-        A = dict( executor.map(get_instance, zip(k_list, weight_list)   ))
-
+    A= dict()
+    for k_pair in zip(k_list, weight_list):
+        kk, I = get_instance(k_pair)
+        A[kk] = I
+    
     cost_stack  = dict()
     marginal_stack =dict()
     #fitting_kargs = {'size' :1}
