@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import matplotlib.colors as colors
 import pandas as pd
-from . import utils as utils
 from icesat2_tracks.local_modules import m_colormanager_ph3 as M_color
 from icesat2_tracks.local_modules import m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
@@ -27,7 +26,7 @@ xr.set_options(display_width=80, display_style='text')
 
 ## Read workplace folder and configuration paths
 config_dir_path = os.path.dirname(__file__)
-mconfig=utils.json_load('config',config_dir_path)
+mconfig=MT.json_load('config',config_dir_path)
 
 ## Init folder structure. Create if they dont exist
 curret_wdir = os.getcwd()
