@@ -1,17 +1,9 @@
 {
 
-	"paths": "This file is local, not updated through git",
+	"path": "This file is local, not updated through git",
+  "work_folders" : ["work","downloads","scratch","plot","processed","analysis","targets"],
 	"paths":{
-          "work": "/mnt/c/Projects/Github/icesat2-tracks/work/",
-          "downloads": "/mnt/c/Projects/Github/icesat2-tracks/downloads/",
-          "scratch": "/mnt/c/Projects/Github/icesat2-tracks/scratch",
-          "plot": "/mnt/c/Projects/Github/icesat2-tracks/plots/",
-          "processed": "/mnt/c/Projects/Github/icesat2-tracks/work/processed/",
-          "analysis": "/mnt/c/Projects/Github/icesat2-tracks/analysis/",
-          "local_script": "/mnt/c/Projects/Github/icesat2-tracks/modules/",
-          "config": "/mnt/c/Projects/Github/icesat2-tracks/config/",
-          "targets": "/mnt/c/Projects/Github/icesat2-tracks/targets/",
-          "base": "/mnt/c/Projects/Github/icesat2-tracks/"
+          "workspace": ""
           },
 
     "server":"oscar",

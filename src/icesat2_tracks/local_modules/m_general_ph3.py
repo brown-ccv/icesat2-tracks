@@ -22,7 +22,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import dates
 import datetime as DT
 #from cdo import *   # python version
-#from Chess import <class-name>
 from . import m_tools_ph3 as MT
 import numpy as np
 import matplotlib.pyplot as plt

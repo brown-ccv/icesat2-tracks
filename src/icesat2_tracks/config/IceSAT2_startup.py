@@ -23,33 +23,34 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 import string
 
 import xarray as xr
-#xr.set_options(display_width=80, display_style='text')
+xr.set_options(display_width=80, display_style='text')
 
+## Read workplace folder and configuration paths
+config_dir_path = os.path.dirname(__file__)
+mconfig=utils.json_load('config',config_dir_path)
 
-import sys
-import imp
-import json
+## Init folder structure. Create if they dont exist
+curret_wdir = os.getcwd()
+workspace_base = mconfig["paths"]["workspace"]
 
+## if not set, configure the working directory
+if not workspace_base:
+    workspace_base = os.path.join(curret_wdir,"workspace")
 
+## Make sure the path exists
+if not os.path.exists(workspace_base): 
+    os.mkdir(workspace_base)
 
-# my own libraries:
-#import m_general as M
+## create workspace folder structure
+for folder_name in mconfig["work_folders"]:
+    full_folder_path  = os.path.join(workspace_base,folder_name)
+    if not os.path.exists(full_folder_path): 
+          os.mkdir(full_folder_path)
+    mconfig["paths"].update({folder_name: full_folder_path})
 
-#import AA_plot_base as AA
-# def json_load(name, path, verbose=False):
-   
-#     full_name= (os.path.join(path,name+ '.json'))
-
-#     with open(full_name, 'r') as ifile:
-#         data=json.load(ifile)
-#     if verbose:
-#         print('loaded from: ',full_name)
-#     return data
-
-print("HELLO FROM IceSat2 startup 6666666666666666")
-
-mconfig=utils.json_load('config','/mnt/c/Projects/Github/icesat2-tracks/config/')
-
+# add config path
+mconfig["paths"].update({"config": config_dir_path})
+                 
 # add project depenent libraries
 # sys.path.append(mconfig['paths']['local_script'])
 # sys.path.append(mconfig['paths']['local_script'] +'/ICEsat2_SI_tools/')
@@ -57,7 +58,6 @@ mconfig=utils.json_load('config','/mnt/c/Projects/Github/icesat2-tracks/config/'
 
 # import m_colormanager_ph3 as M_color
 
-print("M_color path"+M_color.__file__)
 # import m_tools_ph3 as MT
 # import m_general_ph3 as M
 
@@ -249,16 +249,4 @@ def font_for_pres():
 # add project depenent libraries
 #sys.path.append(config['paths']['local_script'])
 
-# class icesat2_confi:
-#     _instance = None
-#     def __new__(cls):
-#         if cls._instance is None:
-#             STARTUP_2021_IceSAT2="config/2021_IceSAT2_startup.py"
-#             exec(open(STARTUP_2021_IceSAT2).read())
-#             cls._instance = super(icesat2_confi, cls).__new__(cls)
-#         return cls._instance
 
-def my_function():
-    print("HELLO FROM IceSat2 startup")
-
-my_function()
