@@ -1,1 +1,14 @@
-
+name: Run base code on different python versions
+'on': pull_request
+jobs:
+  python_run_scripts:
+    strategy:
+      matrix:
+        version: [3.9.10, 3.10.12, 3.11.5]
+    runs-on: ubuntu-latest
+    steps:
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }} # install the python version needed
+      - uses: actions/checkout@v3
