@@ -1,3 +1,4 @@
+
 # %%
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
@@ -16,6 +17,8 @@ import h5py
 import ICEsat2_SI_tools.io as io
 import ICEsat2_SI_tools.spectral_estimates as spec
 import ICEsat2_SI_tools.wave_tools as waves
+
+from siphon.catalog import TDSCatalog
 
 
 import imp
@@ -42,6 +45,8 @@ track_name, batch_key, ID_flag = io.init_from_input(sys.argv) # loads standard e
 #track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_publish', True 
 
 #track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_testSLsinglefile2', True 
+#track_name, batch_key , test_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
+
 
 track_name_short = track_name[0:-16]
 
@@ -127,29 +132,46 @@ timestamp       = pd.to_datetime(ID['pars']['start']['delta_time'], unit='s')
 time_range      = np.datetime64(timestamp) - np.timedelta64(dtime, 'h') , np.datetime64(timestamp) + np.timedelta64(dtime, 'h')
 #print(time_range)
 
-# create timestamp according to fiels on ftp server:
-# time_stamps_search = np.arange(time_range[0].astype('datetime64[3h]') - np.timedelta64(12*24, 'h') , time_range[1].astype('datetime64[3h]') +  np.timedelta64(3, 'h'), np.timedelta64(3, 'h'))
-# time_stamps_search_str = [str(t).replace('-', '') for t in time_stamps_search]
+## load WW3 data
+# ECMWF hindcast
+# data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-HINDCAST/IOWAGA-GLOBAL_ECMWF-WW3-HINDCAST_FULL_TIME_SERIE.xml'
+
+# CFSR hindcast
+# data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-HINDCAST/IOWAGA-GLOBAL_CFSR-WW3-HINDCAST_FULL_TIME_SERIE.xml'
+
+# ECMWF forecast
+data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-FORECAST/IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M.xml'
+
+cat = TDSCatalog(data_url)
+
+#ncss = cat.datasets['IOWAGA-GLOBAL_ECMWF-WW3-HINDCAST Full Time Serie'].remote_access(use_xarray=True)
+#ncss = cat.datasets['IOWAGA-GLOBAL_CFSR-WW3-HINDCAST Full Time Serie'].remote_access(use_xarray=True)
+ncss = cat.datasets['IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M_FIELD_NC_MARC_WW3-GLOB-30M'].remote_access(use_xarray=True)
+
+
 
 # %%
-import glob
+var_list = [ 'dir', 'dp','fp', 'hs', 'ice', 'spr',
+'t01', 't02', #'t0m1', 'tws',
+'plp0', 
+'pdir0',  'pdir1',  'pdir2',  'pdir3',  'pdir4',  'pdir5',
+'pspr0',  'pspr1',  'pspr2',  'pspr3',  'pspr4',  'pspr5',
+'ptp0',  'ptp1',  'ptp2',  'ptp3',  'ptp4',  'ptp5',
+'phs0',  'phs1',  'phs2',  'phs3',  'phs4',  'phs5']
 
-if time_range[0].astype('M8[M]') != time_range[1].astype('M8[M]'): # spanning two years
-    MM_str =  str(time_range[0].astype('M8[M]')).replace('-', '_')
-    f_list1 = glob.glob(load_path_WAVE_GLO+'/*'+MM_str+'_'+hemis+'*.nc')
 
-    MM_str =  str(time_range[-1].astype('M8[M]')).replace('-', '_')
-    f_list2 = glob.glob(load_path_WAVE_GLO+'/*'+MM_str+'_'+hemis+'*.nc')
-    f_list = f_list1 + f_list2
-else:
-    MM_str =  str(time_range[0].astype('M8[M]')).replace('-', '_')
-    f_list = glob.glob(load_path_WAVE_GLO+'/*'+MM_str+'_'+hemis+'*.nc')
+# chunk data
+IOWAGA = ncss[var_list]
+IOWAGA['time'] = np.array([np.datetime64(k0) for k0 in IOWAGA.time.data]).astype('M8[h]')
+IOWAGA = IOWAGA.rename(name_dict= { 'pdir0': 'pdp0',  'pdir1': 'pdp1',  'pdir2': 'pdp2',  'pdir3': 'pdp3',  'pdir4': 'pdp4', 'pdir5': 'pdp5'})#, inplace=True)
 
-print(f_list)
+
+
+# %%
 
 def sel_data(I, lon_range, lat_range, timestamp = None):
     """
-    this method returns the selected data inthe lon-lat  box at an interpolated timestamp
+    this method returns the selected data in the lon-lat box at an interpolated timestamp
     """
     lon_flag = (lon_range[0] < I.longitude.data) & (I.longitude.data < lon_range[1])
     lat_flag = (lat_range[0] < I.latitude.data) & (I.latitude.data < lat_range[1])
@@ -157,28 +179,14 @@ def sel_data(I, lon_range, lat_range, timestamp = None):
     if timestamp is None:
         I = I.isel(latitude = lat_flag, longitude = lon_flag)
     else:
-        I = I.interp(time=np.datetime64(timestamp)).isel(latitude = lat_flag, longitude = lon_flag)
-
-    #I = I.isel(latitude = lat_flag, longitude = lon_flag)
+        I = I.isel(latitude = lat_flag, longitude = lon_flag, time=time_flag).sortby('time').interp(time=np.datetime64(timestamp))
     return I
 
-# # %
-# Gww3 = xr.open_mfdataset(load_path_WAVE_GLO+'/*'+'2019_*_'+hemis+'*.nc')
-#
-# font_for_pres()
-# # %%
-# for llat in np.arange(-75, -50, 5):
-#     for llon in np.arange(-170, 180, 20):
-#         Gww3.sel(longitude = llon, latitude = llat).dir.plot.hist(bins= 40)
-#         plt.title( str(llon) +', ' +str(llat) )
-#         plt.show()
-# %
-
+    #I = I.isel(latitude = lat_flag, longitude = lon_flag)
 
 try:
     # load file and load WW# data
-    Gww3 = xr.open_mfdataset(f_list)
-    G_beam  = sel_data(Gww3     , lon_range, lat_range      , timestamp).load()
+    G_beam  = sel_data(IOWAGA     , lon_range, lat_range      , timestamp).load()
     G_prior = sel_data(G_beam   , lon_range, lat_range_prior)
 
 
@@ -245,6 +253,7 @@ try:
     fpos = [0, 1, 2, 3, 4, 5]
     clevs = [np.arange(0, 1, 0.2), dir_clev,           dir_clev,                 np.arange(0, 90, 10), f_clev, np.arange(.5, 9, 0.5) ]
 
+
     font_for_print()
     #plt.rc('pcolor', shading = 'auto')
     F = M.figure_axis_xy(4, 3.5, view_scale= 0.9, container = True)
@@ -292,7 +301,6 @@ try:
 
     F.save_pup(path= plot_path, name =plot_name+'_hindcast_data')
 
-
     # % derive prior:
     #G_beam_masked['dir']
     G_beam_masked = G_beam.where(~ice_mask, np.nan)
@@ -312,21 +320,19 @@ try:
 
     G_prior_masked = G_prior.where(~ice_mask_prior, np.nan)
 
-
-
     ### make pandas table with obs track end postitions
 
     key_list = list(G_prior_masked.keys())
     # define directional and amplitude pairs
     # pack as  (amp, angle)
     key_list_pairs = {
-      'mean': ( 'hs', 'dir'),
-      'peak': ( 'hs', 'dp'),
-      'partion0': ('phs0', 'pdp0'),
-      'partion1': ('phs1', 'pdp1'),
-      'partion2': ('phs2', 'pdp2'),
-      'partion3': ('phs3', 'pdp3'),
-      'partion4': ('phs4', 'pdp4') }
+        'mean': ( 'hs', 'dir'),
+        'peak': ( 'hs', 'dp'),
+        'partion0': ('phs0', 'pdp0'),
+        'partion1': ('phs1', 'pdp1'),
+        'partion2': ('phs2', 'pdp2'),
+        'partion3': ('phs3', 'pdp3'),
+        'partion4': ('phs4', 'pdp4') }
 
 
     key_list_pairs2 =list()
@@ -364,16 +370,25 @@ try:
     Prior['center_lon'] = {'value': Tend['mean']['lon'].astype('float') , 'name': Tend['name']['lon']}
     Prior['center_lat'] = {'value': Tend['mean']['lat'].astype('float') , 'name': Tend['name']['lat']}
 
+    target_name = 'A02_'+track_name+'_hindcast_success'
 
-    def plot_prior(Prior, axx):
-        angle = Prior['incident_angle']['value'] # incident direction in degrees from North clockwise (Meerological convention)
-        # use
-        angle_plot = - angle -90
-        axx.quiver(Prior['center_lon']['value'], Prior['center_lat']['value'],  - np.cos( angle_plot *np.pi/180), - np.sin( angle_plot *np.pi/180) , scale=4.5, zorder =12, width=0.1 ,headlength = 4.5, minshaft=2, alpha = 0.6, color = 'black' )
-        axx.plot(Prior['center_lon']['value'], Prior['center_lat']['value'] , '.', markersize= 6, zorder =12, alpha = 1, color = 'black' )
-        tstring=  ' ' +str(np.round(  Prior['peak_period']['value'], 1) )+'sec \n ' +  str( np.round(Prior['Hs']['value'], 1) )+'m\n ' + str(np.round(angle, 1)) +'deg'
-        plt.text(lon_range[1], Prior['center_lat']['value'], tstring)
+    MT.save_pandas_table({'priors_hindcast':Tend}, save_name, save_path)
+except:
+    target_name = 'A02_'+track_name+'_hindcast_fail'
 
+# %%
+def plot_prior(Prior, axx):
+    angle = Prior['incident_angle']['value'] # incident direction in degrees from North clockwise (Meerological convention)
+    # use
+    angle_plot = - angle -90
+    axx.quiver(Prior['center_lon']['value'], Prior['center_lat']['value'],  - np.cos( angle_plot *np.pi/180), - np.sin( angle_plot *np.pi/180) , scale=4.5, zorder =12, width=0.1 ,headlength = 4.5, minshaft=2, alpha = 0.6, color = 'black' )
+    axx.plot(Prior['center_lon']['value'], Prior['center_lat']['value'] , '.', markersize= 6, zorder =12, alpha = 1, color = 'black' )
+    tstring=  ' ' +str(np.round(  Prior['peak_period']['value'], 1) )+'sec \n ' +  str( np.round(Prior['Hs']['value'], 1) )+'m\n ' + str(np.round(angle, 1)) +'deg'
+    plt.text(lon_range[1], Prior['center_lat']['value'], tstring)
+
+
+try:
+    # plot 2nd figure
 
     font_for_print()
     F = M.figure_axis_xy(2, 4.5, view_scale= 0.9, container = False)
@@ -419,14 +434,9 @@ try:
 
 
     F.save_pup(path= plot_path, name =plot_name+'_hindcast_prior')
-
-    MT.save_pandas_table({'priors_hindcast':Tend}, save_name, save_path)
-
-    target_name = 'A02_'+track_name+'_hindcast_success'
-
 except:
-    target_name = 'A02_'+track_name+'hindcast_fail'
+    print('print 2nd figure failed')
 
 MT.json_save(target_name, save_path, str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) )
 
-# %%
+print('done')

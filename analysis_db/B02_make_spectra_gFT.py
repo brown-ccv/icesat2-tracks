@@ -70,7 +70,12 @@ track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard
 
 #track_name, batch_key, test_flag = 'NH_20190302_09830203',  'NH_batch06', True
 
-#track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_batchminimal', True 
+#track_name, batch_key, test_flag = 'SH_20190219_08070210', 'SH_publish', True 
+
+#track_name, batch_key , test_flag = 'SH_20190219_08070210', 'SH_testSLsinglefile2' , True
+#track_name, batch_key , test_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
+
+
 
 #print(track_name, batch_key, test_flag)
 hemis, batch = batch_key.split('_')
@@ -83,7 +88,7 @@ load_file   = load_path + 'processed_' + ATlevel + '_' + track_name + '.h5'
 save_path   = mconfig['paths']['work'] + '/'+ batch_key+ '/B02_spectra/'
 save_name   = 'B02_'+track_name
 
-plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + track_name + '/B_spectra/'
+plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + track_name + '/B03_spectra/'
 MT.mkdirs_r(plot_path)
 MT.mkdirs_r(save_path)
 bad_track_path =mconfig['paths']['work'] +'bad_tracks/'+ batch_key+'/'
@@ -104,11 +109,12 @@ print('N_process=', N_process)
 Gd = h5py.File(load_path +'/'+track_name + '_B01_binned.h5', 'r')
 #Gd.close()
 
+
 # %% test amount of nans in the data
 
 nan_fraction= list()
 for k in all_beams:
-    heights_c_std = io.get_beam_var_hdf_store(Gd[k], 'dist')
+    heights_c_std = io.get_beam_var_hdf_store(Gd[k], 'x')
     nan_fraction.append( np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0] )
 
 del heights_c_std
@@ -133,7 +139,10 @@ if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
 imp.reload(spec)
 print(Gd.keys())
 Gi =Gd[ list(Gd.keys())[0] ] # to select a test  beam
-dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]] , 'dist')
+dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]] , 'x')
+
+# make dataframe form hdf5
+#Gi = io.get_beam_hdf_store(Gd[list(Gd.keys())[0]])
 
 # derive spectal limits
 # Longest deserved period:
@@ -146,7 +155,7 @@ min_datapoint =  2*np.pi/k_0/dx
 Lpoints     = int(np.round(min_datapoint) * 10 )
 Lmeters     = Lpoints  * dx
 
-#plt.plot(np.diff(np.array(Gi['dist'])))
+#plt.plot(np.diff(np.array(Gi['x'])))
 print('L number of gridpoint:', Lpoints)
 print('L length in km:', Lmeters/1e3)
 print('approx number windows', 2* dist.iloc[-1] /Lmeters-1   )
@@ -169,7 +178,7 @@ print('2 M = ',  kk.size *2 )
 #     #I = G_gFT[k]
 #     I2 = Gd_cut
 #     #plt.plot(I['x_coord'], I['y_coord'], linewidth  =0.3)
-#     plt.plot( I2['x']/1e3, I2['dist']/1e3)
+#     plt.plot( I2['x']/1e3, I2['x']/1e3)
 
 
 # # %%
@@ -194,31 +203,30 @@ print('define global xlims')
 dist_list   = np.array([np.nan, np.nan])
 for k in all_beams:
     print(k)
-    hkey= 'heights_c_weighted_mean'
-    x       = Gd[k+'/dist'][:]
+    hkey= 'h_mean'
+    x       = Gd[k+'/x'][:]
     print(x[0] , x[-1])
     dist_list = np.vstack([ dist_list, [ x[0] , x[-1] ]  ])
 
 xlims   = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
 
-dist_lim = 2000e3 # maximum distanc in the sea ice tha tis analysed:
+# dist_lim = 200e3 # maximum distance analysed in the sea ice:
 
-
-if (xlims[1]- xlims[0]) > dist_lim:
-    xlims = xlims[0], xlims[0]+dist_lim
-    print('-reduced xlims length to ' , xlims[0]+dist_lim , 'm')
+# if (xlims[1]- xlims[0]) > dist_lim:
+#     xlims = xlims[0], xlims[0]+dist_lim
+#     print('-reduced xlims length to ' , xlims[0]+dist_lim , 'm')
 
 #nan_fraction= list()
 for k in all_beams:
-    dist_i = io.get_beam_var_hdf_store(Gd[k], 'dist')
+    dist_i = io.get_beam_var_hdf_store(Gd[k], 'x')
     x_mask= (dist_i>xlims[0]) & (dist_i<xlims[1])
-    print(k, sum(x_mask['dist'])/ (xlims[1] - xlims[0]) )
+    print(k, sum(x_mask['x'])/ (xlims[1] - xlims[0]) )
 #     #nan_fraction.append( np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0] )
 #
 
 #print('!!!!!!!!!!!! test run')
-#print( '-reduced xlims')
-#xlims = xlims[0],xlims[1]/2
+# print( '-reduced xlims')
+# xlims = xlims[0],xlims[1]/2
 print('-reduced frequency resolution')
 kk= kk[::2]
 #print('-reduced number of beams')
@@ -233,20 +241,28 @@ G_rar_fft= dict()
 Pars_optm = dict()
 #imp.reload(spec)
 
-k=all_beams[0]
+k=all_beams[1]
 for k in all_beams:
 
     tracemalloc.start()
     # -------------------------------  use gridded data
-    hkey= 'heights_c_weighted_mean'
+
+    # sliderule version
+    hkey= 'h_mean'
+    hkey_sigma = 'h_sigma' 
+
+    #old version
+    # hkey= 'heights'
+    # hkey_sigma = 'heights_c_std'
+
     Gi  = io.get_beam_hdf_store(Gd[k])
-    x_mask= (Gi['dist']>xlims[0]) & (Gi['dist']<xlims[1])
+    x_mask= (Gi['x']>xlims[0]) & (Gi['x']<xlims[1])
     if sum(x_mask)/ (xlims[1] - xlims[0]) < 0.005:
         print('------------------- not data in beam found; skip')
-        continue
+        #continue
 
     Gd_cut  = Gi[x_mask]
-    x       = Gd_cut['dist']
+    x       = Gd_cut['x']
     del Gi
     # cut data:
     x_mask= (x>=xlims[0]) & (x<=xlims[1])
@@ -254,16 +270,20 @@ for k in all_beams:
     #xlims   = x.iloc[0], x.iloc[-1]
     dd      = np.copy(Gd_cut[hkey])
 
-    dd_error = np.copy(Gd_cut['heights_c_std'])
+    dd_error = np.copy(Gd_cut[hkey_sigma])
+    # plt.hist(dd_error)#, bins=np.linspace(0, 2, 40))
+    # plt.show()
+
     dd_error[np.isnan(dd_error)] = 100
-    #plt.hist(1/dd_weight, bins=40)
-    F = M.figure_axis_xy(6, 3)
-    plt.subplot(2, 1, 1)
+
+    # F = M.figure_axis_xy(6, 3)
+    # plt.subplot(2, 1, 1)
     #plt.plot(x, dd, 'gray', label='displacement (m) ')
 
     # compute slope spectra !!
     dd      = np.gradient(dd)
     dd, _   = spicke_remover.spicke_remover(dd, spreed=10, verbose=False)
+    #dd, _   = spicke_remover.spicke_remover(dd, spreed=30, verbose=True)
     dd_nans = (np.isnan(dd) ) + (Gd_cut['N_photos'] <= 5)
 
     # dd_filled = np.copy(dd)
@@ -275,10 +295,11 @@ for k in all_beams:
     x_no_nans  = x[~dd_nans]
     dd_error_no_nans = dd_error[~dd_nans]
 
-    plt.plot(x_no_nans, dd_no_nans, '.', color=  'black', markersize=1, label='slope (m/m)')
-    plt.legend()
-    plt.show()
-
+    #plt.figure()
+    # plt.plot(x_no_nans, dd_no_nans, '.', color=  'black', markersize=1, label='slope (m/m)')
+    # plt.legend()
+    # plt.show()
+    # plt.close('all')
 
     print('gFT')
     #S_pwelch_k2 = np.arange(S_pwelch_k[1], S_pwelch_k[-1], S_pwelch_dk*2 )
@@ -355,9 +376,9 @@ for k in all_beams:
     GG.coords['spec_adjust']                = (('x', 'beam' ), np.expand_dims(GG['spec_adjust'], 1))
 
     # add more coodindates to the Dataset
-    x_coord_no_gaps = linear_gap_fill( Gd_cut, 'dist', 'x' )
-    y_coord_no_gaps = linear_gap_fill( Gd_cut, 'dist', 'y' )
-    mapped_coords = spec.sub_sample_coords(Gd_cut['dist'], x_coord_no_gaps, y_coord_no_gaps, S.stancil_iter , map_func = None )
+    x_coord_no_gaps = linear_gap_fill( Gd_cut, 'x', 'x' )
+    y_coord_no_gaps = linear_gap_fill( Gd_cut, 'x', 'y' )
+    mapped_coords = spec.sub_sample_coords(Gd_cut['x'], x_coord_no_gaps, y_coord_no_gaps, S.stancil_iter , map_func = None )
 
     GG.coords['x_coord'] = GG_x.coords['x_coord'] = (('x', 'beam' ), np.expand_dims(mapped_coords[:,1], 1) )
     GG.coords['y_coord'] = GG_x.coords['y_coord'] = (('x', 'beam' ), np.expand_dims(mapped_coords[:,2], 1) )
@@ -369,9 +390,9 @@ for k in all_beams:
         GG.coords['x_coord'][nan_mask] =np.nan
         GG.coords['y_coord'][nan_mask] =np.nan
 
-    lons_no_gaps = linear_gap_fill( Gd_cut, 'dist', 'lons' )
-    lats_no_gaps = linear_gap_fill( Gd_cut, 'dist', 'lats' )
-    mapped_coords = spec.sub_sample_coords(Gd_cut['dist'], lons_no_gaps, lats_no_gaps, S.stancil_iter , map_func = None )
+    lons_no_gaps = linear_gap_fill( Gd_cut, 'x', 'lons' )
+    lats_no_gaps = linear_gap_fill( Gd_cut, 'x', 'lats' )
+    mapped_coords = spec.sub_sample_coords(Gd_cut['x'], lons_no_gaps, lats_no_gaps, S.stancil_iter , map_func = None )
 
     GG.coords['lon'] = GG_x.coords['lon'] = (('x', 'beam' ), np.expand_dims(mapped_coords[:,1], 1) )
     GG.coords['lat'] = GG_x.coords['lat'] =  (('x', 'beam' ), np.expand_dims(mapped_coords[:,2], 1) )
@@ -441,13 +462,14 @@ for k in all_beams:
         plt.plot(G_rar_fft_p.k, G_rar_fft_p[:, G_rar_fft_p['N_per_stancil'] > 10 ].mean('x'), 'darkblue', label='mean FFT')
         #plt.plot(G.k, GG.mean('x'), 'lightblue', label='mean FFT')
         plt.legend()
-        plt.show()
+        #plt.show()
     except:
         pass
     time.sleep(3)
     #F.save_light(path=plot_path, name = 'B02_control_'+k+'_' + track_name)
     #print('saved as '+'B02_control_'+k+'_' + track_name)
     #print(np.isinf(G).sum().data)
+    plt.close('all')
 
 
 del Gd_cut
@@ -523,5 +545,11 @@ G_fft_DS.attrs['name']= 'FFT_power_spectra'
 G_fft_DS.to_netcdf(save_path+save_name+'_FFT.nc')
 
 print('saved and done')
+
+# %%
+# np.log(G_gFT_DS.mean('beam').gFT_PSD_data).plot()
+# plt.plot(G_gFT_DS.k,  np.log(G_gFT_DS.mean('beam').gFT_PSD_data) )
+# #plt.plot(G_gFT_DS.k,  np.log(G_gFT_DS.mean('beam').model_error_k_cos) )
+# plt.plot(G_fft_DS.k,  np.log(G_fft_DS.mean('beam').power_spec) )
 
 # %%

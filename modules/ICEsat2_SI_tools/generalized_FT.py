@@ -34,6 +34,9 @@ def smooth_data_to_weight(dd, m=150):
     weight=weight[2*m:-2*m]
     weight=weight/weight.max()
 
+    # ensure non-negative weights
+    weight[weight<0.02]=0.02
+
     return weight
 
 def get_weights_from_data(x, y, dx, stancil, k, max_nfev, plot_flag=False, method = 'gaussian' ):
@@ -117,6 +120,18 @@ def get_weights_from_data(x, y, dx, stancil, k, max_nfev, plot_flag=False, metho
 
     return weight, params
 
+def define_weight_shutter(weight, k, Ncut=3):
+    "creates masking function to lower high wavenumber weights, Ncut is the numnber by which the spectral peak is multiplied"
+    # Limit high wavenumbers weights
+    weight_shutter = weight * 0 +1
+    ki_cut = weight.argmax()*Ncut # k of peak
+    N_res = weight.size - ki_cut
+    if N_res < 1:
+        return weight_shutter        
+    weight_shutter[ki_cut:] = np.linspace(1, 0, N_res)
+    return weight_shutter
+
+
 def make_xarray_from_dict(D, name, dims, coords):
     import xarray as xr
     D_return = dict()
@@ -146,6 +161,9 @@ def define_weights(stancil, prior, x, y, dx, k, max_nfev, plot_flag=False):
         weight = smooth_data_to_weight(prior)
         weight_name = "smth. from data"
         prior_pars = {'alpha': None, 'amp': None, 'f_max': None, 'gamma':None}
+
+    # Limit high wavenumbers weights
+    weight = weight * define_weight_shutter(weight, k, Ncut=3)
 
     if plot_flag:
         import matplotlib.pyplot as plt
@@ -241,11 +259,12 @@ class wavenumber_spectrogram_gFT(object):
             #x = X[stancil[0]:stancil[-1]]
             x_mask= (stancil[0] <= X) & (X <= stancil[-1])
 
-            print(stancil[1])
+            #print(stancil[1])
             x = X[x_mask]
-            if x.size/Lpoints < 0.1: # if there are not enough photos set results to nan
+            if x.size/Lpoints < 0.40: # if there are not enough photos set results to nan
                 #return stancil[1], self.k*np.nan, np.fft.rfftfreq( int(self.Lpoints), d=self.dx)*np.nan,  x.size
                 #return stancil[1], np.concatenate([self.k*np.nan , self.k*np.nan]), np.nan,  np.nan, np.nan, x.size, False, False
+                print(' -- data density to low, skip stancil')
                 return {    'stancil_center': stancil[1],
                             'p_hat': np.concatenate([self.k*np.nan , self.k*np.nan]),
                             'inverse_stats': np.nan,
@@ -276,15 +295,30 @@ class wavenumber_spectrogram_gFT(object):
             # define error
             err = ERR[x_mask] if ERR is not None else 1
 
+            print( 'compute time weights : ', time.perf_counter() - ta)
 
-            print( 'weights : ', time.perf_counter() - ta)
             ta = time.perf_counter()
             FT.define_problem(weight, err) # 1st arg is Penalty, 2nd is error
 
             # solve problem:
             p_hat = FT.solve()
 
-            print( 'solve : ', time.perf_counter() - ta)
+            if np.isnan(np.mean(p_hat)):
+                print(' -- inversion nan!')
+                print(' -- data fraction', x.size/Lpoints)
+                print(' -- weights:', np.mean(weight), 'err:', np.mean(err), 'y:', np.mean(y) )
+                print(' -- skip stancil')
+                return {    'stancil_center': stancil[1],
+                            'p_hat': np.concatenate([self.k*np.nan , self.k*np.nan]),
+                            'inverse_stats': np.nan,
+                            'y_model_grid': np.nan,
+                            'y_data_grid': np.nan,
+                            'x_size': x.size,
+                            'PSD': False,
+                            'weight': False,
+                            'spec_adjust': np.nan}
+
+            print( 'compute time solve : ', time.perf_counter() - ta)
             ta = time.perf_counter()
 
             x_pos               = (np.round( (x - stancil[0])/ self.dx , 0) ).astype('int')
@@ -296,7 +330,7 @@ class wavenumber_spectrogram_gFT(object):
             y_data_grid = np.copy(eta) *np.nan
             y_data_grid[x_pos] = y
 
-            inverse_stats = FT.get_stats(self.dk, Lpoints_full, print_flag=True)
+            inverse_stats = FT.get_stats(self.dk, Lpoints_full, print_flag=plot_flag)
             # add fitting parameters of Prior to stats dict
             for k,I in prior_pars.items():
                 try:
@@ -304,18 +338,19 @@ class wavenumber_spectrogram_gFT(object):
                 except:
                     inverse_stats[k] = np.nan
             
-            print( 'stats : ', time.perf_counter() - ta)
+            print( 'compute time stats : ', time.perf_counter() - ta)
             # Z = complex_represenation(p_hat, FT.M, Lpoints )
 
             # multiply with the standard deviation of the data to get dimensions right
             PSD = power_from_model(p_hat, dk,  self.k.size,  x.size,  Lpoints) #Z_to_power_gFT(p_hat, dk, x.size,  Lpoints )
             
-            if self.k.size*2 > x.size:
-                col = 'red'
-            else:
-                col= 'blue'
 
             if plot_flag:
+                if self.k.size*2 > x.size:
+                    col = 'red'
+                else:
+                    col= 'blue'
+
                 #PSD_nondim = power_from_model(p_hat , dk,  self.k.size,  x.size,  Lpoints) #Z_to_power_gFT(p_hat, dk, x.size,  Lpoints )
                 plt.plot(self.k, PSD, color=col , label= 'GFT fit', linewidth = 0.5)
                 plt.title( 'non-dim Spectral Segment Models, 2M='+ str(self.k.size*2) + ', N='+ str(x.size) +'\n@ $X_i=$'+str(round(stancil[1]/1e3, 1)) +'km' , loc='left', size=6)
@@ -349,34 +384,40 @@ class wavenumber_spectrogram_gFT(object):
 
 
         # % derive L2 stancil
-        self.stancil_iter = spec.create_chunk_boundaries_unit_lengths(Lmeters, self.xlims, ov= self.ov, iter_flag=True)
+        self.stancil_iter_list = spec.create_chunk_boundaries_unit_lengths(Lmeters, self.xlims, ov= self.ov, iter_flag=False)
+        self.stancil_iter = iter(self.stancil_iter_list.T.tolist())
         #stancil_iter = create_chunk_boundaries_unit_lengths(L, ( np.round(X.min()), X.max() ), ov= self.ov, iter_flag=True)
+
 
         # apply func to all stancils
         Spec_returns=list()
         # form: PSD_from_GFT, weight_used in inversion
         prior= False, False
 
+        N_stencil  = len(self.stancil_iter_list.T)
+        Ni= 1
         for ss in copy.copy(self.stancil_iter):
-            #print(ss)
+            print(Ni, '/' , N_stencil, 'Stancils')
             #prior= False, False
             # prior step
             if prior[0] is False: # make NL fit of piors do not exist
-                print('1st step with NL-fit')
+                print('1st step: with NL-fit')
                 I_return = calc_gFT_apply(ss, prior=prior)
                 prior = I_return['PSD'], I_return['weight'] #I_return[6], I_return[7]
 
             # 2nd step
             if prior[0] is False:
-                print('priors still false skip 2nd step')
+                print('1st GFD failed (priors[0]=false), skip 2nd step')
             else:
-                print('2nd step use set priors:', type(prior[0]), type(prior[0]) )
+                print('2nd step: use set priors:', type(prior[0]), type(prior[1]) )
+                print(prior[0][0:3], prior[1][0:3])
                 I_return = calc_gFT_apply(ss, prior=prior)
                 prior = I_return['PSD'], I_return['weight'] # I_return[6], I_return[7]
 
             #print(I_return[6])
             Spec_returns.append( dict((k, I_return[k]) for k in ('stancil_center', 'p_hat', 'inverse_stats', 'y_model_grid', 'y_data_grid', 'x_size', 'spec_adjust', 'weight')))
             #Spec_returns.append( [I_return[0],I_return[1],I_return[2],I_return[3],I_return[4],I_return[5]] )
+            Ni += 1
 
         # map_func = map if map_func is None else map_func
         # print(map_func)

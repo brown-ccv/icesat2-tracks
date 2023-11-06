@@ -10,8 +10,7 @@ exec(open(STARTUP_2021_IceSAT2).read())
 
 import geopandas as gpd
 
-from sliderule import icesat2
-from sliderule import sliderule
+from sliderule import sliderule, icesat2, earthdata
 
 import shapely
 from ipyleaflet import basemaps, Map, GeoData
@@ -19,7 +18,7 @@ from ipyleaflet import basemaps, Map, GeoData
 import ICEsat2_SI_tools.sliderule_converter_tools as sct
 import ICEsat2_SI_tools.io as io
 
-import spicke_remover
+#import spicke_remover
 
 import h5py, imp, copy
 
@@ -28,7 +27,6 @@ xr.set_options(display_style='text')
 # %matplotlib inline
 # %matplotlib widget
 
-
 plot_flag = True
 load_path_RGT = mconfig['paths']['analysis'] +'../analysis_db/support_files/'
 
@@ -36,14 +34,17 @@ batch_key = 'SH_testSL'
 save_path  = mconfig['paths']['work'] +'/'+batch_key+'/B01_regrid/'
 MT.mkdirs_r(save_path)
 
+save_path_json = mconfig['paths']['work'] +'/'+ batch_key +'/A01b_ID/'
+
 # %% Configure SL Session #
-icesat2.init("slideruleearth.io", True) 
-asset = 'nsidc-s3'
+
+sliderule.authenticate("brown", ps_username="mhell", ps_password="Oijaeth9quuh")
+icesat2.init("slideruleearth.io", organization="brown", desired_nodes=3, time_to_live=90) #minutes
 
 # %% Select region and retrive batch of tracks
 
 # Southern Hemisphere test
-latR, lonR = [-67.2, -64.3], [140.0, 155.0]
+latR, lonR = [-67.2, -62], [140.0, 155.0]
 
 # Northern Hemisphere test
 #latR, lonR = [65.0, 75.0], [140.0, 155.0]
@@ -101,11 +102,10 @@ params['t1'] = '2019-05-20T00:00:00'
 #params['t1'] = '2019-06-10T00:00:00'
 
 # get granuale list
-release = '005'
-granules_list = icesat2.cmr(polygon=params['poly'] , time_start=params['t0'], time_end=params['t1'], version=release)
+granules_list = earthdata.cmr(short_name='ATL03', polygon=params['poly'], time_start=params['t0'], time_end=params['t1'],) 
 
 # %% download data from Sliderule
-gdf = icesat2.atl06p(params, asset="nsidc-s3", resources=granules_list)
+gdf = icesat2.atl06p(params, resources=granules_list)
 
 # %%
 imp.reload(sct)
@@ -121,7 +121,7 @@ if plot_flag:
 
 def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     """
-    converts a GeoDataFrame from Sliderule to GeoDataFrames for each beam witht the correct columns and names
+    converts a GeoDataFrame from Sliderule to GeoDataFrames for each beam with the correct columns and names
     inputs:
         table_data: GeoDataFrame with the data
         split_by_beam: True/False. If True the data is split by beam
@@ -159,11 +159,66 @@ def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     else:
         return table_data
 
+
+def get_box_latitude_extend(poly):
+    "return in meters the latitude extend of the polygon"
+    return sct.haversine(0, abs(min(poly['lats'])), 0, abs(max(poly['lats'])) ) *1e3
+
+def get_Nmax(poly, resolution):
+    "returns maximum number of bins in the y direction"
+    return np.round(get_box_latitude_extend(poly) / resolution ).astype(int)
+
+
+def create_search_string(track,  cycle):
+    "create search string for granule list"
+    track = str(track).zfill(4)
+    cycle = str(cycle).zfill(2)
+    return '_' + track + cycle 
+
+
+def format_density_table(D_b_size, resolution):
+    "format density table"
+    D_size_mean  = pd.concat(D_b_size, axis=1)/get_Nmax(poly, resolution)
+    D_size_mean.loc['mean'] = D_size_mean.mean(0)
+    D_size_mean.loc['no_data'] = (D_size_mean == 0).sum(0)
+    D_size_mean = D_size_mean.round(2)
+    D_size_mean.loc['no_data'] = D_size_mean.T['no_data'].astype(int)
+
+    D_size_mean.name = 'Datapoint Fraction'
+    return D_size_mean.T
+
+def save_table_as_pdf(formatted_table, save_path, name):
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    # Generate a PNG image of the table using matplotlib
+    F = M.figure_axis_xy(10, 5)# figsize=(10, 10))
+    ax = F.ax #plt.subplots()
+    ax.axis('off')
+    ax.axis('tight')
+    the_table = ax.table(cellText=formatted_table.values, colLabels=formatted_table.columns, rowLabels =formatted_table.index, loc='center', fontsize=24)
+
+    the_table.auto_set_font_size(False)
+    #the_table.set_fontsize(14)
+
+    F.fig.savefig(save_path+ '/'+ name + '.pdf')
+
+
+beam_list = ['gt1l', 'gt1r', 'gt2l', 'gt2r', 'gt3l', 'gt3r']
+# b_size = [Ti[k].size for k in beam_list]
+# b_Nmedian = [Ti[k].N_photos.median() for k in beam_list]
+
+
 imp.reload(sct)
 
 T= dict()
+
+D_b_size = dict()
+D_b_Nmedian = dict()
+D_name = dict()
+D_track = dict()
 for rgt in RGT_common:
     tmp = gdf[gdf['rgt']==rgt]
+
 
     # define reference point and then define 'x'
     table_data = copy.copy(tmp)
@@ -184,8 +239,40 @@ for rgt in RGT_common:
 
     ID_name = sct.create_ID_name(tmp.iloc[0])
     print( ID_name )
+
     io.write_track_to_HDF5(Ti, ID_name + '_B01_binned'     , save_path) # regridding heights
 
+    # save stats
+    D_b_size[rgt] = pd.Series( [Ti[k].shape[0] for k in beam_list], name = rgt)
+    D_b_Nmedian[rgt] = pd.Series( [Ti[k].N_photos.median() for k in beam_list], name = rgt)
 
+    D_name[rgt] = ID_name
+    # search for granule in granule list
+    search_string = create_search_string(rgt, gdf.cycle.unique()[0])
+    D_track[rgt] = [g for g in granules_list if search_string in g][0]
+
+print('save Granule list to file')
+#granules_list
+
+MT.json_save2(name='B01_SL_batch_granule_list', path=save_path_json, data= granules_list)
+
+
+print('format tables ')
+
+D_name = pd.Series(D_name, name='ID_name')
+D_track = pd.Series(D_track, name='granule')
+
+D_size_mean = format_density_table(D_b_size, resolution=params['res'])
+D_size_mean = pd.concat([D_size_mean, D_track , D_name ], axis=1)
+D_size_mean.sort_values('mean', ascending=False).to_html(save_path_json + batch_key + '_point_density.html')
+
+D_b_Nmedian = pd.concat(D_b_Nmedian, axis=1)
+D_b_Nmedian.index = beam_list
+D_b_Nmedian = pd.concat([D_b_Nmedian.T, D_track , D_name ], axis=1)
+D_b_Nmedian.to_html(save_path_json + batch_key + '_photon_density.html')
+
+
+#.to_html(save_path_json + batch_key + '_point_density_sorted.html')
 print('done')
+
 # %%

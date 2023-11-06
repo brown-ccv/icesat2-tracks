@@ -40,8 +40,8 @@ import generalized_FT as gFT
 xr.set_options(display_style='text')
 
 #matplotlib.use('agg')
-%matplotlib inline
-%matplotlib widget
+# %matplotlib inline
+# %matplotlib widget
 
 
 # %% define functions
@@ -107,15 +107,15 @@ hemis, batch = batch_key.split('_')
 all_beams   = mconfig['beams']['all_beams']
 
 load_path_work   = mconfig['paths']['work'] +'/'+ batch_key +'/'
-B2_hdf5    = h5py.File(load_path_work +'B01_regrid'+'/'+ID_name + '_B01_regridded.h5', 'r')
-B3_hdf5    = h5py.File(load_path_work +'B01_regrid'+'/'+ID_name + '_B01_binned.h5', 'r')
+B01r_hdf5    = h5py.File(load_path_work +'B01_regrid'+'/'+ID_name + '_B01_regridded.h5', 'r')
+B01b_hdf5    = h5py.File(load_path_work +'B01_regrid'+'/'+ID_name + '_B01_binned.h5', 'r')
 
-B2, B3 = dict(), dict()
+B01r, B01b = dict(), dict()
 for b in all_beams:
-    B2[b] = io.get_beam_hdf_store(B2_hdf5[b])
-    B3[b] = io.get_beam_hdf_store(B3_hdf5[b])
+    B01r[b] = io.get_beam_hdf_store(B01r_hdf5[b])
+    B01b[b] = io.get_beam_hdf_store(B01b_hdf5[b])
 
-B2_hdf5.close(), B2_hdf5.close()
+B01r_hdf5.close(), B01r_hdf5.close()
 
 
 
@@ -123,7 +123,7 @@ B2_hdf5.close(), B2_hdf5.close()
 
 # Configure Session #
 #icesat2.init("icesat2sliderule.org", True)
-icesat2.init("slideruleearth.io", True) #doesn't work
+icesat2.init("slideruleearth.io", True) 
 asset = 'nsidc-s3'
 
 # %%
@@ -197,7 +197,7 @@ for llen in [10, 20, 30]:
 # %%
 #for b in all_beams:
 
-def init_compare_figure(B2i, B3i, lims):
+def init_compare_figure(B01ri, B01bi, lims):
 
     F = M.figure_axis_xy(6,4, view_scale=0.7, container=True)
     grid = F.fig.add_gridspec(2, 4, wspace=0.1, hspace=0.8)
@@ -212,15 +212,15 @@ def init_compare_figure(B2i, B3i, lims):
 
     # init basic data
     plt.sca(axx[1])
-    plt.plot( B2i.lats, B2i.heights, '.', color = 'gray', markersize=0.8, alpha = 0.6)
-    plt.plot( B3i.lats, B3i.heights, '-k', lw=0.8, label='B03 H&H 2023', zorder=12)
-    #plt.plot( B3i.lats, B3i.heights, '.k', markersize = 1.2)
+    plt.plot( B01ri.lats, B01ri.heights, '.', color = 'gray', markersize=0.8, alpha = 0.6)
+    plt.plot( B01bi.lats, B01bi.heights, '-k', lw=0.8, label='B01_binned H&H 2023', zorder=12)
+    #plt.plot( B01bi.lats, B01bi.heights, '.k', markersize = 1.2)
 
 
     plt.sca(axx[2])
-    B3i_gradient = -np.gradient(B3i.heights_c_weighted_mean)
-    # plt.plot( B2i.lats, B2i.heights_c, '.k', markersize=0.5)
-    plt.plot( B3i.lats, B3i_gradient, '-k', lw=0.8, label='B03 H&H 2023', zorder=12)
+    B01bi_gradient = -np.gradient(B01bi.heights_c_weighted_mean)
+    # plt.plot( B01ri.lats, B01ri.heights_c, '.k', markersize=0.5)
+    plt.plot( B01bi.lats, B01bi_gradient, '-k', lw=0.8, label='B01_binned H&H 2023', zorder=12)
 
 
     axx[1].set_title('Height Timeseries', loc='left')
@@ -239,7 +239,7 @@ def init_compare_figure(B2i, B3i, lims):
     #axx[4].set_xlabel('Gradient')
     #axx[4].set_ylabel('Gradient')
 
-    return F, axx, B3i_gradient
+    return F, axx, B01bi_gradient
 
 # %%
 def add_data(axx, data, delta_y, dx,  color, label, alpha=1.0, scatter=True):
@@ -253,39 +253,39 @@ def add_data(axx, data, delta_y, dx,  color, label, alpha=1.0, scatter=True):
     axx[2].plot( data_x, data_dx, color, lw=1.2, label=label, alpha=alpha)
 
     if scatter:
-        if B3i.heights.size > h_mean.size:
-            axx[3].scatter( B3i.heights[0:-1], h_mean, 1, c=color, label=label)
-            axx[4].scatter( B3i_gradient[0:-1], data_dx, 1, c=color , label=label)
+        if B01bi.heights.size > h_mean.size:
+            axx[3].scatter( B01bi.heights[0:-1], h_mean, 1, c=color, label=label)
+            axx[4].scatter( B01bi_gradient[0:-1], data_dx, 1, c=color , label=label)
         else:
-            axx[3].scatter( B3i.heights, h_mean, 1, c=color, label=label)
-            axx[4].scatter( B3i_gradient, data_dx, 1, c=color , label=label)
+            axx[3].scatter( B01bi.heights, h_mean, 1, c=color, label=label)
+            axx[4].scatter( B01bi_gradient, data_dx, 1, c=color , label=label)
 
     axx[3].plot( h_mean, h_mean, '-k', lw=0.5)
-    axx[4].plot( B3i_gradient[0:-1], B3i_gradient[0:-1] , '-k', lw=0.5)
+    axx[4].plot( B01bi_gradient[0:-1], B01bi_gradient[0:-1] , '-k', lw=0.5)
 
 
 b, spot = 'gt1r', 2
-B3i = B3[b][3:110]
+B01bi = B01b[b][3:110]
 
 # b, spot = 'gt3r', 6
-# B3i = B3[b][2:102]
+# B01bi = B01b[b][2:102]
 
-lims = [B3i.lats.min(),  B3i.lats.max() ] 
+lims = [B01bi.lats.min(),  B01bi.lats.max() ] 
 # select data given limits
-B2i           = select_beam_section(B2, b, lims)
+B01ri           = select_beam_section(B01r, b, lims)
 
-F, axx,B3i_gradient = init_compare_figure(B2i, B3i, lims)
+F, axx,B01bi_gradient = init_compare_figure(B01ri, B01bi, lims)
 
 ## add more data
-B3_atl06_native = select_beam_section(ATL06_native[20], spot, lims)
-B3_atl06_yapc   = select_beam_section(ATL06_yapc[20], spot, lims)
+B01b_atl06_native = select_beam_section(ATL06_native[20], spot, lims)
+B01b_atl06_yapc   = select_beam_section(ATL06_yapc[20], spot, lims)
 
 delta_y = 0.0
-add_data(axx, B3_atl06_native, delta_y,10,  'orange', 'ATL06 +'+str(delta_y), alpha=0.8, scatter=False) 
-#axx[2].plot(B3_atl06_native.geometry.y, -np.gradient(B3_atl06_native.h_mean)+0.02, 'darkgreen' )
+add_data(axx, B01b_atl06_native, delta_y,10,  'orange', 'ATL06 +'+str(delta_y), alpha=0.8, scatter=False) 
+#axx[2].plot(B01b_atl06_native.geometry.y, -np.gradient(B01b_atl06_native.h_mean)+0.02, 'darkgreen' )
 
-add_data(axx, B3_atl06_yapc, delta_y, 10,  'g', 'ATL06 YAPC +'+str(delta_y), alpha=0.8, scatter=False) 
-#axx[2].plot(B3_atl06_yapc.geometry.y, -np.gradient(B3_atl06_yapc.h_mean) - 0.02 , 'lightgreen' )
+add_data(axx, B01b_atl06_yapc, delta_y, 10,  'g', 'ATL06 YAPC +'+str(delta_y), alpha=0.8, scatter=False) 
+#axx[2].plot(B01b_atl06_yapc.geometry.y, -np.gradient(B01b_atl06_yapc.h_mean) - 0.02 , 'lightgreen' )
 
 axx[1].legend(ncol=3)
 F.fig.suptitle('ATL06 native vs. YAPC')
@@ -294,32 +294,36 @@ plt.show()
 
 F.save_light(name ='SlideRule_ATL06_compare_weak', path=plot_path)
 
+B01bi.T
+B01b_atl06_native.T
+B01b_atl06_native['geometry'].x
+B01b_atl06_native['geometry'].y
 
 # %% Test windowing ATL06_native
 
 #b, spot = 'gt3r', 6
 b, spot = 'gt1r', 2
 
-B3i = B3[b][3:110]
-lims = [B3i.lats.min(),  B3i.lats.max() ] 
+B01bi = B01b[b][3:110]
+lims = [B01bi.lats.min(),  B01bi.lats.max() ] 
 # select data given limits
-B2i           = select_beam_section(B2, b, lims)
+B01ri           = select_beam_section(B01r, b, lims)
 
-F, axx, B3i_gradient = init_compare_figure(B2i, B3i, lims)
+F, axx, B01bi_gradient = init_compare_figure(B01ri, B01bi, lims)
 
 ## add data
 delta_y=0.0
 for ll,ccol in zip([10, 20, 30], ['green', 'darkorange', 'red']):
-    B3_atl06_native = select_beam_section(ATL06_native[ll], spot, lims)
+    B01b_atl06_native = select_beam_section(ATL06_native[ll], spot, lims)
 
     delta_y += 0.1
-    add_data(axx, B3_atl06_native, delta_y,10,  ccol, 'len='+ str(ll) +'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
-    #axx[2].plot(B3_atl06_native.geometry.y, -np.gradient(B3_atl06_native.h_mean)+0.02, 'darkgreen' )
+    add_data(axx, B01b_atl06_native, delta_y,10,  ccol, 'len='+ str(ll) +'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
+    #axx[2].plot(B01b_atl06_native.geometry.y, -np.gradient(B01b_atl06_native.h_mean)+0.02, 'darkgreen' )
 
 axx[1].legend(ncol=3)
 
-axx[1].set_ylim(B3i.heights.min(), B3i.heights.max()+0.2)
-axx[2].set_ylim( np.nanmin(B3i_gradient), np.nanmax(B3i_gradient))
+axx[1].set_ylim(B01bi.heights.min(), B01bi.heights.max()+0.2)
+axx[2].set_ylim( np.nanmin(B01bi_gradient), np.nanmax(B01bi_gradient))
 F.fig.suptitle('ATL06 native')
 
 F.save_light(name ='SlideRule_ATL06_native_window_weak', path=plot_path)
@@ -330,26 +334,26 @@ plt.show()
 
 b, spot = 'gt1r', 2
 
-B3i = B3[b][3:102]
-lims = [B3i.lats.min(),  B3i.lats.max() ] 
+B01bi = B01b[b][3:102]
+lims = [B01bi.lats.min(),  B01bi.lats.max() ] 
 # select data given limits
-B2i           = select_beam_section(B2, b, lims)
+B01ri           = select_beam_section(B01r, b, lims)
 
-F, axx, B3i_gradient = init_compare_figure(B2i, B3i, lims)
+F, axx, B01bi_gradient = init_compare_figure(B01ri, B01bi, lims)
 
 ## add data
 delta_y=0.0
 for ll,ccol in zip([10, 20, 30], ['green', 'darkorange', 'red']):
-    B3_atl06_yapc = select_beam_section(ATL06_yapc[ll], spot, lims)
+    B01b_atl06_yapc = select_beam_section(ATL06_yapc[ll], spot, lims)
 
     delta_y += 0.1
-    add_data(axx, B3_atl06_yapc, delta_y,10,  ccol, 'len='+str(ll)+'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
-    #axx[2].plot(B3_atl06_native.geometry.y, -np.gradient(B3_atl06_native.h_mean)+0.02, 'darkgreen' )
+    add_data(axx, B01b_atl06_yapc, delta_y,10,  ccol, 'len='+str(ll)+'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
+    #axx[2].plot(B01b_atl06_native.geometry.y, -np.gradient(B01b_atl06_native.h_mean)+0.02, 'darkgreen' )
 
 axx[1].legend(ncol=3)
 
-axx[1].set_ylim(B3i.heights.min(), B3i.heights.max()+0.2)
-axx[2].set_ylim( np.nanmin(B3i_gradient), np.nanmax(B3i_gradient))
+axx[1].set_ylim(B01bi.heights.min(), B01bi.heights.max()+0.2)
+axx[2].set_ylim( np.nanmin(B01bi_gradient), np.nanmax(B01bi_gradient))
 F.fig.suptitle('ATL06 YAPC')
 plt.show()
 #F.save_light(name ='SlideRule_ATL06_yapc_window_weak', path=plot_path)
@@ -411,46 +415,46 @@ for wwin_h  in [0, 10, 20]:
 # %%
 
 b, spot = 'gt1r', 2
-B3i = B3[b][3:102]
-lims = [B3i.lats.min(),  B3i.lats.max() ] 
+B01bi = B01b[b][3:102]
+lims = [B01bi.lats.min(),  B01bi.lats.max() ] 
 # select data given limits
-B2i           = select_beam_section(B2, b, lims)
+B01ri           = select_beam_section(B01r, b, lims)
 
-F, axx, B3i_gradient = init_compare_figure(B2i, B3i, lims)
+F, axx, B01bi_gradient = init_compare_figure(B01ri, B01bi, lims)
 
 ## add data
 delta_y=0.0
 for ll,ccol in zip( list(ATL06_yapc_winx.keys()) , ['green', 'darkorange', 'red']):
-    B3_atl06_yapc = select_beam_section(ATL06_yapc_winx[ll], spot, lims)
+    B01b_atl06_yapc = select_beam_section(ATL06_yapc_winx[ll], spot, lims)
 
     delta_y += 0.0
-    add_data(axx, B3_atl06_yapc, delta_y,10,  ccol, 'win_x='+str(ll)+'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
-    #axx[2].plot(B3_atl06_native.geometry.y, -np.gradient(B3_atl06_native.h_mean)+0.02, 'darkgreen' )
+    add_data(axx, B01b_atl06_yapc, delta_y,10,  ccol, 'win_x='+str(ll)+'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
+    #axx[2].plot(B01b_atl06_native.geometry.y, -np.gradient(B01b_atl06_native.h_mean)+0.02, 'darkgreen' )
 
 axx[1].legend(ncol=2)
 
-axx[1].set_ylim(B3i.heights.min(), B3i.heights.max()+0.2)
-axx[2].set_ylim( np.nanmin(B3i_gradient), np.nanmax(B3i_gradient))
+axx[1].set_ylim(B01bi.heights.min(), B01bi.heights.max()+0.2)
+axx[2].set_ylim( np.nanmin(B01bi_gradient), np.nanmax(B01bi_gradient))
 F.fig.suptitle('ATL06 YAPC win_x comapare')
 plt.show()
 
 
 # win_h
-F, axx, B3i_gradient = init_compare_figure(B2i, B3i, lims)
+F, axx, B01bi_gradient = init_compare_figure(B01ri, B01bi, lims)
 
 ## add data
 delta_y=0.0
 for ll,ccol in zip( list(ATL06_yapc_winh.keys()) , ['green', 'darkorange', 'red']):
-    B3_atl06_yapc = select_beam_section(ATL06_yapc_winh[ll], spot, lims)
+    B01b_atl06_yapc = select_beam_section(ATL06_yapc_winh[ll], spot, lims)
 
     delta_y += 0.0
-    add_data(axx, B3_atl06_yapc, delta_y,10,  ccol, 'win_h='+str(ll)+'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
-    #axx[2].plot(B3_atl06_native.geometry.y, -np.gradient(B3_atl06_native.h_mean)+0.02, 'darkgreen' )
+    add_data(axx, B01b_atl06_yapc, delta_y,10,  ccol, 'win_h='+str(ll)+'| +' +str(np.round(delta_y, 2)), alpha=0.8, scatter=False) 
+    #axx[2].plot(B01b_atl06_native.geometry.y, -np.gradient(B01b_atl06_native.h_mean)+0.02, 'darkgreen' )
 
 axx[1].legend(ncol=2)
 
-axx[1].set_ylim(B3i.heights.min(), B3i.heights.max()+0.2)
-axx[2].set_ylim( np.nanmin(B3i_gradient), np.nanmax(B3i_gradient))
+axx[1].set_ylim(B01bi.heights.min(), B01bi.heights.max()+0.2)
+axx[2].set_ylim( np.nanmin(B01bi_gradient), np.nanmax(B01bi_gradient))
 F.fig.suptitle('ATL06 YAPC win_h comapare')
 plt.show()
 
@@ -504,24 +508,24 @@ gdf_seaice = icesat2.atl03s(parms, asset=asset,  resource=track_name)#granules_l
 # %%
 
 b, spot = 'gt1r', 2
-#B3i = B3[b][600:702]
-B3i = B3[b][0:102]
+#B01bi = B01b[b][600:702]
+B01bi = B01b[b][0:102]
 
-lims = [B3i.lats.min(),  B3i.lats.max() ] 
+lims = [B01bi.lats.min(),  B01bi.lats.max() ] 
 # select data given limits
-B2i           = select_beam_section(B2, b, lims)
+B01ri           = select_beam_section(B01r, b, lims)
 
-#F, axx, B3i_gradient = init_compare_figure(B2i, B3i, lims)
+#F, axx, B01bi_gradient = init_compare_figure(B01ri, B01bi, lims)
 
 gdfi           = select_beam_section(gdf, spot, lims)
 gdf_seaicei    = select_beam_section(gdf_seaice, spot, lims)
 
-# Make 1 panel figure with B3i.heights and gdfi.height
+# Make 1 panel figure with B01bi.heights and gdfi.height
 F = M.figure_axis_xy(7.5, 3)
 ax =F.ax
 
-ax.plot( B2i.lats, B2i.heights, '.', color = 'gray', markersize=0.8, alpha = 0.6)
-ax.plot( B3i.lats, B3i.heights, '-k', lw=0.8, label='B03 H&H 2023', zorder=12)
+ax.plot( B01ri.lats, B01ri.heights, '.', color = 'gray', markersize=0.8, alpha = 0.6)
+ax.plot( B01bi.lats, B01bi.heights, '-k', lw=0.8, label='B01_binned H&H 2023', zorder=12)
 
 score_curoff = 10 #230
 mask = gdfi['yapc_score'] > score_curoff
@@ -535,7 +539,7 @@ ax.plot( gdf_seaicei.geometry.y , gdf_seaicei.height, '+', color = 'red', marker
 
 
 plt.ylim( list(gdfi[mask].height.quantile([0.02, 0.98])) )
-#plt.ylim( list(B3i.heights.quantile([0.01, 0.99])) )
+#plt.ylim( list(B01bi.heights.quantile([0.01, 0.99])) )
 
 plt.legend()
 plt.colorbar(hm)

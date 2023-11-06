@@ -52,8 +52,11 @@ def recreate_fft_weights(GG_xi, k):
 #track_name, batch_key, test_flag = '20190215184558_07530210_004_01', 'SH_batch01', False
 
 
-ID_name, batch_key, ID_flag = 'SH_20190502_05160312', 'SH_publish', True
+#ID_name, batch_key, ID_flag = 'SH_20190502_05160312', 'SH_publish', True
 #ID_name, batch_key, ID_flag = 'SH_20190224_08800210', 'SH_publish', True
+
+ID_name, batch_key , ID_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
+
 ID, _, hemis, batch = io.init_data(ID_name, batch_key, ID_flag, mconfig['paths']['work'],  )
 
 #print(track_name, batch_key, test_flag)
@@ -67,7 +70,7 @@ load_file   = load_path + 'processed_' + ATlevel + '_' + ID_name + '.h5'
 save_path   = mconfig['paths']['work'] + '/B02_spectra_'+hemis+'/'
 save_name   = 'B02_'+ID_name
 
-plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + ID_name + '/B_spectra/'
+plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + ID_name + '/B03_spectra/'
 MT.mkdirs_r(plot_path)
 MT.mkdirs_r(save_path)
 bad_track_path =mconfig['paths']['work'] +'bad_tracks/'+ batch_key+'/'
@@ -125,6 +128,9 @@ kk          = kk[k_0<=kk]
 #dk = np.diff(kk).mean()
 print('2 M = ',  kk.size *2 )
 
+print('-reduced frequency resolution')
+kk= kk[::2]
+
 dk *150
 # %%
 
@@ -175,19 +181,20 @@ plt.show()
 
 # %%
 
-xlims = xlims[0], xlims[0] + (xlims[1] -xlims[0])/2
+#xlims = xlims[0], xlims[0] + (xlims[1] -xlims[0])/2
+xlims = 585000, 660000 + 12.5e3
 
 print('gFT')
 font_for_print()
 #S_pwelch_k2 = np.arange(S_pwelch_k[1], S_pwelch_k[-1], S_pwelch_dk*2 )
 imp.reload(gFT)
-S = gFT.wavenumber_spectrogram_gFT( np.array(x_no_nans), np.array(dd_no_nans), Lmeters, dx, kk, data_error = dd_error_no_nans,  ov=None)
+S = gFT.wavenumber_spectrogram_gFT( np.array(x_no_nans), np.array(dd_no_nans), Lmeters, dx, kk, data_error = dd_error_no_nans *1,  ov=None)
 GG, GG_x, Params = S.cal_spectrogram(xlims= xlims, max_nfev = None, plot_flag = True)
 
 
 # %%
 
-xsel= 0
+xsel= 2
 GG_xi = GG_x.isel(x=xsel)
 GGi = GG.isel(x=xsel)
 
@@ -250,34 +257,37 @@ def linear_gap_fill(F, key_lead, key_int):
 
 plot_data_model=True
 if plot_data_model:
-    for i in np.arange(30,60,2):
+    for i in np.arange(0,5,1):
         c1= 'blue'
         c2= 'red'
 
-        GGi = GG.isel(x= i)
 
         xi_1=GG_x.x[i]
         xi_2=GG_x.x[i+1]
         #if k%2 ==0:
 
-        F = M.figure_axis_xy(16, 2)
+        F = M.figure_axis_xy(16, 3)
         eta  = GG_x.eta
 
         # gFT model
-        y_model = GG_x.y_model[:, i]
-        plt.plot(eta +xi_1, y_model ,'-', c=c1, linewidth=0.8, alpha=1, zorder=12)
+        # y_model = GG_x.y_model[:, i]
+        # plt.plot(eta +xi_1, y_model ,'-', c=c1, linewidth=0.8, alpha=1, zorder=12)
         y_model = GG_x.y_model[:, i+1]
         plt.plot(eta +xi_2, y_model,'-', c=c2, linewidth=0.8, alpha=1, zorder=12)
 
         # iterpolated model in gaps
-        FT = gFT.generalized_Fourier(eta +xi_1, None,GG.k )
-        _ = FT.get_H()
-        FT.b_hat=np.concatenate([ GGi.gFT_cos_coeff, GGi.gFT_sin_coeff ])
-        plt.plot(eta +xi_1, FT.model() ,'-', c='orange', linewidth=0.8, alpha=1,zorder= 2)
 
+        # GGi = GG.isel(x= i)
+        # FT = gFT.generalized_Fourier(eta +xi_1, None,GG.k )
+        # _ = FT.get_H()
+        # FT.p_hat=np.concatenate([ GGi.gFT_cos_coeff, GGi.gFT_sin_coeff ])
+        # plt.plot(eta +xi_1, FT.model() ,'-', c='orange', linewidth=0.8, alpha=1,zorder= 2)
+
+
+        GGi = GG.isel(x= i+1)
         FT = gFT.generalized_Fourier(eta +xi_2, None,GG.k )
         _ = FT.get_H()
-        FT.b_hat=np.concatenate([ GGi.gFT_cos_coeff, GGi.gFT_sin_coeff ])
+        FT.p_hat=np.concatenate([ GGi.gFT_cos_coeff, GGi.gFT_sin_coeff ])
         plt.plot(eta +xi_2, FT.model() ,'-', c='orange', linewidth=0.8, alpha=1,zorder= 2)
 
 
@@ -304,12 +314,13 @@ if plot_data_model:
         plt.text(xi_2 + eta[0].data, ylims[-1], '  N='+ str(GG.sel(x=xi_2, method='nearest').N_per_stancil.data) + ' N/2M= '+ str(GG.sel(x=xi_2, method='nearest').N_per_stancil.data/2/kk.size) )
         plt.xlim(xi_1 + eta[0].data*1.2, xi_2 + eta[-1].data*1.2 )
         #plt.xlim(xi_1, xi_2 )
+        plt.title( str(i) + ' | ' + str(np.round(xi_1.data/1e3)) + 'km' , loc ='left')
 
 
         plt.ylim(ylims[0], ylims[-1])
         plt.show()
 
-# %
+# %%
 #S.mean_spectral_error() # add x-mean spectal error estimate to xarray
 S.parceval(add_attrs= True, weight_data=False)
 

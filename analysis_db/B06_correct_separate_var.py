@@ -1,4 +1,4 @@
-
+# %%
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
 
@@ -42,12 +42,12 @@ ID_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard ex
 
 #ID_name, batch_key, test_flag =  'SH_20190208_06440212', 'SH_publish', True
 #ID_name, batch_key, test_flag =  'SH_20190219_08070210', 'SH_publish', True
-ID_name, batch_key, test_flag =  'SH_20190502_05160312', 'SH_publish', True
+#ID_name, batch_key, test_flag =  'SH_20190502_05160312', 'SH_publish', True
 
 #ID_name, batch_key, test_flag =  'NH_20190311_11200203', 'NH_batch06', True
 #ID_name, batch_key, test_flag =  'NH_20210312_11961005', 'NH_batch07', True
 
-
+#ID_name, batch_key , test_flag = 'SH_20190502_05180312', 'SH_testSLsinglefile2' , True
 
 #print(ID_name, batch_key, test_flag)
 hemis, batch = batch_key.split('_')
@@ -57,15 +57,16 @@ high_beams  = mconfig['beams']['high_beams']
 low_beams   = mconfig['beams']['low_beams']
 
 load_path_work    = mconfig['paths']['work'] +'/'+ batch_key +'/'
-B2_hdf5    = h5py.File(load_path_work +'B01_regrid'+'/'+ID_name + '_B01_regridded.h5', 'r')
 B3_hdf5    = h5py.File(load_path_work +'B01_regrid'+'/'+ID_name + '_B01_binned.h5', 'r')
 
-B2, B3 = dict(), dict()
+
+load_path_angle   = mconfig['paths']['work'] +'/'+ batch_key +'/B04_angle/'
+
+B3 = dict()
 for b in all_beams:
-    B2[b] = io.get_beam_hdf_store(B2_hdf5[b])
     B3[b] = io.get_beam_hdf_store(B3_hdf5[b])
 
-B2_hdf5.close(), B2_hdf5.close()
+B3_hdf5.close()
 
 # B2          = io.load_pandas_table_dict(ID_name + '_B01_regridded'  , load_path1) # rhis is the rar photon data
 # B3          = io.load_pandas_table_dict(ID_name + '_B01_binned'     , load_path1)  #
@@ -507,7 +508,7 @@ for pos, k, pflag in zip([gs[2:4, 0],gs[2:4, 1],gs[2:4, 2] ], low_beams, [True, 
 F.save_light(path=plot_path, name =str(ID_name) + '_B06_atten_ov_simple')
 F.save_pup(path=plot_path, name = str(ID_name) + '_B06_atten_ov_simple')
 
-# %%
+# %
 pos = gs[5:, 0:2]
 ax0 = F.fig.add_subplot(pos)
 
@@ -633,15 +634,15 @@ for bb in Gx.beam.data:
         dist_stencil_lims_plot = Gx_1.eta[0]*1 + Gx_1.x, Gx_1.eta[-1]*1 + Gx_1.x
 
         T3_sel              = B3[k].loc[( (B3[k]['dist']   >= dist_stencil_lims[0])    & (B3[k]['dist']    <= dist_stencil_lims[1])   )]
-        T2_sel              = B2[k].loc[(  B2[k]['x_true'] >= T3_sel['x_true'].min() ) & ( B2[k]['x_true'] <= T3_sel['x_true'].max()  )]
+        #T2_sel              = B2[k].loc[(  B2[k]['x_true'] >= T3_sel['x_true'].min() ) & ( B2[k]['x_true'] <= T3_sel['x_true'].max()  )]
 
         if T3_sel.shape[0] != 0:
-            if T3_sel['x_true'].iloc[-1] < T3_sel['x_true'].iloc[0]:
-                dist_T2_temp =np.interp(T2_sel['x_true'][::-1], T3_sel['x_true'][::-1],  T3_sel['dist'][::-1] )
-                T2_sel['dist']      = dist_T2_temp[::-1]
-            else:
-                dist_T2_temp =np.interp(T2_sel['x_true'], T3_sel['x_true'],  T3_sel['dist'] )
-                T2_sel['dist']      = dist_T2_temp
+            # if T3_sel['x_true'].iloc[-1] < T3_sel['x_true'].iloc[0]:
+            #     dist_T2_temp =np.interp(T2_sel['x_true'][::-1], T3_sel['x_true'][::-1],  T3_sel['dist'][::-1] )
+            #     T2_sel['dist']      = dist_T2_temp[::-1]
+            # else:
+            #     dist_T2_temp =np.interp(T2_sel['x_true'], T3_sel['x_true'],  T3_sel['dist'] )
+            #     T2_sel['dist']      = dist_T2_temp
 
             height_model, poly_offset, dist_nanmask = reconstruct_displacement(Gx_1, Gk_1, T3_sel, k_thresh = k_thresh)
             poly_offset = poly_offset*0
@@ -718,12 +719,12 @@ for bb in Gx.beam.data:
     continous_nans          = np.interp(continous_x_grid, concented_x, concented_nans ) ==1
 
     T3              = B3[bb]#.loc[( (B3[k]['dist']   >= dist_stencil_lims[0])    & (B3[k]['dist']    <= dist_stencil_lims[1])   )]
-    T2              = B2[bb]#.loc[(  B2[k]['x_true'] >= T3_sel['x_true'].min() ) & ( B2[k]['x_true'] <= T3_sel['x_true'].max()  )]
+    #T2              = B2[bb]#.loc[(  B2[k]['x_true'] >= T3_sel['x_true'].min() ) & ( B2[k]['x_true'] <= T3_sel['x_true'].max()  )]
 
-    T2 = T2.sort_values('x_true')
-    T3 = T3.sort_values('x_true')
-    T2['dist']    = np.interp(T2['x_true'], T3['x_true'],  T3['dist'] )
-    T2 = T2.sort_values('dist')
+    #T2 = T2.sort_values('x_true')
+    T3 = T3.sort_values('x')
+    #T2['dist']    = np.interp(T2['x_true'], T3['x_true'],  T3['dist'] )
+    #T2 = T2.sort_values('dist')
     T3 = T3.sort_values('dist')
 
     #T2              = T2.sort_index()
@@ -733,11 +734,11 @@ for bb in Gx.beam.data:
     T3['heights_c_model_err'] = np.interp(T3['dist'], continous_x_grid, concented_err)
     T3['heights_c_residual']  = T3['heights_c_weighted_mean'] - T3['heights_c_model']
 
-    T2['heights_c_model']     = np.interp(T2['dist'], continous_x_grid, continous_height_model)
-    T2['heights_c_residual']  = T2['heights_c'] - T2['heights_c_model']
+    #T2['heights_c_model']     = np.interp(T2['dist'], continous_x_grid, continous_height_model)
+    #T2['heights_c_residual']  = T2['heights_c'] - T2['heights_c_model']
 
 
-    B2_v2[bb] = T2
+    #B2_v2[bb] = T2
     B3_v2[bb] = T3
     Gx_v2[bb] = Gx_k
 
@@ -769,15 +770,15 @@ for bb in Gx.beam.data:
 
 # %% correct wave incident direction
 
-load_path = mconfig['paths']['work'] + '/B04_angle_'+hemis+'/'
+#load_path = mconfig['paths']['work'] + '/B04_angle/'
 
 try:
-    G_angle = xr.open_dataset(load_path+ '/B05_'+ID_name + '_angle_pdf.nc' )
+    G_angle = xr.open_dataset(load_path_angle+ '/B05_'+ID_name + '_angle_pdf.nc' )
 
     font_for_pres()
 
     Ga_abs = (G_angle.weighted_angle_PDF_smth.isel(angle = G_angle.angle > 0).data + G_angle.weighted_angle_PDF_smth.isel(angle = G_angle.angle < 0).data[:,::-1])/2
-    Ga_abs = xr.DataArray(data=Ga_abs, dims = G_angle.dims, coords=G_angle.isel(angle = G_angle.angle > 0).coords)
+    Ga_abs = xr.DataArray(data=Ga_abs.T, dims = G_angle.dims, coords=G_angle.isel(angle = G_angle.angle > 0).coords)
 
     Ga_abs_front = Ga_abs.isel(x= slice(0, 3))
     Ga_best = ((  Ga_abs_front * Ga_abs_front.N_data ).sum('x')/Ga_abs_front.N_data.sum('x'))
@@ -847,3 +848,5 @@ except:
 
 MT.json_save('B06_success', plot_path + '../', {'time':time.asctime( time.localtime(time.time()) )})
 print('done. saved target at ' + plot_path + '../B06_success' )
+
+# %%
