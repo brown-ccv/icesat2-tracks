@@ -1,6 +1,42 @@
 # ICESAT2 Track Analysis
 
-## Installing on Oscar
+## Installation for Developers
+
+Prerequisites:
+- A POSIX-compatible system (Linux or macOS)
+- Python 3.9 (run `python --version` to check that your version of python is correct)
+- MPI (e.g. from `brew install open-mpi`)
+
+> [!IMPORTANT]  
+> Windows is not supported for development work – use [WSL](https://learn.microsoft.com/en-us/windows/wsl/) on Windows hosts
+
+Installation:
+- Clone the repository:
+  - Navigate to https://github.com/brown-ccv/icesat2-tracks
+  - Click the "<> Code" button and select a method to clone the repository, then follow the prompts
+- Open a shell (bash, zsh) in the repository working directory
+- Create a new virtual environment named `.venv`:
+  ```shell
+  python -m venv .venv
+  ```
+- Activate the environment
+    ```shell
+    source ".venv/bin/activate"
+    ```
+- Upgrade pip
+  ```shell
+  pip install --upgrade pip
+  ```
+- Install or update the environment with the dependencies for this project:
+  ```shell
+  pip install --upgrade --editable ".[dev]"
+  ```
+- Check the module `icesat2_tracks` is available by loading the module:
+  ```shell
+  python -c "import icesat2_tracks; print(icesat2_tracks.__version__)"
+  ```
+
+## Installing on Oscar (Deprecated)
 
 If any of these commands fail, check the conda configuration (listed below) before retrying for possible fixes.
 
