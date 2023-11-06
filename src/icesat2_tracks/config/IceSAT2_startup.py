@@ -36,16 +36,6 @@ for folder_name, folder_path  in mconfig["paths"].items():
 
 # add config path
 mconfig["paths"].update({"config": config_dir_path})
-                 
-# add project depenent libraries
-# sys.path.append(mconfig['paths']['local_script'])
-# sys.path.append(mconfig['paths']['local_script'] +'/ICEsat2_SI_tools/')
-
-
-# import m_colormanager_ph3 as M_color
-
-# import m_tools_ph3 as MT
-# import m_general_ph3 as M
 
 #load colorscheme
 col=M_color.color(path=mconfig['paths']['config'], name='color_def')

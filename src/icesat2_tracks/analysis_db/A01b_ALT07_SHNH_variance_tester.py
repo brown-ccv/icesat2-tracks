@@ -60,7 +60,6 @@ hemis, batch = batch_key.split('_')
 
 ATlevel= 'ATL07-02' if hemis == 'SH' else 'ATL07-01'
 load_path   = config.mconfig['paths']['scratch'] +'/'+ batch_key +'/'
-print("load path: "+load_path)
 load_file   = load_path + ATlevel+'_'+track_name+'.h5'
 
 save_path  = config.mconfig['paths']['work'] +'/'+ batch_key +'/A01b_ID/'
