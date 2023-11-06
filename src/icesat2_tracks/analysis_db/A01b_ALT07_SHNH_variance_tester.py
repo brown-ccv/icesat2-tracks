@@ -1,6 +1,6 @@
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
-from icesat2_tracks.config import IceSAT2_startup as config
+from icesat2_tracks.config.IceSAT2_startup import mconfig
 """
 This script opens an ATL07 track and tests if there is sufficient data and maybe waves:
 1) disects each beam such that they start in the MIZ and end at the pole.
@@ -59,12 +59,12 @@ hemis, batch = batch_key.split('_')
 #track_name= '20190605061807_10380310_004_01'
 
 ATlevel= 'ATL07-02' if hemis == 'SH' else 'ATL07-01'
-load_path   = config.mconfig['paths']['scratch'] +'/'+ batch_key +'/'
+load_path   = mconfig['paths']['scratch'] +'/'+ batch_key +'/'
 load_file   = load_path + ATlevel+'_'+track_name+'.h5'
 
-save_path  = config.mconfig['paths']['work'] +'/'+ batch_key +'/A01b_ID/'
-scratch_path = config.mconfig['paths']['scratch'] +'/'+ batch_key +'/'
-plot_path  = config.mconfig['paths']['plot']+ '/'+hemis+'/'+batch_key+'/A01b/'
+save_path  = mconfig['paths']['work'] +'/'+ batch_key +'/A01b_ID/'
+scratch_path = mconfig['paths']['scratch'] +'/'+ batch_key +'/'
+plot_path  = mconfig['paths']['plot']+ '/'+hemis+'/'+batch_key+'/A01b/'
 #bad_track_path =mconfig['paths']['work'] +'bad_tracks/'+ batch_key+'/'
 MT.mkdirs_r(save_path)
 plot_flag   = True
@@ -75,7 +75,7 @@ N_process   = 4
 
 # %%
 # test which beams exist:
-all_beams = config.mconfig['beams']['all_beams']
+all_beams = mconfig['beams']['all_beams']
 
 
 try:

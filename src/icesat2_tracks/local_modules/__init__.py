@@ -1,1 +1,1 @@
-"Utiliy funtions to manage parameters to plot results"
+"""Utility functions to manage parameters to plot results"""

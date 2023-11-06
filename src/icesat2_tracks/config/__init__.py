@@ -1,1 +1,1 @@
-"Configuration file containing project paths"
+"""Configuration file containing project paths"""

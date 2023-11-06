@@ -1,5 +1,5 @@
 import os
-
+import pathlib
 ###
 #   THIS FILE IS A LOCAL FILE
 #   it is not maintained via git, it contains configs specific to the machine
@@ -29,10 +29,9 @@ config_dir_path = os.path.dirname(__file__)
 mconfig=MT.json_load('config',config_dir_path)
 
 ## check folders exist. Create if dont.
-for folder_name, folder_path  in mconfig["paths"].items():
+for folder_name, folder_path in mconfig["paths"].items():
     full_path = os.path.abspath(folder_path)
-    if not os.path.exists(full_path): 
-          os.mkdir(full_path)
+    pathlib.Path(full_path).mkdir(exist_ok=True)
 
 # add config path
 mconfig["paths"].update({"config": config_dir_path})
