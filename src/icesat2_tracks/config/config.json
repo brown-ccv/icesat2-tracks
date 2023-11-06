@@ -1,10 +1,18 @@
 {
 
 	"path": "This file is local, not updated through git",
-  "work_folders" : ["work","downloads","scratch","plot","processed","analysis","targets"],
 	"paths":{
-          "workspace": ""
-          },
+          "work": "./work/",
+          "downloads": "./downloads/",
+          "scratch": "./scratch",
+          "plot": "./plots/",
+          "processed": "./work/processed/",
+          "analysis": "./analysis/",
+          "local_script": ". /modules/",
+          "config": "./config/",
+          "targets": ".targets/",
+          "base": "."
+    },
 
     "server":"oscar",
     "processor_folder":"automated_processor",

@@ -24,28 +24,15 @@ import string
 import xarray as xr
 xr.set_options(display_width=80, display_style='text')
 
-## Read workplace folder and configuration paths
+## Read folders and configuration paths
 config_dir_path = os.path.dirname(__file__)
 mconfig=MT.json_load('config',config_dir_path)
 
-## Init folder structure. Create if they dont exist
-curret_wdir = os.getcwd()
-workspace_base = mconfig["paths"]["workspace"]
-
-## if not set, configure the working directory
-if not workspace_base:
-    workspace_base = os.path.join(curret_wdir,"workspace")
-
-## Make sure the path exists
-if not os.path.exists(workspace_base): 
-    os.mkdir(workspace_base)
-
-## create workspace folder structure
-for folder_name in mconfig["work_folders"]:
-    full_folder_path  = os.path.join(workspace_base,folder_name)
-    if not os.path.exists(full_folder_path): 
-          os.mkdir(full_folder_path)
-    mconfig["paths"].update({folder_name: full_folder_path})
+## check folders exist. Create if dont.
+for folder_name, folder_path  in mconfig["paths"].items():
+    full_path = os.path.abspath(folder_path)
+    if not os.path.exists(full_path): 
+          os.mkdir(full_path)
 
 # add config path
 mconfig["paths"].update({"config": config_dir_path})
