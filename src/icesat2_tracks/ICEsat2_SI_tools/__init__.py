@@ -1,1 +1,1 @@
-__version__ = "0.0.0"
+"Utility functions for loading files/data and tools for ploting tables and figures "

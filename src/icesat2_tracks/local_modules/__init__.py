@@ -1,1 +1,1 @@
-__version__ = "0.0.0"
+"Utiliy funtions to manage parameters to plot results"

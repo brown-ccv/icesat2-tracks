@@ -10,18 +10,7 @@ This script opens an ATL07 track and tests if there is sufficient data and maybe
 
 """
 
-# exec(open(os.environ['PYTHONSTARTUP']).read())
-# exec(open(STARTUP_2019_DP).read())
-#sys.path
-#exec(open(os.environ['PYTHONSTARTUP']).read())
-#exec(open(STARTUP_2021_IceSAT2).read())
 
-# sys.path.insert(0, "./modules")
-# sys.path.insert(0, "./modules/ICEsat2_SI_tools")
-#from icesat2_tracks.config import IceSAT2_startup
-
-#STARTUP_2021_IceSAT2="config/2021_IceSAT2_startup.py"
-#exec(open(STARTUP_2021_IceSAT2).read())
 
 from threadpoolctl import threadpool_info, threadpool_limits
 from pprint import pprint
@@ -70,11 +59,8 @@ hemis, batch = batch_key.split('_')
 #track_name= '20190605061807_10380310_004_01'
 
 ATlevel= 'ATL07-02' if hemis == 'SH' else 'ATL07-01'
-print("HEREEEE 1")
 load_path   = config.mconfig['paths']['scratch'] +'/'+ batch_key +'/'
 print("load path: "+load_path)
-
-print("HEREEEE 22222")
 load_file   = load_path + ATlevel+'_'+track_name+'.h5'
 
 save_path  = config.mconfig['paths']['work'] +'/'+ batch_key +'/A01b_ID/'

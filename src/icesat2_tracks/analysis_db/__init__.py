@@ -1,1 +1,1 @@
-__version__ = "0.0.0"
+"Logic to download and analyse WaveWatch3 files, plot spectra results"
