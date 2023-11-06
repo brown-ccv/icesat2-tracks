@@ -1,6 +1,6 @@
 # ICESAT2 Track Analysis
 
-## Setting up for development locally
+## Installation for Developers
 
 Prerequisites:
 - A POSIX-compatible system (Linux or macOS)
@@ -11,6 +11,10 @@ Prerequisites:
 > Windows is not supported for development work – use [WSL](https://learn.microsoft.com/en-us/windows/wsl/) on Windows hosts
 
 Installation:
+- Clone the repository:
+  - Navigate to https://github.com/brown-ccv/icesat2-tracks
+  - Click the "<> Code" button and select a method to clone the repository, then follow the prompts
+- Open a shell (bash, zsh) in the repository working directory
 - Create a new virtual environment named `.venv`:
   ```shell
   python -m venv .venv
