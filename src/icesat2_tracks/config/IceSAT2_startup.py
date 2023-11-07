@@ -22,7 +22,6 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 import string
 
 import xarray as xr
-xr.set_options(display_width=80, display_style='text')
 
 ## Read folders and configuration paths
 config_dir_path = os.path.dirname(__file__)
