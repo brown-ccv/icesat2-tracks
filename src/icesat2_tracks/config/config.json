@@ -1,18 +1,18 @@
 {
 
-	"paths": "This file is local, not updated through git",
+	"path": "This file is local, not updated through git",
 	"paths":{
-            "work": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/work/",
-            "downloads": "/gpfs/scratch/mhell/2021_ICESat2_tracks/downloads/",
-            "scratch": "/gpfs/scratch/mhell/2021_ICESat2_tracks/",
-            "plot": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/plots/",
-            "processed": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/work/processed/",
-            "analysis": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/analysis/",
-            "local_script": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/modules/",
-            "config": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/config/",
-            "targets": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/targets/",
-            "base": "/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/"
-          },
+          "work": "./work/",
+          "downloads": "./downloads/",
+          "scratch": "./scratch",
+          "plot": "./plots/",
+          "processed": "./work/processed/",
+          "analysis": "./analysis/",
+          "local_script": "./modules/",
+          "config": "./config/",
+          "targets": ".targets/",
+          "base": "."
+    },
 
     "server":"oscar",
     "processor_folder":"automated_processor",

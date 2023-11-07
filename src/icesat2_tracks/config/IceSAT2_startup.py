@@ -1,5 +1,5 @@
 import os
-
+import pathlib
 ###
 #   THIS FILE IS A LOCAL FILE
 #   it is not maintained via git, it contains configs specific to the machine
@@ -15,42 +15,25 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import matplotlib.colors as colors
 import pandas as pd
-
+from icesat2_tracks.local_modules import m_colormanager_ph3 as M_color
+from icesat2_tracks.local_modules import m_tools_ph3 as MT
+from icesat2_tracks.local_modules import m_general_ph3 as M
 
 import string
 
 import xarray as xr
-#xr.set_options(display_width=80, display_style='text')
 
+## Read folders and configuration paths
+config_dir_path = os.path.dirname(__file__)
+mconfig=MT.json_load('config',config_dir_path)
 
-import sys
-import imp
+## check folders exist. Create if dont.
+for folder_name, folder_path in mconfig["paths"].items():
+    full_path = os.path.abspath(folder_path)
+    pathlib.Path(full_path).mkdir(exist_ok=True)
 
-
-
-# my own libraries:
-#import m_general as M
-
-#import AA_plot_base as AA
-def json_load(name, path, verbose=False):
-    import json
-    full_name= (os.path.join(path,name+ '.json'))
-
-    with open(full_name, 'r') as ifile:
-        data=json.load(ifile)
-    if verbose:
-        print('loaded from: ',full_name)
-    return data
-
-mconfig=json_load('config','/gpfs/data/chorvat/IS2/2021_ICESat2_tracks/config/')
-
-# add project depenent libraries
-sys.path.append(mconfig['paths']['local_script'])
-sys.path.append(mconfig['paths']['local_script'] +'/ICEsat2_SI_tools/')
-
-import m_colormanager_ph3 as M_color
-import m_tools_ph3 as MT
-import m_general_ph3 as M
+# add config path
+mconfig["paths"].update({"config": config_dir_path})
 
 #load colorscheme
 col=M_color.color(path=mconfig['paths']['config'], name='color_def')
@@ -239,3 +222,5 @@ def font_for_pres():
 
 # add project depenent libraries
 #sys.path.append(config['paths']['local_script'])
+
+

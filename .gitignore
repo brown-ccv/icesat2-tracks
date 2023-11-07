@@ -39,6 +39,9 @@ analysis_db/support_files/
 .installed.cfg
 *.egg
 
+*__pycache__/
+*__pycache__/*
+
 # Environments
 .env
 .venv
@@ -47,3 +50,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+venv311/
+venv310/
+venv39/
+dist/
+
+#visual code
+.vscode/
+*.h5

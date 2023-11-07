@@ -1,6 +1,6 @@
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
-
+from icesat2_tracks.config.IceSAT2_startup import mconfig
 """
 This script opens an ATL07 track and tests if there is sufficient data and maybe waves:
 1) disects each beam such that they start in the MIZ and end at the pole.
@@ -10,11 +10,7 @@ This script opens an ATL07 track and tests if there is sufficient data and maybe
 
 """
 
-# exec(open(os.environ['PYTHONSTARTUP']).read())
-# exec(open(STARTUP_2019_DP).read())
-sys.path
-exec(open(os.environ['PYTHONSTARTUP']).read())
-exec(open(STARTUP_2021_IceSAT2).read())
+
 
 from threadpoolctl import threadpool_info, threadpool_limits
 from pprint import pprint
@@ -23,12 +19,14 @@ import datetime
 import h5py
 from random import sample
 import imp
-import ICEsat2_SI_tools.convert_GPS_time as cGPS
-import ICEsat2_SI_tools.io as io
-from spectral_estimates import create_chunk_boundaries_unit_lengths, create_chunk_boundaries
-import spectral_estimates as spec
-import m_tools_ph3 as MT
-import filter_regrid as regrid
+import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
+import icesat2_tracks.ICEsat2_SI_tools.io as io
+from icesat2_tracks.ICEsat2_SI_tools.spectral_estimates import create_chunk_boundaries_unit_lengths, create_chunk_boundaries
+import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+import icesat2_tracks.ICEsat2_SI_tools.filter_regrid as regrid
+
+import icesat2_tracks.local_modules.m_tools_ph3 as MT
+
 
 import concurrent.futures as futures
 
@@ -61,7 +59,6 @@ hemis, batch = batch_key.split('_')
 #track_name= '20190605061807_10380310_004_01'
 
 ATlevel= 'ATL07-02' if hemis == 'SH' else 'ATL07-01'
-
 load_path   = mconfig['paths']['scratch'] +'/'+ batch_key +'/'
 load_file   = load_path + ATlevel+'_'+track_name+'.h5'
 
