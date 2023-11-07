@@ -4,7 +4,7 @@ jobs:
   python_run_scripts:
     strategy:
       matrix:
-        version: [3.9.10, 3.10.12, 3.11.5]
+        version: [3.9, 3.10, 3.11]
     runs-on: ubuntu-latest
     steps:
       - name: setup python
