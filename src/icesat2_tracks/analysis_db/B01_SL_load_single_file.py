@@ -5,7 +5,7 @@ This file open a ICEsat2 track applied filters and corections and returns smooth
 This is python 3.11
 """
 import os, sys
-from icesat2_tracks.config.IceSAT2_startup import mconfig,xr
+from icesat2_tracks.config.IceSAT2_startup import mconfig,xr,color_schemes,font_for_pres,plt
 
 import geopandas as gpd
 
@@ -18,6 +18,7 @@ import icesat2_tracks.ICEsat2_SI_tools.sliderule_converter_tools as sct
 import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.beam_stats as beam_stats
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
+from icesat2_tracks.local_modules import m_general_ph3 as M
 
 #import spicke_remover
 
@@ -107,7 +108,7 @@ gdf = sct.correct_and_remove_height(gdf, maximum_height)#.plot(markersize=0.2)
 # %%
 cdict = dict()
 for s,b in zip(gdf['spot'].unique(), ['gt1l', 'gt1r', 'gt2l', 'gt2r', 'gt3l', 'gt3r']):
-    cdict[s] = col.rels[b]
+    cdict[s] = color_schemes.rels[b]
 
 #imp.reload(beam_stats)
 
@@ -215,7 +216,7 @@ if plot_flag:
 
     font_for_pres()
     F = M.figure_axis_xy(8, 4.3, view_scale= 0.6  )
-    beam_stats.plot_beam_statistics(D, high_beams, low_beams, col.rels, track_name = track_name + '|  ascending =' + str(sct.ascending_test_distance(gdf)) )
+    beam_stats.plot_beam_statistics(D, high_beams, low_beams, color_schemes.rels, track_name = track_name + '|  ascending =' + str(sct.ascending_test_distance(gdf)) )
 
     F.save_light(path = plot_path , name = 'B01b_beam_statistics.png')
     plt.close()
