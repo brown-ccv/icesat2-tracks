@@ -3,6 +3,7 @@ name: Run base code on different python versions
 jobs:
   python_run_scripts:
     strategy:
+      fail-fast: false
       matrix:
         version: [3.9, 3.10, 3.11]
     runs-on: ubuntu-latest
