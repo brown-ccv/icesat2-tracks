@@ -1,0 +1,15 @@
+name: Run base code on different python versions
+'on': workflow_dispatch 
+jobs:
+  python_run_scripts:
+    strategy:
+      matrix:
+        version: [3.9, 3.10, 3.11]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }} # install the python version needed
+      - run: python install --editable ".[dev]"
