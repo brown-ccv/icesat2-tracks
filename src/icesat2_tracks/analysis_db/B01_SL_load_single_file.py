@@ -89,7 +89,7 @@ maximum_height = 30 # (meters) maximum height past dem_h correction
 print("STARTS")
 gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
 print("ENDS")
-gdf = sct.correct_and_remove_height(gdf, maximum_height)#.plot(markersize=0.2)
+gdf = sct.correct_and_remove_height(gdf, maximum_height)
 
 
 # %%
@@ -199,9 +199,7 @@ if plot_flag:
     # plot the ground tracks in geographic location
     gdf[::100].plot(markersize=0.1, figsize=(4,6))
     plt.title(track_name +  '\nascending =' + str(sct.ascending_test_distance(gdf)) , loc ='left')
-    # gdf_atl03 = icesat2.atl03s(params, [ATL03_track_name])
     M.save_anyfig(plt.gcf(), path = plot_path  ,name = 'B01_track.png')
-    # gdf_atl03.plot()
     plt.close()
 
     
