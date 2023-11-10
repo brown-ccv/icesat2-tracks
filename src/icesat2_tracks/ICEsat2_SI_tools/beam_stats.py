@@ -88,9 +88,8 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name =None):
         plt.plot(D[k]['x']/1e3, np.sqrt(D[k]['var']), '.', color=  col_dict[k], markersize=4, label=k)
 
     plt.title('high beams std', loc='left')
-    #plt.xlabel('along track distance (km)')
     plt.ylabel('segment std log(m)')
-    #plt.ylim(0, 20)
+    
     ax1.set_yscale('log')
 
     ax2 = plt.subplot(gs[1, 0])
@@ -108,9 +107,7 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name =None):
         plt.plot(D[k]['x']/1e3, np.sqrt(D[k]['var']), '.', color=  col_dict[k], markersize=4, label=k)
 
     plt.title('low beams std', loc='left')
-    #plt.xlabel('along track distance (km)')
-    #plt.ylabel('segment std (m)')
-    #plt.ylim(0, 20)
+    
     ax3.set_yscale('log')
 
     ax4 = plt.subplot(gs[1, 1])
@@ -141,53 +138,6 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name =None):
     plt.xlabel('along track distance (km)')
     plt.legend()
     plt.show()
-
-
-    # # make 2 x 2 plot
-    # plt.subplot(2, 3, 1)
-    # for k in high_beams:
-    #     plt.plot(D[k]['x']/1e3, np.sqrt(D[k]['var']), '.', color=  col_dict[k], markersize=4, label=k)
-
-    # plt.title('high beams std', loc='left')
-    # #plt.xlabel('along track distance (km)')
-    # plt.ylabel('segment std (m)')
-    # plt.ylim(0, 20)
-
-    # plt.subplot(2, 3, 3)
-    # for k in high_beams:
-    #     Di = D[k]['N']
-    #     Di[Di ==0] =np.nan
-    #     plt.plot(D[k]['lat'], D[k]['N'], '.', color= col_dict[k], markersize=4, label=k)
-
-    # plt.title('high beams N', loc='left')
-    # plt.xlabel('along track distance (km) or Lat')
-    # plt.ylabel('Point Density (m)')
-
-
-    # plt.subplot(2, 3, 2)
-    # for k in low_beams:
-    #     plt.plot(D[k]['x']/1e3, np.sqrt(D[k]['var']), '.', color=  col_dict[k], markersize=4, label=k)
-
-    # plt.title('low beams std', loc='left')
-    # #plt.xlabel('along track distance (km)')
-    # #plt.ylabel('segment std (m)')
-    # plt.ylim(0, 20)
-
-    # plt.subplot(2, 3, 4)
-    # for k in low_beams:
-    #     Di = D[k]['N']
-    #     Di[Di ==0] =np.nan
-    #     plt.plot(D[k]['lat'], D[k]['N'], '.', color= col_dict[k], markersize=4, label=k)
-
-    # plt.title('low beams N', loc='left')
-    # plt.xlabel('along track distance (km) or Lat')
-    # #plt.ylabel('Point density (m)')
-    # #return F
-
-    # plt.subplot(2,3, 5)
-    # plt.scatter(D['gt1l']['x']/1e3, D['gt1l']['lat'], s= np.exp(D['gt1l']['N'] *10) , marker='.', color=  col_dict['gt1l'],  label='gt1l', alpha = 0.3)
-
-    # plt.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.3)
 
 ## plot track stats basics for sliderules ATL06 output
 

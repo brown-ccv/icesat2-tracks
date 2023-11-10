@@ -75,7 +75,6 @@ def get_min_eq_dist(ppoly):
     min_eq_dist= list()
     for point in ppoly:
         point['x_atc'] = haversine(point['lon'], 0, point['lon'], point['lat'], arc=False)
-        #print(point['lat'], point['x_atc'])
         min_eq_dist.append(point['x_atc'])
     return min(min_eq_dist)*1e3 # in meters. needed for defining the x-axis
 
@@ -334,7 +333,6 @@ def define_x_coordinate_in_polygon(table_data, polygon, round=True):
     if ascending_test(table_data):
         table_data['x'] = table_data['x_atc'] - min_eq_dist
     else:
-        #print('descending')
         table_data['x'] = ((np.pi * 6371*1e3) - min_eq_dist) - table_data['x_atc']
 
     return table_data
