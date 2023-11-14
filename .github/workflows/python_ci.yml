@@ -3,13 +3,17 @@ name: Run base code on different python versions
 jobs:
   python_run_scripts:
     strategy:
+      fail-fast: false
       matrix:
-        version: [3.9, 3.10, 3.11]
+        version: ['3.9', '3.10', '3.11']
     runs-on: ubuntu-latest
     steps:
+      - name: install mpi
+        run: sudo apt update && sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev 
       - uses: actions/checkout@v3
       - name: setup python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.version }} # install the python version needed
-      - run: python install --editable ".[dev]"
+          cache: "pip"
+      - run: pip install .
