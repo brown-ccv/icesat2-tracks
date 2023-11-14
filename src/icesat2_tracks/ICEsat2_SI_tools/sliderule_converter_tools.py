@@ -1,6 +1,20 @@
 
 from ipyleaflet import basemaps
 
+
+# height correction tools
+def correct_and_remove_height(Gi, height_limit):
+    """
+    corrects the height and removes the points with height +- height_limit
+    """
+    h_mean_corrected    = (Gi['h_mean'] - Gi['dem_h'])
+    false_height_mask   = abs(h_mean_corrected) > height_limit
+    Gi['h_mean']=h_mean_corrected    
+    Gi.drop(columns=['dem_h'], inplace=True)
+    return Gi[~false_height_mask]
+
+
+
 # polygon tools
 def make_plot_polygon(poly_test, color="green"):
     """ create a plot polygon from the given coordinates"""
@@ -60,10 +74,11 @@ def get_min_eq_dist(ppoly):
     """
     min_eq_dist= list()
     for point in ppoly:
-        point['distance'] = haversine(point['lon'], 0, point['lon'], point['lat'], arc=False)
-        #print(point['lat'], point['distance'])
-        min_eq_dist.append(point['distance'])
+        point['x_atc'] = haversine(point['lon'], 0, point['lon'], point['lat'], arc=False)
+        min_eq_dist.append(point['x_atc'])
     return min(min_eq_dist)*1e3 # in meters. needed for defining the x-axis
+
+
 
 
 def create_polygons(latR, lonR):
@@ -120,20 +135,13 @@ def ascending_test(track_data):
 
 def ascending_test_distance(track_data):
     """
-    test if the track is ascending or descending based on 'distance' column
+    test if the track is ascending or descending based on 'x_atc' column
     """
     # get the first and last point
-    
 
-    first_point = abs(track_data.iloc[track_data['distance'].argmin()].geometry.y)
-    last_point  = abs(track_data.iloc[track_data['distance'].argmax()].geometry.y)
+    first_point = abs(track_data.iloc[track_data['x_atc'].argmin()].geometry.y)
+    last_point  = abs(track_data.iloc[track_data['x_atc'].argmax()].geometry.y)
 
-    # first_point = track_data.iloc[track_data.index.argmin()]['distance']
-    # last_point = track_data.iloc[track_data.index.argmax()]['distance']
-    # get the time
-    # first_time = cGPS.convert_GPS_time(first_point.index, first_point['rgt'], first_point['orbit_number'])
-    # last_time = cGPS.convert_GPS_time(last_point['delta_time'], last_point['rgt'], last_point['orbit_number'])
-    # test if ascending or descending
     if first_point < last_point:
         return True
     else:
@@ -205,7 +213,7 @@ def plot_reference_point_coordinates(tmp, start_point_dist, start_point):
     ax.set_title('RGT: ' + str(rgt), loc='left')
 
     ax = axx[1]
-    ax.plot(tmp['distance'], tmp.geometry.y ,'.', markersize=0.5, c=data_col, label ='data')
+    ax.plot(tmp['x_atc'], tmp.geometry.y ,'.', markersize=0.5, c=data_col, label ='data')
     ax.plot(start_point_dist, start_point.geometry.y ,'.', c =spoint_color, label='reference point')
 
     ax.set_xlabel('Distance from Equator')
@@ -316,10 +324,9 @@ def define_x_coordinate_in_polygon(table_data, polygon, round=True):
         min_eq_dist = np.round(get_min_eq_dist(polygon))
         
     if ascending_test(table_data):
-        table_data['x'] = table_data['distance'] - min_eq_dist
+        table_data['x'] = table_data['x_atc'] - min_eq_dist
     else:
-        #print('descending')
-        table_data['x'] = ((np.pi * 6371*1e3) - min_eq_dist) - table_data['distance']
+        table_data['x'] = ((np.pi * 6371*1e3) - min_eq_dist) - table_data['x_atc']
 
     return table_data
 
@@ -343,9 +350,9 @@ def define_x_coordinate_with_RGT(table_data, Gtrack_lowest):
     start_point_dist, start_point = define_reference_distance_with_RGT(Gtrack_lowest, rgt, acending)
 
     if acending:
-        table_data['x'] = table_data['distance'] - start_point_dist
+        table_data['x'] = table_data['x_atc'] - start_point_dist
     else:
-        table_data['x'] = start_point_dist - table_data['distance']
+        table_data['x'] = start_point_dist - table_data['x_atc']
 
     return table_data
 
@@ -360,12 +367,13 @@ def define_x_coordinate_from_data(table_data):
     acending = ascending_test_distance(table_data)
     
     if acending:
-        start_point_dist = table_data['distance'].min()
-        table_data['x']  = table_data['distance'] - start_point_dist   
+        start_point_dist = table_data['x_atc'].min()
+        table_data['x']  = table_data['x_atc'] - start_point_dist   
     else:
-        start_point_dist = table_data['distance'].max()
-        table_data['x']  = start_point_dist - table_data['distance']
-
+        start_point_dist = table_data['x_atc'].max()
+        table_data['x']  = start_point_dist - table_data['x_atc']
+    table_data.sort_values(by='x', inplace=True)
+    table_data.reset_index(inplace=True)
     return table_data
 
 

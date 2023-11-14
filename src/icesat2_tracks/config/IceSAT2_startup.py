@@ -36,7 +36,7 @@ for folder_name, folder_path in mconfig["paths"].items():
 mconfig["paths"].update({"config": config_dir_path})
 
 #load colorscheme
-col=M_color.color(path=mconfig['paths']['config'], name='color_def')
+color_schemes=M_color.color(path=mconfig['paths']['config'], name='color_def')
 
 
 lstrings =iter([i+') ' for i in list(string.ascii_lowercase)])
