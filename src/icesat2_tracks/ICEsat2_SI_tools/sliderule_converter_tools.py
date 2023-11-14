@@ -138,17 +138,10 @@ def ascending_test_distance(track_data):
     test if the track is ascending or descending based on 'x_atc' column
     """
     # get the first and last point
-    
 
     first_point = abs(track_data.iloc[track_data['x_atc'].argmin()].geometry.y)
     last_point  = abs(track_data.iloc[track_data['x_atc'].argmax()].geometry.y)
 
-    # first_point = track_data.iloc[track_data.index.argmin()]['x_atc']
-    # last_point = track_data.iloc[track_data.index.argmax()]['x_atc']
-    # get the time
-    # first_time = cGPS.convert_GPS_time(first_point.index, first_point['rgt'], first_point['orbit_number'])
-    # last_time = cGPS.convert_GPS_time(last_point['delta_time'], last_point['rgt'], last_point['orbit_number'])
-    # test if ascending or descending
     if first_point < last_point:
         return True
     else:
