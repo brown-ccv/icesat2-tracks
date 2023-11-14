@@ -1,5 +1,5 @@
 
-# %%
+#
 """
 This file open a ICEsat2 tbeam_stats.pyrack applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3.11
@@ -45,12 +45,12 @@ MT.mkdirs_r(save_path_json)
 
 ATL03_track_name = 'ATL03_'+track_name+'.h5'
 
-# %% Configure SL Session #
+# Configure SL Session 
 sliderule.authenticate("brown", ps_username="mhell", ps_password="Oijaeth9quuh")
 icesat2.init("slideruleearth.io", organization="brown", desired_nodes=1, time_to_live=90) #minutes
 
 
-# %% plot the ground tracks in geographic location
+# plot the ground tracks in geographic location
 # Generate ATL06-type segments using the ATL03-native photon classification
 # Use the ocean classification for photons with a confidence parmeter to 2 or higher (low confidence or better)
 
@@ -92,7 +92,6 @@ print("ENDS")
 gdf = sct.correct_and_remove_height(gdf, maximum_height)#.plot(markersize=0.2)
 
 
-# %%
 cdict = dict()
 for s,b in zip(gdf['spot'].unique(), ['gt1l', 'gt1r', 'gt2l', 'gt2r', 'gt3l', 'gt3r']):
     cdict[s] = color_schemes.rels[b]
@@ -105,7 +104,7 @@ F_atl06.fig.suptitle(track_name)
 beam_stats.plot_ATL06_track_data(gdf, cdict)
 
 
-# %% main routine for defining the x coordinate and sacing table data
+# main routine for defining the x coordinate and sacing table data
 
 def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     """
@@ -146,7 +145,6 @@ def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     else:
         return table_data
 
-# %%
 # define reference point and then define 'x'
 table_data = copy.copy(gdf)
 imp.reload(sct)
@@ -170,15 +168,13 @@ ID_name = sct.create_ID_name(gdf.iloc[0], segment=segment)
 print( ID_name )
 io.write_track_to_HDF5(Ti, ID_name + '_B01_binned'     , save_path) # regridding heights
 
-# %% plot the ground tracks in geographic location
+#  plot the ground tracks in geographic location
 
 all_beams   = mconfig['beams']['all_beams']
 high_beams  = mconfig['beams']['high_beams']
 low_beams   = mconfig['beams']['low_beams']
 
 D  = beam_stats.derive_beam_statistics(Ti, all_beams, Lmeter=12.5e3, dx =10)
-
-# %%
 
 # save figure from above:
 plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + ID_name +'/'
@@ -206,8 +202,6 @@ if plot_flag:
 
     
 
-
-# %%
 print('write A01b .json')
 DD= {'case_ID':  ID_name ,  'tracks' : {} }
 
@@ -235,5 +229,3 @@ DD['pars'] ={
 MT.json_save2(name='A01b_ID_'+ID_name, path=save_path_json, data= DD)
 
 print('done')
-
-# %%
