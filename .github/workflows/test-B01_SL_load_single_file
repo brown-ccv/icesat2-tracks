@@ -1,4 +1,4 @@
-name: Run base code on different python versions
+name: Test B01_SL_load_single_file
 'on': workflow_dispatch 
 jobs:
   python_run_scripts:
