@@ -1,5 +1,5 @@
 name: Test B01_SL_load_single_file
-'on': workflow_dispatch 
+on: pull_request 
 jobs:
   python_run_scripts:
     strategy:
