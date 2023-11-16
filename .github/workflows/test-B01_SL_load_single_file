@@ -1,5 +1,5 @@
 name: Test B01_SL_load_single_file
-on: pull_request 
+'on': pull_request
 jobs:
   python_run_scripts:
     strategy:
