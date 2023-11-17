@@ -18,5 +18,7 @@ jobs:
           cache: "pip"
       - name: install icesat2-tracks using pip
         run: pip install .
+      - name: check files in path
+        run: ls -la /opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icesat2_tracks/config
       - name: first step B01_SL_load_single_file
         run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py 20190502052058_05180312_005_01 SH_testSLsinglefile2 True
