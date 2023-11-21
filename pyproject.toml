@@ -110,6 +110,7 @@ dependencies = [ # Optional
   "xarray",
   "mpi4py",
   "icesat2-toolkit==1.0.0.22",
+  "geopandas"
 ]
 
 # List additional groups of dependencies   here (e.g. development
