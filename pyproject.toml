@@ -111,7 +111,8 @@ dependencies = [ # Optional
   "mpi4py",
   "icesat2-toolkit==1.0.0.22",
   "geopandas",
-  "sliderule"
+  "sliderule",
+  "ipyleaflet"
 ]
 
 # List additional groups of dependencies   here (e.g. development
