@@ -110,6 +110,9 @@ dependencies = [ # Optional
   "xarray",
   "mpi4py",
   "icesat2-toolkit==1.0.0.22",
+  "geopandas",
+  "sliderule",
+  "ipyleaflet"
 ]
 
 # List additional groups of dependencies   here (e.g. development
@@ -151,7 +154,10 @@ download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
 # If there are data files included in your packages that need to be
 # installed, specify them here.
 # TODO: ADD ANY DATA FILES WE WANT TO HAVE
-#package-data = {"sample" = ["*.dat"]}
+package-data = {"icesat2_tracks" = ["config/*.json"]}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [build-system]
 # These are the assumed default build requirements from pip:
