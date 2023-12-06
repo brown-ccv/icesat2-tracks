@@ -112,8 +112,7 @@ dependencies = [ # Optional
   "icesat2-toolkit==1.0.0.22",
   "geopandas",
   "sliderule",
-  "ipyleaflet",
-  "lmfit"
+  "ipyleaflet"
 ]
 
 # List additional groups of dependencies   here (e.g. development
