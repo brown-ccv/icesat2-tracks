@@ -113,8 +113,7 @@ dependencies = [ # Optional
   "geopandas",
   "sliderule",
   "ipyleaflet",
-  "lmfit",
-  "pytables"
+  "lmfit"
 ]
 
 # List additional groups of dependencies   here (e.g. development
