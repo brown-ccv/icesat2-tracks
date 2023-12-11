@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
+
 import matplotlib.colors as colors
 import pandas as pd
 from icesat2_tracks.local_modules import m_colormanager_ph3 as M_color
