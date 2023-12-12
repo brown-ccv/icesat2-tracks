@@ -23,5 +23,5 @@ jobs:
         run: pip install .
       - name: first step B01_SL_load_single_file
         run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py 20190502052058_05180312_005_01 SH_testSLsinglefile2 True
-      - name: second step make_spectra
+      - name: second step B02_make_spectra_gFT
         run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py SH_20190502_05180312 SH_testSLsinglefile2 True

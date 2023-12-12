@@ -1,6 +1,6 @@
-# %%
+
 import os, sys
-#execfile(os.environ['PYTHONSTARTUP'])
+
 
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
@@ -16,7 +16,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
     np
 )
 
-#%matplotlib inline
+
 from threadpoolctl import threadpool_info, threadpool_limits
 from pprint import pprint
 
@@ -58,7 +58,7 @@ def linear_gap_fill(F, key_lead, key_int):
     return y_g
 
 
-# %%
+
 track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard experiment
 #track_name, batch_key, test_flag = '20190605061807_10380310_004_01', 'SH_batch01', False
 #track_name, batch_key, test_flag = '20190601094826_09790312_004_01', 'SH_batch01', False
@@ -95,7 +95,7 @@ plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + track_nam
 MT.mkdirs_r(plot_path)
 MT.mkdirs_r(save_path)
 bad_track_path =mconfig['paths']['work'] +'bad_tracks/'+ batch_key+'/'
-# %%
+
 
 all_beams   = mconfig['beams']['all_beams']
 high_beams  = mconfig['beams']['high_beams']
@@ -112,7 +112,7 @@ print('N_process=', N_process)
 Gd = h5py.File(load_path +'/'+track_name + '_B01_binned.h5', 'r')
 #Gd.close()
 
-# %% test amount of nans in the data
+# test amount of nans in the data
 
 nan_fraction= list()
 for k in all_beams:
@@ -137,7 +137,7 @@ if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
     print('exit.')
     exit()
 
-# %% test LS with an even grid where missing values are set to 0
+# test LS with an even grid where missing values are set to 0
 imp.reload(spec)
 print(Gd.keys())
 Gi =Gd[ list(Gd.keys())[0] ] # to select a test  beam
@@ -169,35 +169,9 @@ dlambda     = Lmeters * oversample
 dk          = 2 * np.pi/ dlambda
 kk          = np.arange(0, 1/lambda_min,  1/dlambda) * 2*np.pi
 kk          = kk[k_0<=kk]
-#dk = np.diff(kk).mean()
+
 print('2 M = ',  kk.size *2 )
 
-
-# for k in all_beams:
-#     #I = G_gFT[k]
-#     I2 = Gd_cut
-#     #plt.plot(I['x_coord'], I['y_coord'], linewidth  =0.3)
-#     plt.plot( I2['x']/1e3, I2['dist']/1e3)
-
-
-# # %%
-# xscale= 1e3
-# F= M.figure_axis_xy(5, 3, view_scale= 0.6)
-# for k in all_beams:
-#     I = Gd[k]#['x']
-#     #I = Gd_cut
-#     plt.plot( I['x'][:]/xscale  , I['y'][:]/xscale , '.' , markersize = 0.3)
-#     #plt.xlim(3e6, 3.25e6)
-#
-# #F.ax.axhline(0, color='gray', zorder= 2)
-#
-# plt.title('B01 filter and regrid | ' + track_name +'\npoleward '+str(track_poleward)+' \n \n', loc='left')
-# plt.xlabel('along track distance (km)')
-# plt.ylabel('across track distance (km)')
-
-# %%
-
-#Gd.keys()
 print('define global xlims')
 dist_list   = np.array([np.nan, np.nan])
 for k in all_beams:
@@ -234,7 +208,7 @@ kk= kk[::2]
 print('set xlims: ', xlims)
 print('Loop start:  ', tracemalloc.get_traced_memory()[0]/1e6, tracemalloc.get_traced_memory()[1]/1e6)
 
-# %%
+
 G_gFT= dict()
 G_gFT_x = dict()
 G_rar_fft= dict()
@@ -310,7 +284,7 @@ for k in all_beams:
 
             xi_1=GG_x.x[i]
             xi_2=GG_x.x[i+1]
-            #if k%2 ==0:
+
 
             F = M.figure_axis_xy(16, 2)
             eta  = GG_x.eta
@@ -461,10 +435,10 @@ for k in all_beams:
 del Gd_cut
 Gd.close()
 
-# %% save fitting parameters
+# save fitting parameters
 MT.save_pandas_table(Pars_optm, save_name+'_params', save_path )
 
-# %% repack data
+# repack data
 def repack_attributes(DD):
     #DD = G_LS
     attr_dim_list = list(DD.keys())
@@ -513,7 +487,7 @@ G_gFT_x      = repack_attributes(G_gFT_x)
 G_rar_fft    = repack_attributes(G_rar_fft)
 
 
-# %% save results
+# save results
 G_gFT_DS         = xr.merge(G_gFT.values())#, compat='override')
 G_gFT_DS['Z_hat_imag'] = G_gFT_DS.Z_hat.imag
 G_gFT_DS['Z_hat_real'] = G_gFT_DS.Z_hat.real
@@ -532,4 +506,3 @@ G_fft_DS.to_netcdf(save_path+save_name+'_FFT.nc')
 
 print('saved and done')
 
-# %%
