@@ -6,7 +6,8 @@ jobs:
       fail-fast: false
       matrix:
         version: ['3.9', '3.10', '3.11']
-    runs-on: ubuntu-latest
+        os: [ubuntu-latest,macos-latest]
+    runs-on:  ${{ matrix.os }}
     steps:
       - name: install mpi
         run: sudo apt update && sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev 
