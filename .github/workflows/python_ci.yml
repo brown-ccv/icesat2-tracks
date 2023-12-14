@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: install mpi in ubuntu
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt update && sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev
+        run: sudo apt update && sudo apt-get install openmpi-bin
       - name: install mpi macos
         if: matrix.os == 'macos-latest'
         run: brew install open-mpi
