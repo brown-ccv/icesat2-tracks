@@ -36,8 +36,6 @@ from scipy.ndimage.measurements import label
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
 
-# from guppy import hpy
-# h=hpy()
 # h.heap()
 #import s3fs
 #from memory_profiler import profile
@@ -60,8 +58,6 @@ def linear_gap_fill(F, key_lead, key_int):
 
 
 track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard experiment
-#track_name, batch_key, test_flag = '20190605061807_10380310_004_01', 'SH_batch01', False
-#track_name, batch_key, test_flag = '20190601094826_09790312_004_01', 'SH_batch01', False
 #track_name, batch_key, test_flag = '20190207111114_06260210_004_01', 'SH_batch02', False
 #track_name, batch_key, test_flag = '20190208152826_06440210_004_01', 'SH_batch01', False
 #track_name, batch_key, test_flag = '20190213133330_07190212_004_01', 'SH_batch02', False
