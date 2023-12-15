@@ -1,7 +1,8 @@
 
 import numpy as np
 
-import spectral_estimates as spec
+import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
 
 def rebin(data, dk, return_edges =False):
     """
@@ -25,7 +26,7 @@ def smooth_data_to_weight(dd, m=150):
     dd is the data
     m is the number of points to smooth over
     """
-    import lanczos
+
     dd_fake = np.ones( 4*m + dd.size)*dd.max()*0.01
     dd_fake[2*m:-2*m]=dd
 
@@ -916,7 +917,7 @@ class get_prior_spec(object):
         return self.non_dim_spec_model(f, params['f_max'].value, params['amp'].value, params['gamma'].value)
 
     def non_dim_spec_model(self, f, f_max, amp, gamma=1, angle_rad = 0):
-        import JONSWAP_gamma as spectal_models
+        import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
         U= 20 # results are incensitive to U
         f_true = f * np.cos(angle_rad)
         model= spectal_models.JONSWAP_default_alt(f_true, f_max, 20 ,  gamma=gamma)
