@@ -5,7 +5,8 @@
 Prerequisites:
 - A POSIX-compatible system (Linux or macOS)
 - Python 3.9 (run `python --version` to check that your version of python is correct)
-- MPI (e.g. from `brew install open-mpi`)
+- MPI (e.g. from `brew install open-mpi` on macOS)
+- HDF5 (e.g. from `brew install hdf5` on macOS)
 
 > [!IMPORTANT]  
 > Windows is not supported for development work – use [WSL](https://learn.microsoft.com/en-us/windows/wsl/) on Windows hosts
@@ -31,6 +32,18 @@ Installation:
   ```shell
   pip install --upgrade --editable ".[dev]"
   ```
+  > You may need to set the value of the `HDF5_DIR` environment variable to install some of the dependencies, especially when installing on macOS. For Apple Silicon (M-Series) CPUs:
+  > ```shell
+  > export HDF5_DIR="/opt/homebrew/opt/hdf5"
+  > pip install --upgrade --editable ".[dev]"
+  > ```
+  >
+  > For Intel CPUs:
+  > ```shell
+  > export HDF5_DIR="/usr/local/opt/hdf5"
+  > pip install --upgrade --editable ".[dev]"
+  > ```
+
 - Check the module `icesat2_tracks` is available by loading the module:
   ```shell
   python -c "import icesat2_tracks; print(icesat2_tracks.__version__)"
