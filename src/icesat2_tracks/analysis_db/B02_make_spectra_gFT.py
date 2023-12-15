@@ -58,9 +58,6 @@ def linear_gap_fill(F, key_lead, key_int):
 
 
 track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard experiment
-#track_name, batch_key, test_flag = '20190207111114_06260210_004_01', 'SH_batch02', False
-#track_name, batch_key, test_flag = '20190208152826_06440210_004_01', 'SH_batch01', False
-#track_name, batch_key, test_flag = '20190213133330_07190212_004_01', 'SH_batch02', False
 #track_name, batch_key, test_flag = '20190205231558_06030212_004_01', 'SH_batch02', False
 
 #local track
