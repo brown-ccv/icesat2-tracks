@@ -114,7 +114,8 @@ dependencies = [ # Optional
   "sliderule",
   "ipyleaflet",
   "lmfit",
-  "tables"
+  "tables",
+  "emcee==3.1.4"
 ]
 
 # List additional groups of dependencies   here (e.g. development
