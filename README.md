@@ -32,7 +32,9 @@ Installation:
   ```shell
   pip install --upgrade --editable ".[dev]"
   ```
-  > You may need to set the value of the `HDF5_DIR` environment variable to install some of the dependencies, especially when installing on macOS. For Apple Silicon (M-Series) CPUs:
+  > You may need to set the value of the `HDF5_DIR` environment variable to install some of the dependencies, especially when installing on macOS. 
+  > 
+  > For Apple Silicon (M-Series) CPUs:
   > ```shell
   > export HDF5_DIR="/opt/homebrew/opt/hdf5"
   > pip install --upgrade --editable ".[dev]"
