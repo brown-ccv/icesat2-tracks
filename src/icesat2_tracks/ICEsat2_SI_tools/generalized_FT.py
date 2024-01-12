@@ -31,7 +31,6 @@ def smooth_data_to_weight(dd, m=150):
     dd_fake[2 * m : -2 * m] = dd
 
     weight = lanczos.lanczos_filter_1d_wrapping(np.arange(dd_fake.size), dd_fake, m)
-    # weight= M.runningmean_wrap_around(dd_fake, m=m)
     weight = weight[2 * m : -2 * m]
     weight = weight / weight.max()
 
@@ -55,12 +54,6 @@ def get_weights_from_data(
     x_model = np.arange(stancil[0], stancil[-1], dx)
     y_gridded = np.copy(x_model) * 0
     y_gridded[x_pos] = y
-    # nan_mask         =np.isnan(y_gridded)
-
-    # def gaus(x, x_0, amp, sigma_g ):
-    #     return amp* np.exp(-0.5 * (  (x-x_0)/sigma_g)**2)
-    # weight = data_weight.mean() * gaus(self.k, 0.05, 1 , 0.02)**(1/2)
-    # weight = weight *10+ weight.max()* 0.005 # add pemnalty floor
 
     # take FFT to get peaj parameters
     k_fft = np.fft.rfftfreq(x_model.size, d=dx) * 2 * np.pi
@@ -73,7 +66,6 @@ def get_weights_from_data(
 
     pars = Spec_fft.set_parameters(flim=np.sqrt(9.81 * k[-1]) / 2 / np.pi)
     k_max = (pars["f_max"].value * 2 * np.pi) ** 2 / 9.81
-    # print('k_max ', k_max)
 
     if method == "gaussian":
         # simple gaussian weight
@@ -81,31 +73,25 @@ def get_weights_from_data(
             return amp * np.exp(-0.5 * ((x - x_0) / sigma_g) ** 2)
 
         weight = gaus(k, k_max, 1, 0.02) ** (1 / 2)
-        # weight = weight *1+ weight.max()* 0.1 # add pemnalty floor
         params = None
 
     elif method == "parametric":
         # JONSWAP weight
         f = np.sqrt(9.81 * k) / (2 * np.pi)
-        # weight = weight + weight.max()* 0.1 # add pemnalty floor
-        # optimzes paramteric function to data
-        # Spec_fft.data = Spec_fft.runningmean(Spec_fft.data , 10, tailcopy=True)
-        # Spec_fft.data[np.isnan(Spec_fft.data)] = 0
-
         weight = Spec_fft.create_weight(freq=f, plot_flag=False, max_nfev=max_nfev)
 
         if plot_flag:
             Spec_fft.fitter.params.pretty_print()
 
         params = Spec_fft.fitter.params
-        # weight = weight+ weight.max()* 0.05 # add pemnalty floor
+        
     else:
         raise ValueError(" 'method'  must be either 'gaussian' or 'parametric' ")
 
     if plot_flag:
         import matplotlib.pyplot as plt
 
-        # plt.plot(k_fft[1:], Spec_fft.model_func(Spec_fft.freq, pars), 'b--' )
+        
         plt.plot(
             k_fft[1:], Spec_fft.data, c="gray", label="FFT for Prior", linewidth=0.5
         )
@@ -113,7 +99,7 @@ def get_weights_from_data(
             k, weight, zorder=12, c="black", label="Fitted model to FFT", linewidth=0.5
         )
         plt.xlim(k[0], k[-1])
-        # plt.show()
+        
 
     # add pemnalty floor
     weight = weight + weight.max() * 0.1
@@ -147,17 +133,15 @@ def define_weights(stancil, prior, x, y, dx, k, max_nfev, plot_flag=False):
         weight, prior_pars = get_weights_from_data(
             x, y, dx, stancil, k, max_nfev, plot_flag=plot_flag, method="parametric"
         )
-        # weight_name = "10 * $P_{init}$ from FFT"
         weight_name = "$P_{init}$ from FFT"
     elif (
         type(prior) is tuple
-    ):  # prior= (PSD_from_GFT, weight_used in inversion), this is all other first iteration
-        # combine old and new weights
+    ):  
         weight = 0.2 * smooth_data_to_weight(prior[0]) + 0.8 * prior[1]
-        # weight_name = "10 * smth. $P_{i-1}$"
+        
         weight_name = "smth. $P_{i-1}$"
         prior_pars = {"alpha": None, "amp": None, "f_max": None, "gamma": None}
-    else:  # prior = weight, this is all other iterations
+    else:  
         weight = smooth_data_to_weight(prior)
         weight_name = "smth. from data"
         prior_pars = {"alpha": None, "amp": None, "f_max": None, "gamma": None}
@@ -246,13 +230,9 @@ class wavenumber_spectrogram_gFT(object):
         Lmeters, dk = self.Lmeters, self.dk
         Lpoints = self.Lpoints
         Lpoints_full = int(Lmeters / self.dx)
-        # win     = self.win
         self.xlims = (np.round(X.min()), X.max()) if xlims is None else xlims
 
         # init Lomb scargle object with noise as nummy data ()
-        # dy_fake= np.random.randn(len(dy))*0.001 if self.dy is not None else None
-        # self.LS = LombScargle(X[0:L] , np.random.randn(L)*0.001, fit_mean=True)
-
         def calc_gFT_apply(stancil, prior):
             """
             windows the data accoding to stencil and applies LS spectrogram
@@ -263,7 +243,6 @@ class wavenumber_spectrogram_gFT(object):
             import time
 
             ta = time.perf_counter()
-            # x = X[stancil[0]:stancil[-1]]
             x_mask = (stancil[0] <= X) & (X <= stancil[-1])
 
             print(stancil[1])
@@ -271,8 +250,6 @@ class wavenumber_spectrogram_gFT(object):
             if (
                 x.size / Lpoints < 0.1
             ):  # if there are not enough photos set results to nan
-                # return stancil[1], self.k*np.nan, np.fft.rfftfreq( int(self.Lpoints), d=self.dx)*np.nan,  x.size
-                # return stancil[1], np.concatenate([self.k*np.nan , self.k*np.nan]), np.nan,  np.nan, np.nan, x.size, False, False
                 return {
                     "stancil_center": stancil[1],
                     "p_hat": np.concatenate([self.k * np.nan, self.k * np.nan]),
@@ -290,7 +267,7 @@ class wavenumber_spectrogram_gFT(object):
             y_var = y.var()
 
             FT = generalized_Fourier(x, y, self.k)
-            # H = FT.get_H()
+            
 
             if plot_flag:
                 import matplotlib.pyplot as plt
@@ -335,12 +312,11 @@ class wavenumber_spectrogram_gFT(object):
                     inverse_stats[k] = np.nan
 
             print("stats : ", time.perf_counter() - ta)
-            # Z = complex_represenation(p_hat, FT.M, Lpoints )
-
+            
             # multiply with the standard deviation of the data to get dimensions right
             PSD = power_from_model(
                 p_hat, dk, self.k.size, x.size, Lpoints
-            )  # Z_to_power_gFT(p_hat, dk, x.size,  Lpoints )
+            )  
 
             if self.k.size * 2 > x.size:
                 col = "red"
@@ -348,7 +324,6 @@ class wavenumber_spectrogram_gFT(object):
                 col = "blue"
 
             if plot_flag:
-                # PSD_nondim = power_from_model(p_hat , dk,  self.k.size,  x.size,  Lpoints) #Z_to_power_gFT(p_hat, dk, x.size,  Lpoints )
                 plt.plot(self.k, PSD, color=col, label="GFT fit", linewidth=0.5)
                 plt.title(
                     "non-dim Spectral Segment Models, 2M="
@@ -383,31 +358,21 @@ class wavenumber_spectrogram_gFT(object):
             }
 
             return return_dict
-            # stancil[1], p_hat,
-            # inverse_stats, y_model_grid ,
-            # y_data_grid,  x.size,
-            # PSD, weight,
-            # inverse_stats['spec_adjust']
 
         # % derive L2 stancil
         self.stancil_iter = spec.create_chunk_boundaries_unit_lengths(
             Lmeters, self.xlims, ov=self.ov, iter_flag=True
         )
-        # stancil_iter = create_chunk_boundaries_unit_lengths(L, ( np.round(X.min()), X.max() ), ov= self.ov, iter_flag=True)
-
+        
         # apply func to all stancils
         Spec_returns = list()
-        # form: PSD_from_GFT, weight_used in inversion
         prior = False, False
 
         for ss in copy.copy(self.stancil_iter):
-            # print(ss)
-            # prior= False, False
-            # prior step
             if prior[0] is False:  # make NL fit of piors do not exist
                 print("1st step with NL-fit")
                 I_return = calc_gFT_apply(ss, prior=prior)
-                prior = I_return["PSD"], I_return["weight"]  # I_return[6], I_return[7]
+                prior = I_return["PSD"], I_return["weight"] 
 
             # 2nd step
             if prior[0] is False:
@@ -415,9 +380,8 @@ class wavenumber_spectrogram_gFT(object):
             else:
                 print("2nd step use set priors:", type(prior[0]), type(prior[0]))
                 I_return = calc_gFT_apply(ss, prior=prior)
-                prior = I_return["PSD"], I_return["weight"]  # I_return[6], I_return[7]
+                prior = I_return["PSD"], I_return["weight"] 
 
-            # print(I_return[6])
             Spec_returns.append(
                 dict(
                     (k, I_return[k])
@@ -433,14 +397,7 @@ class wavenumber_spectrogram_gFT(object):
                     )
                 )
             )
-            # Spec_returns.append( [I_return[0],I_return[1],I_return[2],I_return[3],I_return[4],I_return[5]] )
-
-        # map_func = map if map_func is None else map_func
-        # print(map_func)
-        # Spec_returns = list(map_func( calc_gFT_apply, copy.copy(self.stancil_iter)   ))
-        # # linear version
-        # Spec_returns = list(map( calc_spectrum_and_field_apply, copy.copy(self.stancil_iter)   ))
-
+           
         # unpack resutls of the mapping:
         GFT_model = dict()
         Z_model = dict()
@@ -486,22 +443,17 @@ class wavenumber_spectrogram_gFT(object):
 
         self.N_per_stancil = N_per_stancil
         chunk_positions = np.array(list(D_specs.keys()))
-        self.N_stancils = len(chunk_positions)  # number of spectral realizatiobs
+        self.N_stancils = len(chunk_positions)  # number of spectral realizations
 
         # repack data, create xarray
         # 1st LS spectal estimates
 
-        # G_power_data = dict()
-        # for xi,I in D_specs.items():
-        #     G_power_data[xi] = xr.DataArray(I,  dims=['k'], coords={'k': self.k, 'x': xi } , name='gFT_PSD_data')
+        
         G_power_data = make_xarray_from_dict(
             D_specs, "gFT_PSD_data", ["k"], {"k": self.k}
         )
         G_power_data = xr.concat(G_power_data.values(), dim="x").T  # .to_dataset()
 
-        # G_power_model = dict()
-        # for xi,I in D_specs_model.items():
-        #     G_power_model[xi] = xr.DataArray(I,  dims=['k'], coords={'k': self.k, 'x': xi } , name='gFT_PSD_model')
         G_power_model = make_xarray_from_dict(
             D_specs_model, "gFT_PSD_model", ["k"], {"k": self.k}
         )
@@ -511,20 +463,13 @@ class wavenumber_spectrogram_gFT(object):
         self.G.name = "gFT_PSD_model"
 
         # 2nd FFT(Y_model)
-        # G_model_Z =dict()
-        # for xi,I in Z_model.items():
-        #     # if I.size < Y_model_k_fft.size:
-        #     #     I = np.insert(I, -1, I[-1])
-        #     G_model_Z[xi] = xr.DataArray(I,  dims=['k'], coords={'k': self.k, 'x': xi } , name='Z_hat')
         G_model_Z = make_xarray_from_dict(Z_model, "Z_hat", ["k"], {"k": self.k})
-        G_model_Z = xr.concat(G_model_Z.values(), dim="x").T  # .to_dataset()
+        G_model_Z = xr.concat(G_model_Z.values(), dim="x").T 
 
         # 3rd
         GFT_model_coeff_A = dict()
         GFT_model_coeff_B = dict()
         for xi, I in GFT_model.items():
-            # if I.size < Y_model_k_fft.size:
-            #     I = np.insert(I, -1, I[-1])
             GFT_model_coeff_A[xi] = xr.DataArray(
                 I[0], dims=["k"], coords={"k": self.k, "x": xi}, name="gFT_cos_coeff"
             )
@@ -534,29 +479,22 @@ class wavenumber_spectrogram_gFT(object):
 
         GFT_model_coeff_A = xr.concat(
             GFT_model_coeff_A.values(), dim="x"
-        ).T  # .to_dataset()
+        ).T 
         GFT_model_coeff_B = xr.concat(
             GFT_model_coeff_B.values(), dim="x"
-        ).T  # .to_dataset()
+        ).T
 
         # add weights to the data
         weights_k = make_xarray_from_dict(weights, "weight", ["k"], {"k": self.k})
-        weights_k = xr.concat(weights_k.values(), dim="x").T  # .to_dataset()
+        weights_k = xr.concat(weights_k.values(), dim="x").T 
 
         # 4th: model in real space
-        # y_model_eta =dict()
-        # y_data_eta  =dict()
-
-        # for xi in y_model.keys():
-        #     y_model_eta[xi] = xr.DataArray(y_model[xi],  dims=['eta'], coords={'eta': eta, 'x': xi } , name="y_model")
-        #     y_data_eta[xi]  = xr.DataArray(y_data[xi] ,  dims=['eta'], coords={'eta': eta, 'x': xi } , name="y_data")
-
         eta = np.arange(0, self.Lmeters + self.dx, self.dx) - self.Lmeters / 2
         y_model_eta = make_xarray_from_dict(y_model, "y_model", ["eta"], {"eta": eta})
         y_data_eta = make_xarray_from_dict(y_data, "y_data", ["eta"], {"eta": eta})
 
-        y_model_eta = xr.concat(y_model_eta.values(), dim="x").T  # .to_dataset()
-        y_data_eta = xr.concat(y_data_eta.values(), dim="x").T  # .to_dataset()
+        y_model_eta = xr.concat(y_model_eta.values(), dim="x").T  
+        y_data_eta = xr.concat(y_data_eta.values(), dim="x").T 
 
         # merge wavenumber datasets
         self.GG = xr.merge(
@@ -575,19 +513,13 @@ class wavenumber_spectrogram_gFT(object):
         self.GG.coords["N_per_stancil"] = (("x"), N_per_stancil)
         self.GG.coords["spec_adjust"] = (("x"), Spec_adjust_per_stancil)
 
-        # self.GG.expand_dims(dim='eta')
-        # eta   =  np.arange(0, self.L + self.dx, self.dx) - self.L/2
-        # self.GG.coords['eta'] = ( ('eta'), eta )
-        # #self.GG['win'] = ( ('eta'), np.insert(self.win, -1, self.win[-1]))
-
         # create dataframe with fitted parameters and derive y_model and errors
         # reduce to valid values
         PP2 = dict()
         for k, I in Pars.items():
             if I is not np.nan:
                 PP2[k] = I
-        # print(Pars)
-        # print(PP2)
+       
         keys = Pars[next(iter(PP2))].keys()
         keys_DF = list(set(keys) - set(["model_error_k", "model_error_x"]))
         params_dataframe = pd.DataFrame(index=keys_DF)
@@ -612,7 +544,6 @@ class wavenumber_spectrogram_gFT(object):
                 )
 
                 sta, ste = xi - self.Lmeters / 2, xi + self.Lmeters / 2
-                # x_mask= (sta <= X) & (X <= ste)
                 x_pos = (np.round((X[(sta <= X) & (X <= ste)] - sta) / self.dx)).astype(
                     "int"
                 )
@@ -625,10 +556,9 @@ class wavenumber_spectrogram_gFT(object):
                 elif x_pos.size < I["model_error_x"].size:
                     I["model_error_x"] = I["model_error_x"][
                         0:-1
-                    ]  # np.append(I['model_error_x'], I['model_error_x'][-1])
+                    ]
                     print("adjust y")
 
-                # print(x_pos.size , I['model_error_x'].size)
                 x_err[x_pos] = I["model_error_x"]
                 model_error_x[xi] = xr.DataArray(
                     x_err,
@@ -663,7 +593,6 @@ class wavenumber_spectrogram_gFT(object):
 
         model_error_x = xr.concat(model_error_x.values(), dim="x").T
         GG_x = xr.merge([y_model_eta, y_data_eta, model_error_x])
-        # model_error_x
 
         return self.GG, GG_x, params_dataframe
 
@@ -673,19 +602,12 @@ class wavenumber_spectrogram_gFT(object):
 
         return self.dk * Gmean[~infmask].sum().data
 
-    # def parceval(self, add_attrs=True ):
-    #     return wavenumber_spectrogram.parceval(self, add_attrs= add_attrs )
-
     def parceval(self, add_attrs=True, weight_data=False):
         "test Parceval theorem"
         import copy
 
         DATA = self.data
-        L = self.Lmeters
         X = self.x
-
-        # derive mean variances of stancils
-        # stancil_iter = create_chunk_boundaries_unit_lengths(L, self.xlims, ov= self.ov )
 
         def get_stancil_var_apply(stancil):
             from scipy.signal import detrend
@@ -717,8 +639,6 @@ class wavenumber_spectrogram_gFT(object):
         print("Parcevals Theorem:")
         print("variance of timeseries: ", DATA.var())
         print("mean variance of stancils: ", stancil_weighted_variance)
-        # print('variance of weighted timeseries: ',self.phi.var() )
-        # self.calc_var(self)
         print("variance of the optimzed windowed LS Spectrum: ", self.calc_var())
 
         if add_attrs:
@@ -746,7 +666,7 @@ def complex_represenation(p_hat, M, N_x_full):
     this returns a power spectral density with the same variance as the data without gaps.
     """
     Z = p_hat[0:M] - p_hat[M:] * 1j
-    Z = Z * (N_x_full / 2 + 1)  # this
+    Z = Z * (N_x_full / 2 + 1)
     return Z
 
 
@@ -794,7 +714,7 @@ def power_from_model(p_hat, dk, M, N_x, N_x_full):
     """
 
     Z = complex_represenation(p_hat, M, N_x_full)
-    spec, _ = Z_to_power_gFT(Z, dk, N_x, N_x_full)  # use spec_incomplete
+    spec, _ = Z_to_power_gFT(Z, dk, N_x, N_x_full)
 
     # spectral density respesenting the incomplete data
     return spec
@@ -811,11 +731,6 @@ class generalized_Fourier(object):
         self.x, self.ydata, self.k = x, ydata, k
         self.M = self.k.size  # number of wavenumbers
         self.N = self.x.size  # number of datapoints
-
-        # if self.non_dimensionalize:
-        #     self.ydata_star        = (self.ydata - self.ydata_mean)/self.ydata_std
-        # else:
-        # self.ydata_star        = self.ydata
 
         if ydata is not None:
             self.ydata_var = self.ydata.var()
@@ -842,8 +757,6 @@ class generalized_Fourier(object):
         """
 
         self.H = self.get_H()
-        # self.P     = np.diag(1/penalties) # penalty  2M x 2M
-        # self.R      = np.diag(  data_uncertainty) #Noise Prior N x N
         self.P_1d = np.concatenate([P_weight, P_weight])  # these are weights again ..
         self.R_1d = R_data_uncertainty
 
@@ -855,18 +768,6 @@ class generalized_Fourier(object):
         solves the linear inverse problem, return hessian and p_hat
         self.p_hat = is also non-dimensional
         """
-
-        # standard inversion
-        # H = self.H
-        # P = self.P
-        # R = self.R
-        # y = self.ydata
-        #
-        # Hess        = (H.T @ inv(R) @ H  ) + inv(P)
-        # Hess_inv    = inv( Hess)
-        # p_hat       = Hess_inv @ H.T @ inv(R) @ y
-        #
-        # self.Hess, self.Hess_inv, self.p_hat = Hess, Hess_inv, p_hat
 
         # faster inversion
         H = self.H
@@ -884,14 +785,6 @@ class generalized_Fourier(object):
 
         return p_hat
 
-    # def model(self):
-    #     return self.model_dimensional()
-
-    # def model_dimensional(self):
-    #     " returns the model in dimensional units"
-    #     if 'p_hat' not in self.__dict__:
-    #         raise ValueError('p_hat does not exist, please invert for model first')
-    #     return self.model_nondimensional() * self.ydata_std + self.ydata_mean
 
     def model(self):
         "returns the model dimensional units"
@@ -940,17 +833,12 @@ class generalized_Fourier(object):
         return pars
 
     def get_stats(self, dk, Nx_full, print_flag=False):
-        # model_error_k         = np.diag(self.Hess_inv)
-        # model_error_real  = ((self.H**2) @ self.Hess_inv).sum(1)
 
         residual = self.ydata - self.model()
-
-        Lmeters = self.x[-1] - self.x[0]
         pars = {
             "data_var": self.ydata.var(),
             "model_var": self.model().var(),
             "residual_var": residual.var(),
-            #'normalized_residual' : residual.var() /self.R_1d.mean(),
             "model_error_k": np.diag(self.Hess_inv),
             "model_error_x": ((self.H**2) @ self.Hess_inv).sum(1),
             "var_sum": self.ydata.var() - self.model().var() - residual.var(),
@@ -1018,8 +906,6 @@ class get_prior_spec(object):
             f_max = self.freq[get_peak_pos(abs(self.data), 30)]
 
         self.f_max = f_max
-        # p_smothed = self.runningmean(np.abs(self.Z ), 20, tailcopy=True)
-        # f_max = self.freq[p_smothed[~np.isnan(p_smothed)].argmax()]
         params.add("f_max", f_max, min=f_max * 0.2, max=f_max * 1.5, vary=True)
         params.add("amp", 0.05, min=0.0001, max=0.1, vary=True)
         params.add("gamma", 1, min=1, max=3.3, vary=False)
@@ -1056,7 +942,6 @@ class get_prior_spec(object):
         if fitting_args is None:
             fitting_args = (self.data, self.model_func, self.freq)
 
-        # fit_kws=  {'maxfun': 1e7}
         fit_kws = {"maxfun": 1e5}
         self.weight_func = fitting_args[1]
         self.fitter = self.LM.minimize(
@@ -1086,10 +971,9 @@ class get_prior_spec(object):
             print("0 Dimension is smaller then averaging length")
             return
         rr = np.asarray(var) * np.nan
-        # print(type(rr))
+        
         var_range = np.arange(m, int(s[0]) - m - 1, 1)
         for i in var_range[np.isfinite(var[m : int(s[0]) - m - 1])]:
-            # rm.append(var[i-m:i+m].mean())
             rr[int(i)] = np.nanmean(var[i - m : i + m])
         if tailcopy:
             rr[0:m] = rr[m + 1]
