@@ -1,44 +1,34 @@
-import os, sys
-
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
-from icesat2_tracks.config.IceSAT2_startup import (
-    mconfig,
-    xr,
-    color_schemes,
-    plt,
-    font_for_print,
-    font_for_pres,
-    np,
-)
 
+import os
+import sys
+import time
+from pathlib import Path
+from contextlib import contextmanager
+from itertools import cycle
 
-import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.io as io
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-
-import concurrent.futures as futures
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import xarray as xr
 from matplotlib.gridspec import GridSpec
 
-from numba import jit
-
-from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
-import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
+from icesat2_tracks.config.IceSAT2_startup import (
+    mconfig,
+    color_schemes,
+    font_for_print,
+    font_for_pres,
+)
+import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.local_modules.m_general_ph3 as M
-
-import pandas as pd
-import concurrent.futures as futures
-
-import time
-
-from contextlib import contextmanager
+import icesat2_tracks.local_modules.m_tools_ph3 as MT
+from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
 
 color_schemes.colormaps2(21)
-
 
 @contextmanager
 def suppress_stdout():
@@ -61,40 +51,36 @@ hemis, batch = batch_key.split("_")
 
 ATlevel = "ATL03"
 
-save_path = mconfig["paths"]["work"] + batch_key + "/B04_angle/"
+save_path = Path(mconfig["paths"]["work"], batch_key, "B04_angle")
 save_name = "B04_" + track_name
 
-plot_path = (
-    mconfig["paths"]["plot"] + "/" + hemis + "/" + batch_key + "/" + track_name + "/"
-)
+plot_path = Path(mconfig["paths"]["plot"], hemis, batch_key, track_name)
 MT.mkdirs_r(plot_path)
 MT.mkdirs_r(save_path)
-bad_track_path = mconfig["paths"]["work"] + "bad_tracks/" + batch_key + "/"
+bad_track_path = Path(mconfig["paths"]["work"], "bad_tracks", batch_key)
 
 all_beams = mconfig["beams"]["all_beams"]
 high_beams = mconfig["beams"]["high_beams"]
 low_beams = mconfig["beams"]["low_beams"]
 beam_groups = mconfig["beams"]["groups"]
 
-load_path = mconfig["paths"]["work"] + batch_key + "/B01_regrid/"
-G_binned_store = h5py.File(load_path + "/" + track_name + "_B01_binned.h5", "r")
+load_path = Path(mconfig["paths"]["work"], batch_key, "B01_regrid")
+G_binned_store = h5py.File(Path(load_path, track_name + "_B01_binned.h5"), "r")
 G_binned = dict()
 for b in all_beams:
     G_binned[b] = io.get_beam_hdf_store(G_binned_store[b])
 G_binned_store.close()
 
-load_path = mconfig["paths"]["work"] + batch_key + "/B02_spectra/"
-Gx = xr.load_dataset(load_path + "/B02_" + track_name + "_gFT_x.nc")  #
-Gk = xr.load_dataset(load_path + "/B02_" + track_name + "_gFT_k.nc")  #
+load_path = Path(mconfig["paths"]["work"], batch_key, "B02_spectra")
+Gx = xr.load_dataset(Path(load_path, "B02_" + track_name + "_gFT_x.nc"))
+Gk = xr.load_dataset(Path(load_path, "B02_" + track_name + "_gFT_k.nc"))
 
 
 # load prior information
-load_path = mconfig["paths"]["work"] + batch_key + "/A02_prior/"
+load_path = Path(mconfig["paths"]["work"], batch_key, "A02_prior")
 
 try:
-    Prior = MT.load_pandas_table_dict("/A02_" + track_name, load_path)[
-        "priors_hindcast"
-    ]
+    Prior = MT.load_pandas_table_dict(Path(load_path, "A02_" + track_name))["priors_hindcast"]
 except:
     print("Prior not found. exit")
     MT.json_save(
@@ -330,13 +316,22 @@ def define_wavenumber_weights_tot_var(
     k = dd_use.k[~np.isnan(dd_rm)].data
     dd_rm = dd_rm[~np.isnan(dd_rm)]
 
+    # Get indices of the sorted data in descending order
     orders = dd_rm.argsort()[::-1]
+
+    # Calculate the cumulative sum of the sorted data and check if it exceeds the specified variance fraction
     var_mask = dd_rm[orders].cumsum() / dd_rm.sum() < variance_frac
+
+    # Get the positions where the cumulative sum is within the specified variance fraction
     pos_cumsum = orders[var_mask]
+
+    # Sort the variance mask based on the original order of the data
     mask = var_mask[orders.argsort()]
+
+    # Apply an additional upper limit on the wavenumber if specified
     if k_upper_lim is not None:
         mask = (k < k_upper_lim) & mask
-
+    
     if verbose:
         plt.plot(
             dd.k,
@@ -398,9 +393,7 @@ def plot_instance(
     gs = GridSpec(4, 3, wspace=0.4, hspace=1.2)
     F.gs = gs
 
-    import itertools
-
-    col_list = itertools.cycle(
+    col_list = cycle(
         [
             color_schemes.cascade2,
             color_schemes.rascade2,
