@@ -1,9 +1,8 @@
-import os, sys
-
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+import sys
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
@@ -118,7 +117,7 @@ def dict_weighted_mean(Gdict, weight_key):
     for I in Gdict.items():
         I = I.squeeze()
         if len(I.x) != 0:
-            GSUM += I.where(~np.isnan(I), 0) * I[weight_key]  # .sel(x=GSUM.x)
+            GSUM += I.where(~np.isnan(I), 0) * I[weight_key]
             N_per_stancil += I[weight_key]
         if "N_photons" in GSUM.coords:
             N_photons += I["N_photons"]
@@ -180,18 +179,11 @@ def plot_wavenumber_spectrogram(ax, Gi, clev, title=None, plot_photon_density=Tr
 Gmean = G_gFT_wmean.rolling(k=5, center=True).mean()
 
 try:
-    k_max_range = (
-        Gmean.k[Gmean.isel(x=slice(0, 5)).mean("x").argmax().data].data * 0.75,
-        Gmean.k[Gmean.isel(x=slice(0, 5)).mean("x").argmax().data].data * 1,
-        Gmean.k[Gmean.isel(x=slice(0, 5)).mean("x").argmax().data].data * 1.25,
-    )
+    k_max = Gmean.k[Gmean.isel(x=slice(0, 5)).mean("x").argmax().data].data
 except:
-    k_max_range = (
-        Gmean.k[Gmean.isel(x=slice(0, 20)).mean("x").argmax().data].data * 0.75,
-        Gmean.k[Gmean.isel(x=slice(0, 20)).mean("x").argmax().data].data * 1,
-        Gmean.k[Gmean.isel(x=slice(0, 20)).mean("x").argmax().data].data * 1.25,
-    )
+    k_max = Gmean.k[Gmean.isel(x=slice(0, 20)).mean("x").argmax().data].data
 
+k_max_range = (k_max * 0.75, k_max * 1, k_max * 1.25)
 font_for_print()
 F = M.figure_axis_xy(6.5, 5.6, container=True, view_scale=1)
 Lmeters = Gk.L.data[0]
@@ -254,9 +246,9 @@ plot_wavenumber_spectrogram(
 )
 plt.xlim(xlims)
 
-ax0.axhline(2 * np.pi / k_max_range[0], color="red", linestyle="--", linewidth=0.5)
-ax0.axhline(2 * np.pi / k_max_range[1], color="red", linestyle="-", linewidth=0.5)
-ax0.axhline(2 * np.pi / k_max_range[2], color="red", linestyle="--", linewidth=0.5)
+line_styles = ["--", "-", "--"]
+for k_max, style in zip(k_max_range, line_styles):
+    ax0.axhline(2 * np.pi / k_max, color="red", linestyle=style, linewidth=0.5)
 
 if pflag:
     plt.ylabel("Wave length\n(meters)")
@@ -390,8 +382,7 @@ else:
     print("failed, exit")
     exit()
 
-fltostr = MT.float_to_str
-numtostr = MT.num_to_str
+fltostr, numtostr = MT.float_to_str, MT.num_to_str
 
 font_for_print()
 
@@ -503,9 +494,13 @@ for i in xpp:
 
             dd = Gk_1.gFT_PSD_data.rolling(k=10, min_periods=1, center=True).mean()
             plt.plot(Gk_1.k, dd, color=col_d[k], linewidth=0.8)
-            dd_max.append(np.nanmax(dd.data))
+            # handle the 'All-NaN slice encountered' warning
+            if np.all(np.isnan(dd.data)): 
+                dd_max.append(np.nan)
+            else:
+                dd_max.append(np.nanmax(dd.data))
+                
             plt.xlim(klim)
-
             if lflag:
                 plt.ylabel("$(m/m)^2/k$")
                 plt.title("Energy Spectra", loc="left")
@@ -514,10 +509,11 @@ for i in xpp:
 
         ax11.axvline(k_thresh, linewidth=1, color="gray", alpha=1)
         ax11.axvspan(k_thresh, klim[-1], color="gray", alpha=0.5, zorder=12)
-
-    if ~np.isnan(np.nanmax(dd_max)):
-        for ax in ax1_list:
-            ax.set_ylim(0, np.nanmax(dd_max) * 1.1)
+    
+    if not np.all(np.isnan(dd_max)):
+            max_vale = np.nanmax(dd_max)
+            for ax in ax1_list:
+                ax.set_ylim(0,max_vale  * 1.1)
 
     ax0 = F.fig.add_subplot(gs[-2:, :])
 
