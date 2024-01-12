@@ -647,7 +647,7 @@ class wavenumber_spectrogram_gFT(object):
             self.G.attrs["mean_variance_LS_pwelch_spectrum"] = self.calc_var()
 
     def mean_spectral_error(self, mask=None, confidence=0.95):
-        return wavenumber_spectrogram.mean_spectral_error(
+        return spec.wavenumber_spectrogram.mean_spectral_error(
             self, mask=mask, confidence=confidence
         )
 
@@ -863,7 +863,7 @@ class generalized_Fourier(object):
         return pars
 
 
-class get_prior_spec(object):
+class get_prior_spec:
     def __init__(self, freq, data):
         """ """
         import numpy as np
