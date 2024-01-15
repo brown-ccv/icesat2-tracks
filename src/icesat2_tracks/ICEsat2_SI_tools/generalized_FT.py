@@ -156,7 +156,7 @@ def define_weights(stancil, prior, x, y, dx, k, max_nfev, plot_flag=False):
     return weight, prior_pars
 
 
-class wavenumber_spectrogram_gFT(object):
+class wavenumber_spectrogram_gFT:
     def __init__(self, x, data, L, dx, wavenumber, data_error=None, ov=None):
         """
         returns a wavenumber spectrogram with the resolution L-ov
@@ -720,7 +720,7 @@ def power_from_model(p_hat, dk, M, N_x, N_x_full):
     return spec
 
 
-class generalized_Fourier(object):
+class generalized_Fourier:
     def __init__(self, x, ydata, k):
         """
         non_dimensionalize (bool, default=True) if True, then the data and R_data_uncertainty is non-dimensionalized by the std of the data
