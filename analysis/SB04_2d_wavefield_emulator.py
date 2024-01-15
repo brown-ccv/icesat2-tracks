@@ -1,6 +1,5 @@
 
 import os, sys
-#execfile(os.environ['PYTHONSTARTUP'])
 
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
@@ -9,8 +8,6 @@ This is python 3
 if __name__ == '__main__':
     exec(open(os.environ['PYTHONSTARTUP']).read())
     exec(open(STARTUP_2021_IceSAT2).read())
-
-    #%matplotlib inline
 
     import ICEsat2_SI_tools.convert_GPS_time as cGPS
     import h5py
@@ -22,12 +19,9 @@ if __name__ == '__main__':
     import spicke_remover
     import datetime
     import concurrent.futures as futures
-    #import s3fs
-    # %%
+
     track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard experiment
-    #track_name, batch_key, test_flag = '20190605061807_10380310_004_01', 'SH_batch01', False
-    #track_name, batch_key, test_flag = '20190601094826_09790312_004_01', 'SH_batch01', False
-    #track_name, batch_key, test_flag = '20190207111114_06260210_004_01', 'SH_batch02', False
+
     track_name, batch_key, test_flag = '20190219073735_08070210_004_01', 'SH_batch02', False
 
 
@@ -35,23 +29,21 @@ if __name__ == '__main__':
 
     #print(track_name, batch_key, test_flag)
     hemis, batch = batch_key.split('_')
-    #track_name= '20190605061807_10380310_004_01'
     ATlevel= 'ATL03'
 
     save_path   = mconfig['paths']['work'] + '/B03_spectra_'+hemis+'/'
     save_name   = 'B03_'+track_name
 
-    #plot_path   = mconfig['paths']['plot'] + '/'+hemis+'/'+batch_key+'/' + track_name + '/B_spectra/'
     plot_path   = mconfig['paths']['plot'] + '/phase_fitting_fake/2D_fake/'
     MT.mkdirs_r(plot_path)
     MT.mkdirs_r(save_path)
     bad_track_path =mconfig['paths']['work'] +'bad_tracks/'+ batch_key+'/'
-# %%
+
 if __name__ == '__main__':
     all_beams   = mconfig['beams']['all_beams']
     high_beams  = mconfig['beams']['high_beams']
     low_beams   = mconfig['beams']['low_beams']
-    #Gfilt   = io.load_pandas_table_dict(track_name + '_B01_regridded', load_path) # rhis is the rar photon data
+
 
     load_path   = mconfig['paths']['work'] +'/B01_regrid_'+hemis+'/'
     Gd      = io.load_pandas_table_dict(track_name + '_B01_binned' , load_path)  #
@@ -70,30 +62,21 @@ if __name__ == '__main__':
     Gspec.coords['T'] = 1/Gspec.coords['f']
     Gspec=Gspec.swap_dims({'k': 'f'})
 
-    #Gspec.spectral_power_optm.sel(beam='weighted_mean').plot()
-    # %%
-    #k_lim= 0.02
+
     A, B = Gspec.sel(beam= 'gt2r').Y_model_hat , Gspec.sel(beam= 'gt2l').Y_model_hat
 
     r_ave_kargs={'x':2, 'f':10, 'center':True, 'min_periods':2}
     r_ave_kargs2={'f':10, 'center':True, 'min_periods':2}
-    #(abs(B) - abs(A)).plot()
+
     S_aa = (A*A.conj()).real
     S_bb = (B*B.conj()).real
-    # co_spec = (A.conj() *B) /S_aa/S_bb
-    # abs(co_spec).plot()
+
     co_spec = (A.conj() *B).rolling(**r_ave_kargs).mean()
     np.log(abs(co_spec)).plot(levels=np.arange(-2, 3, 0.1))
 
     (abs(co_spec)).plot(levels=np.exp(np.arange(-3, 2, 0.1)))
 
     abs(co_spec).mean('x').plot()
-
-#(abs(co_spec)/(S_aa *S_bb).rolling(**r_ave_kargs).mean()).plot()
-#
-# (abs(A.conj() *B)/(S_aa *S_bb)).rolling(**r_ave_kargs).mean()[:,:].plot()
-
-# %%
 if __name__ == '__main__':
     L1 = 50
     k1 = 2* np.pi /L1
@@ -111,11 +94,9 @@ if __name__ == '__main__':
     alpha = 35
     kk, ll = np.cos(alpha * np.pi/180) * np.array([0.9*k1, k1, 1.1* k1]), np.sin(alpha * np.pi/180) * np.array([0.9* k1, 1*k1, 1.1* k1])
     M_k, M_l = kk.size, ll.size
-    #y =np.sin(k1* x) + np.sin(k2* x)
     kk_mesh, ll_mesh = np.meshgrid(kk, ll)
     kk_mesh, ll_mesh = kk_mesh.reshape(kk_mesh.size), ll_mesh.reshape(ll_mesh.size)
-    G = np.cos(np.outer(XX, kk_mesh) + np.outer(YY, ll_mesh)).T# + np.sin(np.outer(XX, kk_mesh) + np.outer(YY, ll_mesh)).T
-    #G = np.vstack([ np.cos(np.outer(x, k) + np.outer(y, l)).T ,  np.sin(np.outer(x, k)  + np.outer(y, l) ).T ] ).T
+    G = np.cos(np.outer(XX, kk_mesh) + np.outer(YY, ll_mesh)).T
     G.shape
 
     plt.contourf(x, y, G.sum(0).reshape(Ny, Nx) )
@@ -124,7 +105,6 @@ if __name__ == '__main__':
  # %% radial coordincates
 
 def gaus_2d(x, y, pos_tuple, sigma_g ):
-    #grid = ( (XX - pos_tuple[0])  * (YY - pos_tuple[1]) )
     gx = np.exp(-0.5 * (x - pos_tuple[0])**2 /sigma_g**2  )
     gy = np.exp(-0.5 * (y - pos_tuple[1])**2 /sigma_g**2  )
     return  np.outer(gx ,  gy).T
@@ -139,8 +119,6 @@ if __name__ == '__main__':
     M.figure_axis_xy(4, 4, view_scale= 0.5)
     plt.contourf(k_range, l_range, gaus_lk  )
     plt.axis('equal')
-
-# %%
 
 k_0 = 0.03
 l_0 = 0
@@ -203,7 +181,6 @@ if __name__ == '__main__':
     plt.axis('equal')
 
 
-# %% radial coodinates
 def get_stancils_polar( amp, angle_rad,  size=1, dk = 0.01, mesh = True, plot_flag = True, amp_std= None, random=True):
     """
     inputs:
@@ -263,10 +240,6 @@ def get_stancils_polar( amp, angle_rad,  size=1, dk = 0.01, mesh = True, plot_fl
 
 if __name__ == '__main__':
     font_for_pres()
-    #k_mesh.shape
-    #for angle in np.arange(-80, 80+20, 40):
-    #for phase in np.arange(0, 2*np.pi, np.pi/3):
-    #for k_abs in np.arange(0.01, 0.09, 0.01):
 
     angle =45
     amp =1
@@ -276,23 +249,15 @@ if __name__ == '__main__':
     for dk in np.arange(0.005, 0.03, 0.002):
 
         for size in [2, 5, 10, 30, 50, 100, 200]:
-            #for angle in np.arange(-80, 80+20, 40):
-            #for k_abs in np.arange(0.01, 0.09, 0.01):
-            #for phase in np.arange(0, 2*np.pi, np.pi/3):
-
-
             F = M.figure_axis_xy(8, 3, view_scale = 0.5, container =False)
             plt.suptitle('k_abs=' + str(k_abs) +' angle=' + str(angle) + ' size=' + str(size) +' dk=' + str(dk) )
             ax = plt.subplot(1, 2, 1)
             k_list, l_list, amp_weights, stancil_shape = get_stancils_polar(k_abs, angle * np.pi/180, size=size, dk = dk, mesh = True , plot_flag= True, random = True)
-
             circle1 = plt.Circle((k_list[0], l_list[0]), dk, color='b', fill=False)
             ax.add_patch(circle1)
 
-
             k_noise, l_noise, amp_noise, stancil_shape = get_stancils_polar(0.8, 0 * np.pi/180, size=20, dk = 0.3, mesh = True , plot_flag= True, random = True)
             amp_noise = (amp_noise *0+1) * 0
-
 
             plt.xlim(0, 0.1)
             #plt.axis('equal')
@@ -308,10 +273,6 @@ if __name__ == '__main__':
             amp_all = np.concatenate([amp_weights, amp_noise])
             amp_all.shape
             G = np.vstack([ np.cos(np.outer(XX, k_all) + np.outer(YY, l_all)).T ,  np.sin(np.outer(XX, k_all) + np.outer(YY, l_all)).T ] ).T
-            #G = np.vstack([ np.cos(np.outer(x, k) + np.outer(y, l)).T             ,  np.sin(np.outer(x, k)  + np.outer(y, l) ).T ] ).T
-
-            #phase1 = np.random.rand(1, amp_list.size) *  np.pi*2
-            #phase = np.arange(0, amp_list.size) *  np.pi/2
 
             b = np.hstack([ np.cos(phase)*amp_all, np.sin(phase) *amp_all]).squeeze() * amp
             z_model = (G @ b).reshape(Ny, Nx)
@@ -323,9 +284,3 @@ if __name__ == '__main__':
             F.save_light(path = plot_path, name = 'fake_2d_dk' +str(dk) +'_s' + str(int(size)))
             plt.show()
 
-
-    # class twoD_wave_packets(object):
-    #     def __init__(self):
-
-
-    # %%

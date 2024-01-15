@@ -122,7 +122,7 @@ def likelyhood_func(pars, x, y, z, z_error= None, test_flag= False , prior= None
         return  - 0.5 * (cost_sqrt/tot_var + np.log(tot_var) ).sum() + prior_weight * penalties
 
 
-class sample_with_mcmc(object):
+class sample_with_mcmc:
     """
     sample a 2nd surface using mcmc and other methods. its made for getting a quick estimate!
 
