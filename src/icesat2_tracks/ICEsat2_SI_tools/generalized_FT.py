@@ -4,19 +4,17 @@ import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
 
 
-def rebin(data, dk, return_edges=False):
+def rebin(data, dk):
     """
     rebin data to a new k-grid with dk
     """
-    k_low_limits = data.k[::10]
+    k_low_limits = data.k[::dk]
     Gmean = data.groupby_bins("k", k_low_limits).mean()
     k_low = (k_low_limits + k_low_limits.diff("k")[0] / 2).data
     Gmean["k_bins"] = k_low[0:-1]
     Gmean = Gmean.rename({"k_bins": "k"})
-    if return_edges:
-        return Gmean, k_low_limits
-    else:
-        return Gmean
+    return Gmean, k_low_limits
+    
 
 
 # define  weight function
