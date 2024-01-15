@@ -5,7 +5,6 @@ import h5py
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as font_for_print
 from matplotlib.gridspec import GridSpec
 import xarray as xr
 from siphon.catalog import TDSCatalog
@@ -16,6 +15,7 @@ import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
 from icesat2_tracks.config.IceSAT2_startup import color_schemes
+from icesat2_tracks.config.IceSAT2_startup import font_for_print
 
 color_schemes.colormaps2(21)
 
@@ -531,7 +531,8 @@ try:
     ax1.axis("equal")
 
     F.save_pup(path=plot_path, name=plot_name + "_hindcast_prior")
-except:
+except  Exception as e:
+    print(e)
     print("print 2nd figure failed")
 
 MT.json_save(
