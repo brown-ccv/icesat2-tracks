@@ -70,13 +70,10 @@ def ID_to_str(ID_name):
     date
     return IDs[0] +' ' +date +' granule: ' + IDs[2]
 
-class case_ID(object):
+class case_ID:
     """docstring for case_ID"""
     def __init__(self, track_name):
         import re
-        super(case_ID, self).__init__()
-
-        #track_name_pattern = r'(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})_(\d{4})(\d{2})(\d{2})_(\d{3})_(\d{2})'
         track_name_pattern = r'(\D{2}|\d{2})_?(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?_(\d{4})(\d{2})(\d{2})_?(\d{3})?_?(\d{2})?'
         case_ID_pattern = r'(\d{4})(\d{2})(\d{2})_(\d{4})(\d{2})(\d{2})'
 

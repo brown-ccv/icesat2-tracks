@@ -50,7 +50,7 @@ def json_load(name, path, verbose=False):
 
 
 
-class color(object):
+class color:
         def __init__(self, path=None, name=None):
             self.white=(1,1,1)
             if (path is not None) & (name is not None):

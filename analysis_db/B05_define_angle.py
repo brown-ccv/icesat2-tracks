@@ -280,7 +280,7 @@ if len(Gpdf.x) < 2:
     exit()
 
 # %%
-class plot_polarspectra(object):
+class plot_polarspectra:
         def __init__(self,k, thetas, data, data_type='fraction' ,lims=None,  verbose=False):
 
             """
