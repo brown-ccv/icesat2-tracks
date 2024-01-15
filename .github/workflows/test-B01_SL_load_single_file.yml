@@ -27,5 +27,5 @@ jobs:
         run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py SH_20190502_05180312 SH_testSLsinglefile2 True
       - name: third step plot_spectra
         run: python src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      - name: third step plot_spectra
+      - name: fourth step plot_spectra
         run: python src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py SH_20190502_05180312 SH_testSLsinglefile2 True
