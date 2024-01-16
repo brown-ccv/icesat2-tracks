@@ -6,12 +6,10 @@ This is python 3
 """
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
-    xr,
     color_schemes,
     plt,
     font_for_print,
     font_for_pres,
-    np,
 )
 
 
@@ -19,6 +17,8 @@ import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
 import h5py
 import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+import xarray as xr
+import numpy as np
 
 import concurrent.futures as futures
 from matplotlib.gridspec import GridSpec
