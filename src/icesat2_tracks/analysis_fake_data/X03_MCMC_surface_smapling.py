@@ -41,7 +41,7 @@ def cost(x, y):
     z = 4+ np.sin(4*  2 * np.pi *x/Lx) +  np.sin( 3 * np.pi *x/Lx - np.pi/5) + np.cos(1*  2 * np.pi *y/Ly) +  np.sin( 3 * np.pi *y/Ly - np.pi/3)
     return z**2
 
-class sample_with_mcmc(object):
+class sample_with_mcmc:
     """
     sample a 2nd surface using mcmc. its make for getting a quick estimate!
     """
