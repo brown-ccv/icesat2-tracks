@@ -13,25 +13,24 @@ from icesat2_tracks.config.IceSAT2_startup import (
 )
 
 
-import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
+
 import h5py
 import icesat2_tracks.ICEsat2_SI_tools.io as io
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 import xarray as xr
 import numpy as np
 
-import concurrent.futures as futures
+
 from matplotlib.gridspec import GridSpec
 
 from numba import jit
 
 from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
-import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
+
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
 
 import pandas as pd
-import concurrent.futures as futures
+
 
 import time
 
@@ -703,7 +702,7 @@ for gi in zip(ggg.flatten(), xxx.flatten()):
         )
         marginal_stack_i.coords["k"] = np.array(
             k_prime_max
-        )  # ( ('k'), np.array(k_prime_max) )
+        )
 
         rdict = {
             "marginal_stack_i": marginal_stack_i,
