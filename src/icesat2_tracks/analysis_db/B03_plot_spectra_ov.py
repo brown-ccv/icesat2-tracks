@@ -25,15 +25,15 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 
 
 track_name, batch_key, test_flag = io.init_from_input(
-    sys.argv
+    sys.argv # TODO: Handle via CLI
 )  # loads standard experiment
 hemis, batch = batch_key.split("_")
 
 load_path = mconfig["paths"]["work"] + batch_key + "/B02_spectra/"
-load_file = load_path + "B02_" + track_name  # + '.nc'
+load_file = load_path + "B02_" + track_name
 plot_path = (
     mconfig["paths"]["plot"] + "/" + hemis + "/" + batch_key + "/" + track_name + "/"
-)
+) # TODO: Update with pathlib
 MT.mkdirs_r(plot_path)
 
 Gk = xr.open_dataset(load_file + "_gFT_k.nc")

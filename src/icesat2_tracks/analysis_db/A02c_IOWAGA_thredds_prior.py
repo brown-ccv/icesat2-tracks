@@ -1,4 +1,4 @@
-import os, sys
+import sys
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
@@ -425,8 +425,6 @@ try:
 except:
     target_name = "A02_" + track_name + "_hindcast_fail"
 
-
-# %%
 def plot_prior(Prior, axx):
     angle = Prior["incident_angle"][
         "value"
