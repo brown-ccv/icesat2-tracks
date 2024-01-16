@@ -29,5 +29,5 @@ jobs:
         run: python src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py SH_20190502_05180312 SH_testSLsinglefile2 True
       - name: fourth step IOWAGA thredds
         run: python src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      # - name: Fifth step B04_angle
-      #   run: python src/icesat2_tracks/analysis_db/B04_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
+      - name: Fifth step B04_angle
+        run: python src/icesat2_tracks/analysis_db/B04_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
