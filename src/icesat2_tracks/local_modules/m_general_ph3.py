@@ -27,7 +27,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class color(object):
+class color:
         def __init__(self):
 
             self.red=(203/255, 32/255, 39/255)
@@ -61,7 +61,7 @@ class color(object):
 
 # funny massage
 
-class figure_axis_xy(object):
+class figure_axis_xy:
         """define standart  XY Plot with reduced grafics"""
 
         def __init__(self,x_size=None,y_size=None,view_scale=None, size_tuple=None , fig_scale=None, container=False, dpi=180):
@@ -171,7 +171,7 @@ class subplot_routines(figure_axis_xy):
         def __init__(self, ax):
             self.ax=ax
 
-class plot_sprecta(object):
+class plot_sprecta:
             def __init__(self,fs, Xdata,sample_unit=None,data_unit=None):
 
                 self.fs=fs
@@ -261,7 +261,7 @@ class plot_sprecta(object):
                 self.F.make_clear()
                 plt.grid()
 
-class plot_periodogram(object):
+class plot_periodogram:
             def __init__(self,time,fs, data,clevs=None, sample_unit=None, data_unit=None,
                         ylim=None, time_unit=None, cmap=None):
                 self.fs=fs[1:]
@@ -696,7 +696,7 @@ class plot_periodogram(object):
                 set_timeaxis_days(self.ax, **kwargs)
 
 
-class plot_polarspectra(object):
+class plot_polarspectra:
         def __init__(self,f, thetas, data,unit=None, data_type='fraction' ,lims=None,  verbose=False):
 
             self.f=f
@@ -1256,7 +1256,7 @@ def spickes_to_mean(ts, nloop=None, spreed=1, gaussian=True):
 
 ## Composites
 
-class composite_data(object):
+class composite_data:
         def __init__(self,var, index_weight=None):
             #print(var.shape)
             self.composites=var
@@ -1285,7 +1285,7 @@ class composite_data(object):
             yb = 1/np.arange(1, n+1)[:, None] * np.cumsum(xb, axis=0)
             upper, lower = np.percentile(yb, [2.5, 97.5], axis=1)
 
-class comp_iter(object):
+class comp_iter:
         def __init__(self, span, dt=None, unit=None):
             self.span=list(span)
             for s in self.span:
@@ -1306,7 +1306,7 @@ class comp_iter(object):
 
                 self.time_iter_string=time_str
 
-class composite(object):
+class composite:
         def __init__(self,index, time=None, weigthing=False, span=None):
             """ Initial Class for bulding composite based on:
                 index       position in the time vector 'time'
