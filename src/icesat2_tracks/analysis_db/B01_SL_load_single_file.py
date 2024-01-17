@@ -1,33 +1,26 @@
-#
 """
 This file open a ICEsat2 tbeam_stats.pyrack applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3.11
 """
-import os, sys
+import sys
+import datetime
+import copy
+import imp
+
+import xarray as xr
+from sliderule import sliderule, icesat2
+
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
-    xr,
     color_schemes,
     font_for_pres,
     plt,
 )
-
-import geopandas as gpd
-
-from sliderule import sliderule, icesat2, earthdata
-
-import shapely
-from ipyleaflet import basemaps, Map, GeoData
-
 import icesat2_tracks.ICEsat2_SI_tools.sliderule_converter_tools as sct
 import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.beam_stats as beam_stats
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
-
-
-import h5py, imp, copy
-import datetime
 
 
 xr.set_options(display_style="text")
@@ -39,7 +32,6 @@ track_name, batch_key, ID_flag = io.init_from_input(
     sys.argv
 )  # loads standard experiment
 
-# 20190502052058_05180312_005_01
 plot_flag = True
 hemis = batch_key.split("_")[0]
 
@@ -118,8 +110,6 @@ beam_stats.plot_ATL06_track_data(gdf, cdict)
 
 
 # main routine for defining the x coordinate and sacing table data
-
-
 def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     """
     converts a GeoDataFrame from Sliderule to GeoDataFrames for each beam witht the correct columns and names
@@ -180,7 +170,6 @@ for kk in Ti.keys():
     Ti[kk]["dist"] = Ti[kk]["x"].copy()
     Ti[kk]["heights_c_weighted_mean"] = Ti[kk]["h_mean"].copy()
     Ti[kk]["heights_c_std"] = Ti[kk]["h_sigma"].copy()
-
 
 segment = track_name.split("_")[1][-2:]
 ID_name = sct.create_ID_name(gdf.iloc[0], segment=segment)
