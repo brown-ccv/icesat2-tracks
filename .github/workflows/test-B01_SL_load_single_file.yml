@@ -12,7 +12,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: install mpi
-        run: sudo apt update && sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev 
+        #run: sudo apt update && sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev 
+        run: brew install open-mpi
       - uses: actions/checkout@v3
       - name: setup python
         uses: actions/setup-python@v4
