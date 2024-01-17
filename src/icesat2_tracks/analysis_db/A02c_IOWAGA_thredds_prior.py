@@ -1,26 +1,21 @@
 import sys
-
-from icesat2_tracks.config.IceSAT2_startup import (
-    mconfig,
-    xr,
-    color_schemes,
-    plt,
-    font_for_print,
-    np,
-)
+import datetime
 
 import h5py
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as font_for_print
+from matplotlib.gridspec import GridSpec
+import xarray as xr
+from siphon.catalog import TDSCatalog
+
+from icesat2_tracks.config.IceSAT2_startup import mconfig
 import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
-
-from siphon.catalog import TDSCatalog
-
-import pandas as pd
-
-import datetime
-from matplotlib.gridspec import GridSpec
+from icesat2_tracks.config.IceSAT2_startup import color_schemes
 
 color_schemes.colormaps2(21)
 

@@ -3,7 +3,6 @@ This file open a ICEsat2 track applied filters and corections and returns smooth
 This is python 3
 """
 import sys
-import time
 import numpy as np
 import xarray as xr
 from matplotlib.gridspec import GridSpec
