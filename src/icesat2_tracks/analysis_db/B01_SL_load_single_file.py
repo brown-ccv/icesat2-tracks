@@ -5,7 +5,6 @@ This is python 3.11
 import sys
 import datetime
 import copy
-import imp
 
 import xarray as xr
 from sliderule import sliderule, icesat2
@@ -156,7 +155,7 @@ def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
 
 # define reference point and then define 'x'
 table_data = copy.copy(gdf)
-imp.reload(sct)
+
 # the reference point is defined as the most equatorward point of the polygon.
 # It's distance from the equator is  subtracted from the distance of each photon.
 table_data = sct.define_x_coordinate_from_data(table_data)
@@ -192,7 +191,6 @@ MT.mkdirs_r(plot_path)
 F_atl06.save_light(path=plot_path, name="B01b_ATL06_corrected.png")
 plt.close()
 
-imp.reload(beam_stats)
 if plot_flag:
     font_for_pres()
     F = M.figure_axis_xy(8, 4.3, view_scale=0.6)

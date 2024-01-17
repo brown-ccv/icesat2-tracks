@@ -3,26 +3,15 @@ This file open a ICEsat2 track applied filters and corections and returns smooth
 This is python 3
 """
 import sys
-
-from icesat2_tracks.config.IceSAT2_startup import (
-    mconfig,
-    xr,
-    color_schemes,
-    plt,
-    np,
-    font_for_print,
-)
-
-import icesat2_tracks.ICEsat2_SI_tools.io as io
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-
 import time
+import numpy as np
+import xarray as xr
 from matplotlib.gridspec import GridSpec
+import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-from scipy.ndimage.measurements import label
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
-
+from icesat2_tracks.config.IceSAT2_startup import mconfig, color_schemes, plt, font_for_print
 
 track_name, batch_key, test_flag = io.init_from_input(
     sys.argv # TODO: Handle via CLI
@@ -40,8 +29,6 @@ Gk = xr.open_dataset(load_file + "_gFT_k.nc")
 Gx = xr.open_dataset(load_file + "_gFT_x.nc")
 
 Gfft = xr.open_dataset(load_file + "_FFT.nc")
-time.sleep(2)
-
 
 all_beams = mconfig["beams"]["all_beams"]
 high_beams = mconfig["beams"]["high_beams"]
