@@ -785,8 +785,7 @@ try:
     LL = pd.concat(L_collect)
     MT.save_pandas_table({"L_sample": LL}, save_name + "_res_table", save_path)
 except Exception as e:
-    print(e)
-    pass
+    print(f"This is a warning: {e})
 
 # plot
 font_for_print()
