@@ -1,8 +1,6 @@
 import numpy as np
-
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
 import matplotlib.pyplot as plt
+from icesat2_tracks.ICEsat2_SI_tools import lanczos, spectral_estimates as spec
 
 
 def rebin(data, dk):
@@ -69,7 +67,7 @@ def get_weights_from_data(
     pars = Spec_fft.set_parameters(flim=np.sqrt(9.81 * k[-1]) / 2 / np.pi)
     k_max = (pars["f_max"].value * 2 * np.pi) ** 2 / 9.81
 
-    if method is "gaussian":
+    if method == "gaussian":
         # simple gaussian weight
         def gaus(x, x_0, amp, sigma_g):
             return amp * np.exp(-0.5 * ((x - x_0) / sigma_g) ** 2)
@@ -77,7 +75,7 @@ def get_weights_from_data(
         weight = gaus(k, k_max, 1, 0.02) ** (1 / 2)
         params = None
 
-    elif method is "parametric":
+    elif method == "parametric":
         # JONSWAP weight
         f = np.sqrt(9.81 * k) / (2 * np.pi)
         weight = Spec_fft.create_weight(freq=f, plot_flag=False, max_nfev=max_nfev)
@@ -136,7 +134,7 @@ def define_weights(stancil, prior, x, y, dx, k, max_nfev, plot_flag=False):
     return weights normalized to 1, prior_pars used for the next iteration
     """
 
-    if (type(prior[0]) is bool) and not prior[0]:
+    if isinstance(prior[0], bool) and not prior[0]:
         # fit function to data
         weight, prior_pars = get_weights_from_data(
             x, y, dx, stancil, k, max_nfev, plot_flag=plot_flag, method="parametric"
@@ -246,7 +244,6 @@ class wavenumber_spectrogram_gFT:
             windows the data accoding to stencil and applies LS spectrogram
             returns: stancil center, spectrum for this stencil, number of datapoints in stancil
             """
-            from scipy.signal import detrend
             import matplotlib.pyplot as plt
             import time
 
@@ -338,10 +335,7 @@ class wavenumber_spectrogram_gFT:
             inverse_stats = FT.get_stats(self.dk, Lpoints_full, print_flag=plot_flag)
             # add fitting parameters of Prior to stats dict
             for k, I in prior_pars.items():
-                try:
-                    inverse_stats[k] = I.value
-                except:
-                    inverse_stats[k] = np.nan
+                inverse_stats[k] = I.value if hasattr(I, "value") else np.nan
 
             print("compute time stats : ", time.perf_counter() - ta)
 
@@ -637,7 +631,6 @@ class wavenumber_spectrogram_gFT:
         import copy
 
         DATA = self.data
-        L = self.Lmeters
         X = self.x
 
         def get_stancil_var_apply(stancil):
@@ -757,7 +750,6 @@ class generalized_Fourier:
         non_dimensionalize (bool, default=True) if True, then the data and R_data_uncertainty is non-dimensionalized by the std of the data
         """
         import numpy as np
-        from numpy import linalg
 
         self.x, self.ydata, self.k = x, ydata, k
         self.M = self.k.size  # number of wavenumbers
@@ -769,7 +761,7 @@ class generalized_Fourier:
             # test if the data is real, not nan and not inf
             assert np.isrealobj(self.ydata), "data is not real"
             assert np.isfinite(self.ydata).all(), "data is not finite"
-            assert np.isnan(self.ydata).all() == False, "data is not nan"
+            assert not np.isnan(self.ydata).all(), "data is not nan"
 
     # data matrix
     def get_H(self, xx=None):
@@ -865,7 +857,6 @@ class generalized_Fourier:
     def get_stats(self, dk, Nx_full, print_flag=False):
         residual = self.ydata - self.model()
 
-        Lmeters = self.x[-1] - self.x[0]
         pars = {
             "data_var": self.ydata.var(),
             "model_var": self.model().var(),
@@ -951,7 +942,6 @@ class get_prior_spec:
     def non_dim_spec_model(self, f, f_max, amp, gamma=1, angle_rad=0):
         import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
 
-        U = 20  # results are incensitive to U
         f_true = f * np.cos(angle_rad)
         model = spectal_models.JONSWAP_default_alt(f_true, f_max, 20, gamma=gamma)
         model = amp * model / np.nanmean(model)
