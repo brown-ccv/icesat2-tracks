@@ -784,8 +784,8 @@ MM.to_netcdf(save_path + save_name + "_marginals.nc")
 try:
     LL = pd.concat(L_collect)
     MT.save_pandas_table({"L_sample": LL}, save_name + "_res_table", save_path)
-except:
-    pass
+except Exception as e:
+    print(f"This is a warning: {e}")
 
 # plot
 font_for_print()
