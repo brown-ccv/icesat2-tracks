@@ -1,43 +1,37 @@
-import sys
-
-
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
 
-from icesat2_tracks.config.IceSAT2_startup import (
-    mconfig,
-    plt,
-)
-
-from threadpoolctl import threadpool_info, threadpool_limits
+import sys
+import datetime
+import time
 from pprint import pprint
+
 import numpy as np
 import xarray as xr
-
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.io as io
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-
-import time
-import imp
-import copy
-import icesat2_tracks.ICEsat2_SI_tools.spicke_remover as spicke_remover
-import datetime
-import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-from scipy.ndimage.measurements import label
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-from icesat2_tracks.local_modules import m_general_ph3 as M
-
-
 import tracemalloc
 
+import matplotlib.pyplot as plt
+from scipy.ndimage.measurements import label
 
-def linear_gap_fill(F,key_lead, key_int):
+from icesat2_tracks.config.IceSAT2_startup import mconfig
+from icesat2_tracks.ICEsat2_SI_tools import (
+    generalized_FT as gFT,
+    io,
+    spectral_estimates as spec,
+    spicke_remover,
+)
+from icesat2_tracks.local_modules import m_tools_ph3 as MT, m_general_ph3 as M
+
+from threadpoolctl import threadpool_info, threadpool_limits
+import copy
+
+
+def linear_gap_fill(F, key_int):
     """
     F pd.DataFrame
-    key_lead   key in F that determined the independent coordindate
     key_int     key in F that determined the dependent data
     """
     y_g = np.array(F[key_int])
@@ -118,7 +112,6 @@ if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
     exit()
 
 # test LS with an even grid where missing values are set to 0
-imp.reload(spec)
 print(Gd.keys())
 Gi = Gd[list(Gd.keys())[0]]  # to select a test  beam
 dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "x")
@@ -336,8 +329,8 @@ for k in all_beams:
     GG.coords["spec_adjust"] = (("x", "beam"), np.expand_dims(GG["spec_adjust"], 1))
 
     # add more coodindates to the Dataset
-    x_coord_no_gaps = linear_gap_fill(Gd_cut, "x", "x")
-    y_coord_no_gaps = linear_gap_fill(Gd_cut, "x", "y")
+    x_coord_no_gaps = linear_gap_fill(Gd_cut, "x")
+    y_coord_no_gaps = linear_gap_fill(Gd_cut, "y")
     mapped_coords = spec.sub_sample_coords(
         Gd_cut["x"], x_coord_no_gaps, y_coord_no_gaps, S.stancil_iter, map_func=None
     )
@@ -358,8 +351,8 @@ for k in all_beams:
         GG.coords["x_coord"][nan_mask] = np.nan
         GG.coords["y_coord"][nan_mask] = np.nan
 
-    lons_no_gaps = linear_gap_fill(Gd_cut, "x", "lons")
-    lats_no_gaps = linear_gap_fill(Gd_cut, "x", "lats")
+    lons_no_gaps = linear_gap_fill(Gd_cut, "lons")
+    lats_no_gaps = linear_gap_fill(Gd_cut, "lats")
     mapped_coords = spec.sub_sample_coords(
         Gd_cut["x"], lons_no_gaps, lats_no_gaps, S.stancil_iter, map_func=None
     )
@@ -374,7 +367,7 @@ for k in all_beams:
     )
 
     # calculate number data points
-    def get_stancil_nans(stancil):
+    def get_stancil_nans(stancil, Gd_cut=Gd_cut):
         x_mask = (stancil[0] < x) & (x <= stancil[-1])
         idata = Gd_cut["N_photos"][x_mask]
         return stancil[1], idata.sum()
@@ -432,8 +425,8 @@ for k in all_beams:
         G_rar_fft[k] = G.isel(x=(GG.x[0].data < G.x.data) & (G.x.data < GG.x[-1].data))
 
     # for plotting
-    try:
-        G_rar_fft_p = G.squeeze()
+    G_rar_fft_p = G.squeeze()
+    if "N_per_stancil" in G_rar_fft_p:
         plt.plot(
             G_rar_fft_p.k,
             G_rar_fft_p[:, G_rar_fft_p["N_per_stancil"] > 10].mean("x"),
@@ -441,12 +434,8 @@ for k in all_beams:
             label="mean FFT",
         )
         plt.legend()
-
-    except:
-        pass
     time.sleep(3)
     plt.close("all")
-
 
 del Gd_cut
 Gd.close()
@@ -460,7 +449,7 @@ def repack_attributes(DD):
     attr_dim_list = list(DD.keys())
     for k in attr_dim_list:
         for ka in list(DD[k].attrs.keys()):
-            I = DD[k]
+            I = DD[k]  # noqa: E741
             I.coords[ka] = ("beam", np.expand_dims(I.attrs[ka], 0))
     return DD
 
