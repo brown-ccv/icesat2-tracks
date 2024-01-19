@@ -11,5 +11,6 @@ RUN git clone https://github.com/brown-ccv/icesat2-tracks.git
 WORKDIR /icesat2-tracks
 RUN pip install .
 RUN pip install pytest
+RUN pip install pytest-xdist
 
 ENTRYPOINT ["/bin/bash"]
