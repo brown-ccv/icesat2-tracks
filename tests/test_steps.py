@@ -1,8 +1,7 @@
-import subprocess
 import os
+import subprocess
+import tarfile
 from pathlib import Path
-
-# Need output files to stick around for testing so no teardown_module
 
 
 def checkpaths(paths):
@@ -11,6 +10,20 @@ def checkpaths(paths):
 
 def makepathlist(dir, files):
     return [Path(dir, f) for f in files]
+
+
+def setup_module(module):
+    # Extract the plots.tar.gz and work.tar.gz files in the tests directory to the home directory
+    tarballs = ["plots.tar.gz", "work.tar.gz"]
+    for tarball in tarballs:
+        tar = tarfile.open(Path("tests", tarball))
+        tar.extractall()
+        tar.close()
+
+
+def teardown_module(module):
+    # Remove the plots/ and work/ directories
+    os.system("rm -r plots work")
 
 
 script1 = [
