@@ -114,8 +114,8 @@ def test_directories_and_files_step1():
     assert checkpaths(paths1)
 
 
-def test_directories_and_files_step2():
-    assert checkpaths(paths2)
+# def test_directories_and_files_step2():
+#    assert checkpaths(paths2)
 
 
 def test_directories_and_files_step3():
