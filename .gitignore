@@ -3,7 +3,6 @@
 modules/__pycache__/*.pyc
 modules/ICEsat2_SI_tools/__pycache__/*
 modules/ICEsat2_SI_tools/__pycache__/*.pyc
-plots/
 analysis_db/log
 ICEsat2
 .DS_Store
@@ -16,7 +15,6 @@ write_ups/
 modules/ICEsat2_SI_tools/__pycache__/
 modules/__pycache__/
 modules/__pycache__/*
-work/
 analysis/__pycache__/
 sentinel_1/
 tmp/
