@@ -1,0 +1,24 @@
+name: Run Tests with Container
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    container:
+        image: docker://brownccv/icesat2waves:main
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run Tests
+        run: |
+          docker run --volume="${{ github.workspace }}:/app" \
+                     --workdir="/app" \
+                     docker://brownccv/icesat2waves:main \
+                     pytest tests
