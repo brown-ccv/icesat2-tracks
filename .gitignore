@@ -55,4 +55,4 @@ dist/
 
 #visual code
 .vscode/
-*.h5
+#*.h5
