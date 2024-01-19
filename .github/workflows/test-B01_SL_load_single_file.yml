@@ -24,13 +24,30 @@ jobs:
         run: pip install --upgrade --editable ".[dev]"
       - name: List dependencies
         run: pip list
-      # - name: first step B01_SL_load_single_file
-      #   run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py 20190502052058_05180312_005_01 SH_testSLsinglefile2 True
-      # - name: second step make_spectra
-      #   run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      # - name: third step plot_spectra
-      #   run: python src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      # - name: fourth step IOWAGA thredds
-      #   run: python src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      - name: Fifth step B04_angle
-        run: python src/icesat2_tracks/analysis_db/B04_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
+      - name: first step B01_SL_load_single_file
+        run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py 20190502052058_05180312_005_01 SH_testSLsinglefile2 True
+      - name: second step make_spectra
+        run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py SH_20190502_05180312 SH_testSLsinglefile2 True
+      - name: third step plot_spectra
+        run: python src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py SH_20190502_05180312 SH_testSLsinglefile2 True
+      - name: fourth step IOWAGA thredds
+        run: python src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py SH_20190502_05180312 SH_testSLsinglefile2 True
+      - name: save result to dist folder
+        run: |
+          mkdir dist
+          mkdir dist/plots
+          mkdir dist/work
+          cp -r plots/* dist/plots
+          cp -r work/* dist/work
+      - name: compress dist folder
+        run: |
+          tar -czvf data-results.tar.gz dist/
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v4
+        with:
+            name: code-coverage-report
+            path: data-results.tar.gz
+
+
+      # - name: Fifth step B04_angle
+      #   run: python src/icesat2_tracks/analysis_db/B04_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
