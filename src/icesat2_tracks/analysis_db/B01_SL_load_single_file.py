@@ -44,10 +44,7 @@ MT.mkdirs_r(save_path_json)
 ATL03_track_name = "ATL03_" + track_name + ".h5"
 
 # Configure SL Session
-sliderule.authenticate("brown", ps_username="mhell", ps_password="Oijaeth9quuh")
-icesat2.init(
-    "slideruleearth.io", organization="brown", desired_nodes=1, time_to_live=90
-)  # minutes
+icesat2.init("slideruleearth.io")
 
 
 # plot the ground tracks in geographic location
