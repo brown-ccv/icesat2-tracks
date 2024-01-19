@@ -93,38 +93,31 @@ paths5 = [
 ]
 
 
-def setup_module(module):
-    # Step 1: B01_SL_load_single_file.py
-    subprocess.run(script1, check=True)
-
-    # Step 2: B02_make_spectra_gFT.py
-    subprocess.run(script2, check=True)
-
-    # Step 3: B03_plot_spectra_ov.py
-    subprocess.run(script3, check=True)
-
-    # Step 4: A02c_IOWAGA_thredds_prior.py
-    subprocess.run(script4, check=True)
-
-    # Step 5: B04_angle.py
-    subprocess.run(script5, check=True)
-
-
 def test_directories_and_files_step1():
+    # Step 1: B01_SL_load_single_file.py ~ 9 minutes
+    subprocess.run(script1, check=True)
     assert checkpaths(paths1)
 
 
-# def test_directories_and_files_step2():
-#    assert checkpaths(paths2)
+def test_directories_and_files_step2():
+    # Step 2: B02_make_spectra_gFT.py ~ 2 min
+    subprocess.run(script2, check=True)
+    assert checkpaths(paths2)
 
 
 def test_directories_and_files_step3():
+    # Step 3: B03_plot_spectra_ov.py ~ 11 sec
+    subprocess.run(script3, check=True)
     assert checkpaths(paths3)
 
 
 def test_directories_and_files_step4():
+    # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
+    subprocess.run(script4, check=True)
     assert checkpaths(paths4)
 
 
 def test_directories_and_files_step5():
+    # Step 5: B04_angle.py ~ 9 min
+    subprocess.run(script5, check=True)
     assert checkpaths(paths5)
