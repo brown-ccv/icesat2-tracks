@@ -5,12 +5,15 @@ on:
     branches:
       - main
 
+env:
+  IMAGE_NAME: cpaniaguam/icesat2waves:test
+      
 jobs:
   test:
     runs-on: ubuntu-latest
 
     container:
-        image: docker://brownccv/icesat2waves:main
+        image: ${{ env.IMAGE_NAME }}
 
     steps:
       - name: Checkout code
@@ -20,5 +23,5 @@ jobs:
         run: |
           docker run --volume="${{ github.workspace }}:/app" \
                      --workdir="/app" \
-                     docker://brownccv/icesat2waves:main \
-                     pytest tests
+                     ${{ env.IMAGE_NAME }} \
+                     python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py 20190502052058_05180312_005_01 SH_testSLsinglefile2 True
