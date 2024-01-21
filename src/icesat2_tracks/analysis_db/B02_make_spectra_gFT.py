@@ -1,31 +1,27 @@
-import sys
-
-
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
 
-from icesat2_tracks.config.IceSAT2_startup import mconfig, xr, plt, np
-
-
-from threadpoolctl import threadpool_info, threadpool_limits
-from pprint import pprint
-
-
+import copy
+import datetime
 import h5py
+import time
+import sys
+
+import numpy as np
+import xarray as xr
+from pprint import pprint
+from scipy.ndimage.measurements import label
+from threadpoolctl import threadpool_info, threadpool_limits
+
+import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
 import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-
-import time
-import imp
-import copy
-from icesat2_tracks.local_modules.m_spectrum_ph3 import spicke_remover
-import datetime
-import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-from scipy.ndimage.measurements import label
+import icesat2_tracks.local_modules.m_general_ph3 as M
+import icesat2_tracks.local_modules.m_spectrum_ph3 as spicke_remover
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
-from icesat2_tracks.local_modules import m_general_ph3 as M
+from icesat2_tracks.config.IceSAT2_startup import mconfig, plt
 
 import tracemalloc
 
@@ -99,7 +95,7 @@ for group in mconfig["beams"]["groups"]:
     Ib = Gd[group[1]]
     ratio = Ia["x"][:].size / Ib["x"][:].size
     if (ratio > 10) | (ratio < 0.1):
-        print("bad data ratio ", ratio, 1 / ratio)
+        # print("bad data ratio ", ratio, 1 / ratio) # TODO: add logger
         bad_ratio_flag = True
 
 if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
@@ -118,7 +114,6 @@ if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
     exit()
 
 # test LS with an even grid where missing values are set to 0
-imp.reload(spec)
 print(Gd.keys())
 Gi = Gd[list(Gd.keys())[0]]  # to select a test  beam
 dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "dist")
@@ -153,10 +148,10 @@ print("2 M = ", kk.size * 2)
 print("define global xlims")
 dist_list = np.array([np.nan, np.nan])
 for k in all_beams:
-    print(k)
+    # print(k) # TODO: add logger
     hkey = "heights_c_weighted_mean"
     x = Gd[k + "/dist"][:]
-    print(x[0], x[-1])
+    # print(x[0], x[-1]) # TODO: add logger
     dist_list = np.vstack([dist_list, [x[0], x[-1]]])
 
 xlims = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
@@ -172,7 +167,7 @@ if (xlims[1] - xlims[0]) > dist_lim:
 for k in all_beams:
     dist_i = io.get_beam_var_hdf_store(Gd[k], "dist")
     x_mask = (dist_i > xlims[0]) & (dist_i < xlims[1])
-    print(k, sum(x_mask["dist"]) / (xlims[1] - xlims[0]))
+    # print(k, sum(x_mask["dist"]) / (xlims[1] - xlims[0])) # TODO: add logger
 
 
 print("-reduced frequency resolution")
@@ -199,7 +194,7 @@ for k in all_beams:
     Gi = io.get_beam_hdf_store(Gd[k])
     x_mask = (Gi["dist"] > xlims[0]) & (Gi["dist"] < xlims[1])
     if sum(x_mask) / (xlims[1] - xlims[0]) < 0.005:
-        print("------------------- not data in beam found; skip")
+        # print("------------------- not data in beam found; skip") # TODO: add logger
         continue
 
     Gd_cut = Gi[x_mask]
@@ -219,7 +214,7 @@ for k in all_beams:
 
     # compute slope spectra !!
     dd = np.gradient(dd)
-    dd, _ = spicke_remover(dd, spreed=10, verbose=False)
+    dd, _ = spicke_remover.spicke_remover(dd, spreed=10, verbose=False)
     dd_nans = (np.isnan(dd)) + (Gd_cut["N_photos"] <= 5)
 
     # using gappy data
