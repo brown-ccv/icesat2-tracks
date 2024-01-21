@@ -24,4 +24,4 @@ jobs:
       - name: install pytest
         run: pip install pytest pytest-xdist
       - name: Run pytest
-        run: pytest -n 2 tests
+        run: pytest tests
