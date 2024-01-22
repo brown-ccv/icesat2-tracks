@@ -80,7 +80,18 @@ def ID_to_str(ID_name):
     return IDs[0] + " " + date + " granule: " + IDs[2]
 
 
-def get_gdf(ATL03_track_name, params_yapc, maximum_height):
+def get_atl06p(ATL03_track_name, params_yapc, maximum_height):
+    """
+    This method retrieves the ATL06 data from sliderule and returns a geodataframe. It also applies the corrections and removes the points above the maximum height. If the geodataframe is empty, an exception is raised.
+
+    Parameters:
+    ATL03_track_name (str): The name of the ATL03 track.
+    params_yapc (dict): The parameters for the YAPC correction.
+    maximum_height (float): The maximum height to filter out.
+
+    Returns:
+    geopandas.GeoDataFrame: The geodataframe containing the ATL06 data.
+    """
     print("Retrieving data from sliderule ...")
     gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
 
@@ -122,7 +133,6 @@ class case_ID:
             self.hemis = "SH"
         else:
             self.hemis = self.hemis
-        # self.hemis = hemis
         self.set()
         self.track_name_init = track_name
 
@@ -217,12 +227,9 @@ def nsidc_icesat2_get_associated_file(
     import icesat2_toolkit.utilities
 
     AUXILIARY = False
-    # product='ATL03'
     DIRECTORY = None
     FLATTEN = False
     TIMEOUT = 120
-    MODE = 0o775
-    # file_list  = ['ATL07-01_20210301023054_10251001_005_01']
 
     if build and not (username or password):
         urs = "urs.earthdata.nasa.gov"
@@ -497,11 +504,7 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
         mask_total = mask_seaice | mask_ocean
 
     signal_confidence = ATL03[beam + "/heights/signal_conf_ph"][:, 1:3].max(1)
-    # print(signal_confidence.shape)
 
-    # return signal_confidence
-
-    # Add photon rate and background rate to the reader here
     ATL03.close()
 
     if numpy == True:
@@ -521,8 +524,7 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
                 "across_track_distance": across_track_distance,
                 "ph_id_count": ph_id_count,
             }
-        )  # ,
-        #'year':year, 'month':month, 'day':day, 'hour':hour,'minute':minute , 'second':second})
+        )
 
         dF_seg = pd.DataFrame(
             {
@@ -781,10 +783,10 @@ def getATL07_height_corrections(fileT, beam="gt1r"):
 
     ### Primary variables of interest
     vars = [
-        "height_segment_dac",  #
-        "height_segment_ib",  #
-        "height_segment_lpe",  # #
-        "height_segment_mss",  #
+        "height_segment_dac",
+        "height_segment_ib",
+        "height_segment_lpe",
+        "height_segment_mss",
         "height_segment_ocean",
     ]
     D_heights = dict()
@@ -792,7 +794,6 @@ def getATL07_height_corrections(fileT, beam="gt1r"):
         D_heights[var] = ATL07[beam + "/sea_ice_segments/geophysical/" + var][:]
     dF_heights = pd.DataFrame(D_heights)
 
-    # Df = pd.concat({k: pd.DataFrame(v).T for k, v in data.items()}, axis=0)
     DF = pd.concat(
         {
             "time": dF_time,

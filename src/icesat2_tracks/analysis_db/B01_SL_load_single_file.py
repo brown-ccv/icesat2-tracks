@@ -86,7 +86,7 @@ params_yapc = {
 
 maximum_height = 30  # (meters) maximum height past dem_h correction
 
-gdf = io.get_gdf(ATL03_track_name, params_yapc, maximum_height)
+gdf = io.get_atl06p(ATL03_track_name, params_yapc, maximum_height)
 
 
 cdict = dict()
