@@ -5,6 +5,7 @@ This is python 3.11
 import sys
 import datetime
 import copy
+from pathlib import Path
 
 import xarray as xr
 from sliderule import sliderule, icesat2
@@ -15,18 +16,16 @@ from icesat2_tracks.config.IceSAT2_startup import (
     font_for_pres,
     plt,
 )
-import icesat2_tracks.ICEsat2_SI_tools.sliderule_converter_tools as sct
-import icesat2_tracks.ICEsat2_SI_tools.io as io
-import icesat2_tracks.ICEsat2_SI_tools.beam_stats as beam_stats
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-from icesat2_tracks.local_modules import m_general_ph3 as M
-
+from icesat2_tracks.ICEsat2_SI_tools import (
+    sliderule_converter_tools as sct,
+    io,
+    beam_stats,
+)
+from icesat2_tracks.local_modules import m_tools_ph3 as MT, m_general_ph3 as M
 
 xr.set_options(display_style="text")
 
-
 # Select region and retrive batch of tracks
-
 track_name, batch_key, ID_flag = io.init_from_input(
     sys.argv
 )  # loads standard experiment
@@ -34,20 +33,16 @@ track_name, batch_key, ID_flag = io.init_from_input(
 plot_flag = True
 hemis = batch_key.split("_")[0]
 
-
-save_path = mconfig["paths"]["work"] + "/" + batch_key + "/B01_regrid/"
-MT.mkdirs_r(save_path)
-
-save_path_json = mconfig["paths"]["work"] + "/" + batch_key + "/A01b_ID/"
-MT.mkdirs_r(save_path_json)
+# Make target directories
+basedir = Path(mconfig["paths"]["work"], batch_key)
+save_path, save_path_json = Path(basedir, "B01_regrid"), Path(basedir, "A01b_ID")
+for p in [save_path, save_path_json]:
+    MT.mkdirs_r(p)
 
 ATL03_track_name = "ATL03_" + track_name + ".h5"
 
 # Configure SL Session
-sliderule.authenticate("brown", ps_username="mhell", ps_password="Oijaeth9quuh")
-icesat2.init(
-    "slideruleearth.io", organization="brown", desired_nodes=1, time_to_live=90
-)  # minutes
+icesat2.init("slideruleearth.io")
 
 
 # plot the ground tracks in geographic location
@@ -90,10 +85,8 @@ params_yapc = {
 }
 
 maximum_height = 30  # (meters) maximum height past dem_h correction
-print("STARTS")
-gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
-print("ENDS")
-gdf = sct.correct_and_remove_height(gdf, maximum_height)
+
+gdf = io.get_gdf(ATL03_track_name, params_yapc, maximum_height)
 
 
 cdict = dict()
