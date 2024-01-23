@@ -1,9 +1,11 @@
 import sys
 import datetime
+from pathlib import Path
 
 import h5py
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import xarray as xr
@@ -18,6 +20,7 @@ from icesat2_tracks.config.IceSAT2_startup import color_schemes
 from icesat2_tracks.config.IceSAT2_startup import font_for_print
 
 color_schemes.colormaps2(21)
+matplotlib.use("Agg")  # prevent plot windows from opening
 
 track_name, batch_key, ID_flag = io.init_from_input(sys.argv)
 
@@ -30,26 +33,24 @@ ID, track_names, hemis, batch = io.init_data(
 hemis, batch = batch_key.split("_")
 ATlevel = "ATL03"
 
-save_path = mconfig["paths"]["work"] + batch_key + "/A02_prior/"
-plot_path = (
-    mconfig["paths"]["plot"] + "/" + hemis + "/" + batch_key + "/" + track_name + "/"
-)
+save_path = Path(mconfig["paths"]["work"], batch_key, "A02_prior")
+plot_path = Path(mconfig["paths"]["plot"], hemis, batch_key, track_name)
 save_name = "A02_" + track_name
 plot_name = "A02_" + track_name_short
-MT.mkdirs_r(plot_path)
-MT.mkdirs_r(save_path)
-bad_track_path = mconfig["paths"]["work"] + "bad_tracks/" + batch_key + "/"
+plot_path.mkdir(parents=True, exist_ok=True)
+save_path.mkdir(parents=True, exist_ok=True)
+bad_track_path = Path(mconfig["paths"]["work"], "bad_tracks", batch_key)
 
 all_beams = mconfig["beams"]["all_beams"]
 high_beams = mconfig["beams"]["high_beams"]
 low_beams = mconfig["beams"]["low_beams"]
 
-load_path_WAVE_GLO = mconfig["paths"]["work"] + "/GLOBMULTI_ERA5_GLOBCUR_01/"
+load_path_WAVE_GLO = Path(mconfig["paths"]["work"], "GLOBMULTI_ERA5_GLOBCUR_01")
 file_name_base = "LOPS_WW3-GLOB-30M_"
 
 
-load_path = mconfig["paths"]["work"] + batch_key + "/B01_regrid/"
-Gd = h5py.File(load_path + "/" + track_name + "_B01_binned.h5", "r")
+load_path = Path(mconfig["paths"]["work"], batch_key, "B01_regrid")
+Gd = h5py.File(load_path / (track_name + "_B01_binned.h5"), "r")
 
 
 G1 = dict()
@@ -420,6 +421,7 @@ try:
 except:
     target_name = "A02_" + track_name + "_hindcast_fail"
 
+
 def plot_prior(Prior, axx):
     angle = Prior["incident_angle"][
         "value"
@@ -531,7 +533,7 @@ try:
     ax1.axis("equal")
 
     F.save_pup(path=plot_path, name=plot_name + "_hindcast_prior")
-except  Exception as e:
+except Exception as e:
     print(e)
     print("print 2nd figure failed")
 

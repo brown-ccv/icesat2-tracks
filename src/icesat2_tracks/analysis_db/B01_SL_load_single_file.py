@@ -8,6 +8,7 @@ import copy
 
 import xarray as xr
 from sliderule import sliderule, icesat2
+import matplotlib
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
@@ -23,6 +24,7 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 
 
 xr.set_options(display_style="text")
+matplotlib.use("Agg")  # prevent plot windows from opening
 
 
 # Select region and retrive batch of tracks
@@ -44,11 +46,7 @@ MT.mkdirs_r(save_path_json)
 ATL03_track_name = "ATL03_" + track_name + ".h5"
 
 # Configure SL Session
-sliderule.authenticate("brown", ps_username="mhell", ps_password="Oijaeth9quuh")
-icesat2.init(
-    "slideruleearth.io", organization="brown", desired_nodes=1, time_to_live=90
-)  # minutes
-
+icesat2.init("slideruleearth.io")
 
 # plot the ground tracks in geographic location
 # Generate ATL06-type segments using the ATL03-native photon classification

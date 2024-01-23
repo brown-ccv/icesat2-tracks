@@ -8,12 +8,14 @@ import datetime
 import h5py
 import time
 import sys
+from pathlib import Path
 
 import numpy as np
 import xarray as xr
 from pprint import pprint
 from scipy.ndimage.measurements import label
 from threadpoolctl import threadpool_info, threadpool_limits
+import matplotlib
 
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
 import icesat2_tracks.ICEsat2_SI_tools.io as io
@@ -24,6 +26,9 @@ import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.config.IceSAT2_startup import mconfig, plt
 
 import tracemalloc
+
+
+matplotlib.use("Agg")  # prevent plot windows from opening
 
 
 def linear_gap_fill(F, key_lead, key_int):
@@ -48,26 +53,17 @@ hemis, batch = batch_key.split("_")
 
 ATlevel = "ATL03"
 
-load_path = mconfig["paths"]["work"] + "/" + batch_key + "/B01_regrid/"
-load_file = load_path + "processed_" + ATlevel + "_" + track_name + ".h5"
+load_path = Path(mconfig["paths"]["work"], batch_key, "B01_regrid")
+load_file = load_path / f"processed_{ATlevel}_{track_name}.h5"
 
-save_path = mconfig["paths"]["work"] + "/" + batch_key + "/B02_spectra/"
-save_name = "B02_" + track_name
+save_path = Path(mconfig["paths"]["work"], batch_key, "B02_spectra")
+save_name = f"B02_{track_name}"
 
-plot_path = (
-    mconfig["paths"]["plot"]
-    + "/"
-    + hemis
-    + "/"
-    + batch_key
-    + "/"
-    + track_name
-    + "/B_spectra/"
-)
-MT.mkdirs_r(plot_path)
-MT.mkdirs_r(save_path)
-bad_track_path = mconfig["paths"]["work"] + "bad_tracks/" + batch_key + "/"
+plot_path = Path(mconfig["paths"]["plot"], hemis, batch_key, track_name, "B_spectra")
+plot_path.mkdir(parents=True, exist_ok=True)
+save_path.mkdir(parents=True, exist_ok=True)
 
+bad_track_path = Path(mconfig["paths"]["work"], "bad_tracks", batch_key)
 
 all_beams = mconfig["beams"]["all_beams"]
 high_beams = mconfig["beams"]["high_beams"]
@@ -77,7 +73,7 @@ N_process = 4
 
 
 # open with hdf5
-Gd = h5py.File(load_path + "/" + track_name + "_B01_binned.h5", "r")
+Gd = h5py.File(Path(load_path) / (track_name + "_B01_binned.h5"), "r")
 
 
 # test amount of nans in the data
@@ -455,7 +451,7 @@ del Gd_cut
 Gd.close()
 
 # save fitting parameters
-MT.save_pandas_table(Pars_optm, save_name + "_params", save_path)
+MT.save_pandas_table(Pars_optm, save_name + "_params", str(save_path))
 
 
 # repack data
@@ -505,17 +501,19 @@ G_rar_fft = repack_attributes(G_rar_fft)
 G_gFT_DS = xr.merge(G_gFT.values())
 G_gFT_DS["Z_hat_imag"] = G_gFT_DS.Z_hat.imag
 G_gFT_DS["Z_hat_real"] = G_gFT_DS.Z_hat.real
-G_gFT_DS = G_gFT_DS.drop("Z_hat")
+G_gFT_DS = G_gFT_DS.drop_vars("Z_hat")
 G_gFT_DS.attrs["name"] = "gFT_estimates"
-G_gFT_DS.to_netcdf(save_path + save_name + "_gFT_k.nc")
+
+savepathname = str(save_path / save_name)
+G_gFT_DS.to_netcdf(savepathname + "_gFT_k.nc")
 
 G_gFT_x_DS = xr.merge(G_gFT_x.values())
 G_gFT_x_DS.attrs["name"] = "gFT_estimates_real_space"
-G_gFT_x_DS.to_netcdf(save_path + save_name + "_gFT_x.nc")
+G_gFT_x_DS.to_netcdf(savepathname + "_gFT_x.nc")
 
 
 G_fft_DS = xr.merge(G_rar_fft.values())
 G_fft_DS.attrs["name"] = "FFT_power_spectra"
-G_fft_DS.to_netcdf(save_path + save_name + "_FFT.nc")
+G_fft_DS.to_netcdf(savepathname + "_FFT.nc")
 
 print("saved and done")
