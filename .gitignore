@@ -38,6 +38,9 @@ analysis_db/support_files/
 *.egg-info/
 .installed.cfg
 *.egg
+/logs
+localci-runner.sh
+tests/test_tarballs.py
 
 *__pycache__/
 *__pycache__/*
