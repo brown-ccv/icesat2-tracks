@@ -20,7 +20,7 @@ jobs:
           python-version: ${{ matrix.version }} # install the python version needed
           cache: "pip"
       - name: install icesat2-tracks using pip
-        run: pip install --upgrade --editable ".[dev]"
+        run: pip install .
       - name: List dependencies
         run: pip list
       - name: first step B01_SL_load_single_file
