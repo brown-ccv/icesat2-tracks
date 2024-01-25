@@ -208,7 +208,7 @@ class sample_with_mcmc:
         fitting_args, fitting_kargs  = self.fitting_args, self.fitting_kargs
         self.fitter = self.LM.minimize(self.objective_func, self.params,  method=method,
                         args=fitting_args, kws=fitting_kargs ,
-                        nwalkers=self.nwalkers, steps=steps, pos= self.seeds, **kargs)
+                        nwalkers=self.nwalkers, steps=steps, pos= self.seeds,nan_policy='omit' , **kargs)
         if verbose:
             print(self.LM.report_fit(self.fitter))
             print('results at self.fitter')
