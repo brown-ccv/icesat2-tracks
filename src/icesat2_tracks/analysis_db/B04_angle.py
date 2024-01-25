@@ -545,7 +545,10 @@ for gi in zip(ggg.flatten(), xxx.flatten()):
 
     SM = angle_optimizer.sample_with_mcmc(params_dict)
     SM.set_objective_func(angle_optimizer.objective_func)
-
+    nan_list = np.isnan(x_concat) | np.isnan(y_concat) | np.isnan(y_concat)
+    x_concat[nan_list] = []
+    y_concat[nan_list] = []
+    z_concat[nan_list] = []
     SM.fitting_args = fitting_args = (x_concat, y_concat, z_concat)
 
     # test:
