@@ -44,7 +44,8 @@ def json_load(name, path, verbose=False):
     with open(full_name, 'r') as ifile:
         data=json.load(ifile)
     if verbose:
-        print('loaded from: ',full_name)
+        # print('loaded from: ',full_name) # removed for cli usage, CP. TODO: delete later
+        pass
     return data
 
 
@@ -54,7 +55,7 @@ class color:
         def __init__(self, path=None, name=None):
             self.white=(1,1,1)
             if (path is not None) & (name is not None):
-                print('color theme: '+name)
+                # print('color theme: '+name) # removed for cli usage, CP. TODO: delete later
                 try:
                     theme=json_load(name, path, verbose=True)
                     for k, v in theme.items():
