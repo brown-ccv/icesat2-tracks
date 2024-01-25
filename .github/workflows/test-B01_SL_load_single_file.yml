@@ -23,6 +23,12 @@ jobs:
         run: pip install .
       - name: List dependencies
         run: pip list
+      - name: path minimize function to avoid crahs on CI
+        run: |
+          git apply angle_optimizer.patch -v
+      - name: print angle_optimzer pathed file
+        run: |
+            cat src/icesat2_tracks/ICEsat2_SI_tools/angle_optimizer.py
       - name: first step B01_SL_load_single_file
         run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py 20190502052058_05180312_005_01 SH_testSLsinglefile2 True
       - name: second step make_spectra
@@ -31,11 +37,5 @@ jobs:
         run: python src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py SH_20190502_05180312 SH_testSLsinglefile2 True
       - name: fourth step IOWAGA thredds
         run: python src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      # - name: path minimize function to avoid crahs on CI
-      #   run: |
-      #     git apply angle_optimizer.patch -v
-      # - name: print angle_optimzer pathed file
-      #   run: |
-      #       cat src/icesat2_tracks/ICEsat2_SI_tools/angle_optimizer.py
       - name: Fifth step B04_angle
         run: python src/icesat2_tracks/analysis_db/B04_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
