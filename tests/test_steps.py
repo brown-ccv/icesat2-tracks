@@ -3,6 +3,21 @@ import subprocess
 import shutil
 import tarfile
 from pathlib import Path
+import random
+import string
+
+
+def create_tarball(directory, suffix=""):
+    directory = Path(directory)
+    tarball_path = directory.parent / f"{directory.name}-{suffix}.tar.gz"
+    with tarfile.open(tarball_path, "w:gz") as tar:
+        tar.add(directory, arcname=directory.name)
+
+
+def generate_random_string(length=5):
+    letters = string.ascii_letters
+    result_str = "".join(random.choice(letters) for i in range(length))
+    return result_str
 
 
 def checkpaths(paths):
@@ -82,25 +97,17 @@ def run_test(script, paths, delete_paths=True, suppress_output=True):
         kwargs["stdout"] = subprocess.DEVNULL
         kwargs["stderr"] = subprocess.DEVNULL
 
-        subprocess.run(script, **kwargs)
+    subprocess.run(script, **kwargs)
+
+    # collect all the files that were produced into a tarball
+    scriptname = Path(script[1]).name.split(".")[0]
+    create_tarball(outputdir, suffix=scriptname)
+
     return checkpaths(paths)
 
 
 def makepathlist(dir, files):
     return [Path(dir, f) for f in files]
-
-
-def setup_module():
-    """
-    Set up the module for testing.
-
-    This function extracts the plots.tar.gz and work.tar.gz files in the tests directory to the home directory. These directories contain the expected input and output required/produced by the scripts being tested.
-    """
-    tarballs = ["plots.tar.gz", "work.tar.gz"]
-    for tarball in tarballs:
-        tar = tarfile.open(Path("tests", tarball))
-        tar.extractall()
-        tar.close()
 
 
 # def teardown_module():
@@ -113,7 +120,25 @@ def setup_module():
 
 # The scriptx variables are the scripts to be tested. The pathsx variables are the paths to the files that should be produced by the scripts. The scripts are run and the paths are checked to see if the files were produced. If the files were produced, the test passes. If not, the test fails.
 
-outputdir = "tests/scratch"
+outputdir = "tests/scratch-" + generate_random_string()
+
+
+def setup_module(module, outputdir=outputdir):
+    """
+    Set up the module for testing.
+
+    This function extracts the plots.tar.gz and work.tar.gz files in the tests directory to the home directory. These directories contain the expected input and output required/produced by the scripts being tested.
+    """
+    # outputdir = "tests/scratch-" + generate_random_string()
+    outputdir = Path(outputdir)
+    outputdir.mkdir(parents=True, exist_ok=True)
+
+    tarballs = ["plots.tar.gz", "work.tar.gz"]
+    for tarball in tarballs:
+        tar = tarfile.open(Path("tests", tarball))
+        tar.extractall(Path("tests", outputdir))
+        tar.close()
+
 
 script1 = [
     "python",
@@ -133,7 +158,7 @@ paths1 = [
     "work/SH_testSLsinglefile2/B01_regrid/SH_20190502_05180312_B01_binned.h5",
 ]
 
-# update script2 so it confoms to the new command line interface: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./scratch
+
 script2 = [
     "python",
     "src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py",
@@ -171,13 +196,16 @@ _paths3 = [
 ]
 paths3 = makepathlist(_root, _paths3)
 
-
 script4 = [
     "python",
     "src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py",
+    "--track-name",
     "SH_20190502_05180312",
+    "--batch-key",
     "SH_testSLsinglefile2",
-    "True",
+    "--id-flag",
+    "--output-dir",
+    outputdir,  # update later to custom output directory in test function
 ]
 paths4 = [
     "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/A02_SH_2_hindcast_data.pdf",
@@ -188,6 +216,7 @@ dir4, prefix4 = (
     "A02_SH_20190502_05180312_hindcast",
 )
 
+# TODO: step 5
 script5 = [
     "python",
     "src/icesat2_tracks/analysis_db/B04_angle.py",
@@ -205,17 +234,17 @@ paths5 = [
 ]
 
 
-# def test_directories_and_files_step1():
-#     # Step 1: B01_SL_load_single_file.py ~ 9 minutes
-#     assert run_test(script1, paths1, delete_paths=False)  # passing
+def test_step1():
+    # Step 1: B01_SL_load_single_file.py ~ 9 minutes
+    assert run_test(script1, paths1, delete_paths=False)  # passing
 
 
-# def test_directories_and_files_step2():
-#     # Step 2: B02_make_spectra_gFT.py ~ 2 min
-#     assert run_test(script2, paths2)  # passing
+def test_step2():
+    # Step 2: B02_make_spectra_gFT.py ~ 2 min
+    assert run_test(script2, paths2)  # passing
 
 
-def test_directories_and_files_step3():
+def test_step3():
     # Step 3: B03_plot_spectra_ov.py ~ 11 sec
     # This script has stochastic behavior, so the files produced don't always have the same names but the count of pdf files is constant for the test input data.
     pdfdirectory = (
@@ -228,22 +257,22 @@ def test_directories_and_files_step3():
     assert t2
 
 
-# def test_directories_and_files_step4():
-#     # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
-#     t1 = run_test(script4, paths4)
-#     t2 = check_file_exists(dir4, prefix4)
-#     assert all([t1, t2])
+def test_step4():
+    # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
+    t1 = run_test(script4, paths4)
+    t2 = check_file_exists(dir4, prefix4)
+    assert all([t1, t2])
 
 
-# def test_directories_and_files_step5():
+# def test_step5():
 #     # Step 5: B04_angle.py ~ 9 min
 #     assert run_test(script5, paths5)
 
 if __name__ == "__main__":
     # setup_module()
-    # test_directories_and_files_step1()
-    # test_directories_and_files_step2()
-    test_directories_and_files_step3()
-    # test_directories_and_files_step4()
-    # test_directories_and_files_step5()
+    # test_step1()
+    # test_step2()
+    # test_step3()
+    test_step4()
+    # test_step5()
     # teardown_module()

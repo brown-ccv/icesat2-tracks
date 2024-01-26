@@ -80,8 +80,8 @@ def echoparam(text: str, value, textcolor: str = "green", valuecolor: str = "whi
     echo(f"{colored(text,textcolor)}: {colored(value, valuecolor)}")
 
 
-def report_input_parameters(**kargs):
-    echo("** Input parameters:")
+def report_input_parameters(heading: str = "** Input parameters:", **kargs):
+    echo(heading)
     for key in kargs:
         if key != "args":
             echoparam(key, kargs[key])
