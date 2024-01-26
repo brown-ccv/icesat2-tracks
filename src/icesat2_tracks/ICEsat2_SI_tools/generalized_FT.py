@@ -1,7 +1,17 @@
-import numpy as np
+import copy
+import time
 
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+import lmfit as LM
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import xarray as xr
+from numpy import linalg
+from scipy.signal import detrend
+
 import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
+import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
 
 
 def rebin(data, dk):
@@ -14,7 +24,6 @@ def rebin(data, dk):
     Gmean["k_bins"] = k_low[0:-1]
     Gmean = Gmean.rename({"k_bins": "k"})
     return Gmean, k_low_limits
-    
 
 
 # define  weight function
@@ -82,14 +91,11 @@ def get_weights_from_data(
             Spec_fft.fitter.params.pretty_print()
 
         params = Spec_fft.fitter.params
-        
+
     else:
         raise ValueError(" 'method'  must be either 'gaussian' or 'parametric' ")
 
     if plot_flag:
-        import matplotlib.pyplot as plt
-
-        
         plt.plot(
             k_fft[1:], Spec_fft.data, c="gray", label="FFT for Prior", linewidth=0.5
         )
@@ -97,7 +103,6 @@ def get_weights_from_data(
             k, weight, zorder=12, c="black", label="Fitted model to FFT", linewidth=0.5
         )
         plt.xlim(k[0], k[-1])
-        
 
     # add pemnalty floor
     weight = weight + weight.max() * 0.1
@@ -109,8 +114,6 @@ def get_weights_from_data(
 
 
 def make_xarray_from_dict(D, name, dims, coords):
-    import xarray as xr
-
     D_return = dict()
     for xi, I in D.items():
         coords["x"] = xi
@@ -124,29 +127,23 @@ def define_weights(stancil, prior, x, y, dx, k, max_nfev, plot_flag=False):
     return weights normalized to 1, prior_pars used for the next iteration
     """
 
-    if (type(prior[0]) is bool) and not prior[
-        0
-    ]:  # prior = (False, None), this is the first iteration
+    if isinstance(prior[0], bool) and not prior[0]:
         # fit function to data
         weight, prior_pars = get_weights_from_data(
             x, y, dx, stancil, k, max_nfev, plot_flag=plot_flag, method="parametric"
         )
         weight_name = "$P_{init}$ from FFT"
-    elif (
-        type(prior) is tuple
-    ):  
+    elif type(prior) is tuple:
         weight = 0.2 * smooth_data_to_weight(prior[0]) + 0.8 * prior[1]
-        
+
         weight_name = "smth. $P_{i-1}$"
         prior_pars = {"alpha": None, "amp": None, "f_max": None, "gamma": None}
-    else:  
+    else:
         weight = smooth_data_to_weight(prior)
         weight_name = "smth. from data"
         prior_pars = {"alpha": None, "amp": None, "f_max": None, "gamma": None}
 
     if plot_flag:
-        import matplotlib.pyplot as plt
-
         plt.plot(k, weight, zorder=12, c="darkgreen", linewidth=0.8, label=weight_name)
 
     # peak normlize weights by std of data
@@ -218,10 +215,6 @@ class wavenumber_spectrogram_gFT:
         self.GG, params_dataframe
             params_dataframe is a pd.DataFrame that containes all the parameters of the fitting process (and may contain uncertainties too once they are calculated)
         """
-        import xarray as xr
-        import copy
-        import pandas as pd
-
         X = self.x if x is None else x  # all x positions
         DATA = self.data if data is None else data  # all data points
         ERR = self.error if error is None else error  # all error for points
@@ -236,9 +229,6 @@ class wavenumber_spectrogram_gFT:
             windows the data accoding to stencil and applies LS spectrogram
             returns: stancil center, spectrum for this stencil, number of datapoints in stancil
             """
-            from scipy.signal import detrend
-            import matplotlib.pyplot as plt
-            import time
 
             ta = time.perf_counter()
             x_mask = (stancil[0] <= X) & (X <= stancil[-1])
@@ -265,11 +255,8 @@ class wavenumber_spectrogram_gFT:
             y_var = y.var()
 
             FT = generalized_Fourier(x, y, self.k)
-            
 
             if plot_flag:
-                import matplotlib.pyplot as plt
-
                 plt.figure(figsize=(3.34, 1.8), dpi=300)
 
             # define weights. Weights are normalized to 1
@@ -310,11 +297,9 @@ class wavenumber_spectrogram_gFT:
                     inverse_stats[k] = np.nan
 
             print("stats : ", time.perf_counter() - ta)
-            
+
             # multiply with the standard deviation of the data to get dimensions right
-            PSD = power_from_model(
-                p_hat, dk, self.k.size, x.size, Lpoints
-            )  
+            PSD = power_from_model(p_hat, dk, self.k.size, x.size, Lpoints)
 
             if self.k.size * 2 > x.size:
                 col = "red"
@@ -361,7 +346,7 @@ class wavenumber_spectrogram_gFT:
         self.stancil_iter = spec.create_chunk_boundaries_unit_lengths(
             Lmeters, self.xlims, ov=self.ov, iter_flag=True
         )
-        
+
         # apply func to all stancils
         Spec_returns = list()
         prior = False, False
@@ -370,7 +355,7 @@ class wavenumber_spectrogram_gFT:
             if prior[0] is False:  # make NL fit of piors do not exist
                 print("1st step with NL-fit")
                 I_return = calc_gFT_apply(ss, prior=prior)
-                prior = I_return["PSD"], I_return["weight"] 
+                prior = I_return["PSD"], I_return["weight"]
 
             # 2nd step
             if prior[0] is False:
@@ -378,7 +363,7 @@ class wavenumber_spectrogram_gFT:
             else:
                 print("2nd step use set priors:", type(prior[0]), type(prior[0]))
                 I_return = calc_gFT_apply(ss, prior=prior)
-                prior = I_return["PSD"], I_return["weight"] 
+                prior = I_return["PSD"], I_return["weight"]
 
             Spec_returns.append(
                 dict(
@@ -395,7 +380,7 @@ class wavenumber_spectrogram_gFT:
                     )
                 )
             )
-           
+
         # unpack resutls of the mapping:
         GFT_model = dict()
         Z_model = dict()
@@ -446,7 +431,6 @@ class wavenumber_spectrogram_gFT:
         # repack data, create xarray
         # 1st LS spectal estimates
 
-        
         G_power_data = make_xarray_from_dict(
             D_specs, "gFT_PSD_data", ["k"], {"k": self.k}
         )
@@ -462,7 +446,7 @@ class wavenumber_spectrogram_gFT:
 
         # 2nd FFT(Y_model)
         G_model_Z = make_xarray_from_dict(Z_model, "Z_hat", ["k"], {"k": self.k})
-        G_model_Z = xr.concat(G_model_Z.values(), dim="x").T 
+        G_model_Z = xr.concat(G_model_Z.values(), dim="x").T
 
         # 3rd
         GFT_model_coeff_A = dict()
@@ -475,24 +459,20 @@ class wavenumber_spectrogram_gFT:
                 I[1], dims=["k"], coords={"k": self.k, "x": xi}, name="gFT_sin_coeff"
             )
 
-        GFT_model_coeff_A = xr.concat(
-            GFT_model_coeff_A.values(), dim="x"
-        ).T 
-        GFT_model_coeff_B = xr.concat(
-            GFT_model_coeff_B.values(), dim="x"
-        ).T
+        GFT_model_coeff_A = xr.concat(GFT_model_coeff_A.values(), dim="x").T
+        GFT_model_coeff_B = xr.concat(GFT_model_coeff_B.values(), dim="x").T
 
         # add weights to the data
         weights_k = make_xarray_from_dict(weights, "weight", ["k"], {"k": self.k})
-        weights_k = xr.concat(weights_k.values(), dim="x").T 
+        weights_k = xr.concat(weights_k.values(), dim="x").T
 
         # 4th: model in real space
         eta = np.arange(0, self.Lmeters + self.dx, self.dx) - self.Lmeters / 2
         y_model_eta = make_xarray_from_dict(y_model, "y_model", ["eta"], {"eta": eta})
         y_data_eta = make_xarray_from_dict(y_data, "y_data", ["eta"], {"eta": eta})
 
-        y_model_eta = xr.concat(y_model_eta.values(), dim="x").T  
-        y_data_eta = xr.concat(y_data_eta.values(), dim="x").T 
+        y_model_eta = xr.concat(y_model_eta.values(), dim="x").T
+        y_data_eta = xr.concat(y_data_eta.values(), dim="x").T
 
         # merge wavenumber datasets
         self.GG = xr.merge(
@@ -517,7 +497,7 @@ class wavenumber_spectrogram_gFT:
         for k, I in Pars.items():
             if I is not np.nan:
                 PP2[k] = I
-       
+
         keys = Pars[next(iter(PP2))].keys()
         keys_DF = list(set(keys) - set(["model_error_k", "model_error_x"]))
         params_dataframe = pd.DataFrame(index=keys_DF)
@@ -552,9 +532,7 @@ class wavenumber_spectrogram_gFT:
                     x_pos = x_pos[0 : I["model_error_x"].size]
                     print("adjust x")
                 elif x_pos.size < I["model_error_x"].size:
-                    I["model_error_x"] = I["model_error_x"][
-                        0:-1
-                    ]
+                    I["model_error_x"] = I["model_error_x"][0:-1]
                     print("adjust y")
 
                 x_err[x_pos] = I["model_error_x"]
@@ -602,14 +580,11 @@ class wavenumber_spectrogram_gFT:
 
     def parceval(self, add_attrs=True, weight_data=False):
         "test Parceval theorem"
-        import copy
 
         DATA = self.data
         X = self.x
 
         def get_stancil_var_apply(stancil):
-            from scipy.signal import detrend
-
             "returns the variance of yy for stancil"
             x_mask = (stancil[0] < X) & (X <= stancil[-1])
             idata = DATA[x_mask]
@@ -723,8 +698,6 @@ class generalized_Fourier:
         """
         non_dimensionalize (bool, default=True) if True, then the data and R_data_uncertainty is non-dimensionalized by the std of the data
         """
-        import numpy as np
-        from numpy import linalg
 
         self.x, self.ydata, self.k = x, ydata, k
         self.M = self.k.size  # number of wavenumbers
@@ -759,8 +732,6 @@ class generalized_Fourier:
         self.R_1d = R_data_uncertainty
 
     def solve(self):
-        from numpy import linalg
-
         inv = linalg.inv
         """ 
         solves the linear inverse problem, return hessian and p_hat
@@ -782,7 +753,6 @@ class generalized_Fourier:
         del H_T_R_inv
 
         return p_hat
-
 
     def model(self):
         "returns the model dimensional units"
@@ -831,7 +801,6 @@ class generalized_Fourier:
         return pars
 
     def get_stats(self, dk, Nx_full, print_flag=False):
-
         residual = self.ydata - self.model()
         pars = {
             "data_var": self.ydata.var(),
@@ -864,8 +833,6 @@ class generalized_Fourier:
 class get_prior_spec:
     def __init__(self, freq, data):
         """ """
-        import numpy as np
-        import lmfit as LM
 
         self.LM = LM
         self.data = data
@@ -888,8 +855,6 @@ class get_prior_spec:
         self.params LMfit.parameters class needed for optimization
 
         """
-        import numpy as np
-
         params = self.LM.Parameters()
 
         def get_peak_pos(y, smooth=30):
@@ -918,9 +883,6 @@ class get_prior_spec:
         )
 
     def non_dim_spec_model(self, f, f_max, amp, gamma=1, angle_rad=0):
-        import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
-
-        U = 20  # results are incensitive to U
         f_true = f * np.cos(angle_rad)
         model = spectal_models.JONSWAP_default_alt(f_true, f_max, 20, gamma=gamma)
         model = amp * model / np.nanmean(model)
@@ -953,13 +915,9 @@ class get_prior_spec:
         return self.fitter
 
     def plot_data(self):
-        import matplotlib.pyplot as plt
-
         plt.plot(self.freq, self.data, "k")
 
     def plot_model(self, pars):
-        import matplotlib.pyplot as plt
-
         plt.plot(self.freq, self.model_func(self.freq, pars), "b--")
 
     def runningmean(self, var, m, tailcopy=False):
@@ -969,7 +927,7 @@ class get_prior_spec:
             print("0 Dimension is smaller then averaging length")
             return
         rr = np.asarray(var) * np.nan
-        
+
         var_range = np.arange(m, int(s[0]) - m - 1, 1)
         for i in var_range[np.isfinite(var[m : int(s[0]) - m - 1])]:
             rr[int(i)] = np.nanmean(var[i - m : i + m])
