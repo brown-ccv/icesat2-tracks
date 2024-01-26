@@ -154,7 +154,6 @@ print("define global xlims")
 dist_list = np.array([np.nan, np.nan])
 for k in all_beams:
     print(k)
-    hkey = "h_mean"
     x = Gd[k + "/x"][:]
     print(x[0], x[-1])
     dist_list = np.vstack([dist_list, [x[0], x[-1]]])
