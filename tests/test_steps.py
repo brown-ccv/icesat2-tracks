@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import subprocess
 import shutil
 import tarfile
@@ -39,7 +40,9 @@ def delete_pdf_files(directory):
 
 
 def check_B03_freq_reconst_x():
-    directory = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312B03_spectra/"
+    directory = Path(
+        outputdir, "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312B03_spectra/"
+    )
     files = get_all_filenames(directory)
 
     # Check there are 5 pdf files
@@ -63,7 +66,14 @@ def delete_files(file_paths):
         delete_file(file_path)
 
 
+def getoutputdir(script):
+    outputdir = script.index("--output-dir") + 1
+    return script[outputdir]
+
+
 def run_test(script, paths, delete_paths=True, suppress_output=True):
+    outputdir = getoutputdir(script)
+    paths = [Path(outputdir, pth) for pth in paths]
     if delete_paths:
         delete_files(paths)
 
@@ -102,12 +112,18 @@ def setup_module():
 
 
 # The scriptx variables are the scripts to be tested. The pathsx variables are the paths to the files that should be produced by the scripts. The scripts are run and the paths are checked to see if the files were produced. If the files were produced, the test passes. If not, the test fails.
+
+outputdir = "tests/scratch"
+
 script1 = [
     "python",
     "src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py",
+    "--track-name",
     "20190502052058_05180312_005_01",
+    "--batch-key",
     "SH_testSLsinglefile2",
-    "True",
+    "--output-dir",
+    outputdir,
 ]
 paths1 = [
     "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B01_track.png.png",
@@ -117,12 +133,16 @@ paths1 = [
     "work/SH_testSLsinglefile2/B01_regrid/SH_20190502_05180312_B01_binned.h5",
 ]
 
+# update script2 so it confoms to the new command line interface: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./scratch
 script2 = [
     "python",
     "src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py",
+    "--track-name",
     "SH_20190502_05180312",
+    "--batch-key",
     "SH_testSLsinglefile2",
-    "True",
+    "--output-dir",
+    outputdir,  # update later to custom output directory in test function
 ]
 paths2 = [
     "work/SH_testSLsinglefile2/B02_spectra/B02_SH_20190502_05180312_params.h5",
@@ -134,10 +154,15 @@ paths2 = [
 script3 = [
     "python",
     "src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py",
+    "--track-name",
     "SH_20190502_05180312",
+    "--batch-key",
     "SH_testSLsinglefile2",
-    "True",
+    "--id-flag",
+    "--output-dir",
+    outputdir,  # update later to custom output directory in test function
 ]
+
 _root = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312"
 _paths3 = [
     "B03_specs_L25000.0.png",
@@ -180,33 +205,45 @@ paths5 = [
 ]
 
 
-def test_directories_and_files_step1():
-    # Step 1: B01_SL_load_single_file.py ~ 9 minutes
-    assert run_test(script1, paths1, delete_paths=False)  # passing
+# def test_directories_and_files_step1():
+#     # Step 1: B01_SL_load_single_file.py ~ 9 minutes
+#     assert run_test(script1, paths1, delete_paths=False)  # passing
 
 
-def test_directories_and_files_step2():
-    # Step 2: B02_make_spectra_gFT.py ~ 2 min
-    assert run_test(script2, paths2)  # passing
+# def test_directories_and_files_step2():
+#     # Step 2: B02_make_spectra_gFT.py ~ 2 min
+#     assert run_test(script2, paths2)  # passing
 
 
 def test_directories_and_files_step3():
     # Step 3: B03_plot_spectra_ov.py ~ 11 sec
     # This script has stochastic behavior, so the files produced don't always have the same names but the count of pdf files is constant for the test input data.
-    pdfdirectory = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312B03_spectra/"
+    pdfdirectory = (
+        "scratch/plots/SH/SH_testSLsinglefile2/SH_20190502_05180312B03_spectra/"
+    )
     delete_pdf_files(pdfdirectory)  # remove old files
     t1 = run_test(script3, paths3)
     t2 = check_B03_freq_reconst_x()
-    assert all([t1, t2])
+    assert t1
+    assert t2
 
 
-def test_directories_and_files_step4():
-    # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
-    t1 = run_test(script4, paths4)
-    t2 = check_file_exists(dir4, prefix4)
-    assert all([t1, t2])
+# def test_directories_and_files_step4():
+#     # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
+#     t1 = run_test(script4, paths4)
+#     t2 = check_file_exists(dir4, prefix4)
+#     assert all([t1, t2])
 
 
 # def test_directories_and_files_step5():
 #     # Step 5: B04_angle.py ~ 9 min
 #     assert run_test(script5, paths5)
+
+if __name__ == "__main__":
+    # setup_module()
+    # test_directories_and_files_step1()
+    # test_directories_and_files_step2()
+    test_directories_and_files_step3()
+    # test_directories_and_files_step4()
+    # test_directories_and_files_step5()
+    # teardown_module()

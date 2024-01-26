@@ -28,12 +28,12 @@ from icesat2_tracks.config.IceSAT2_startup import mconfig, plt
 
 from icesat2_tracks.clitools import (
     echo,
-    validate_pattern_wrapper,
     validate_batch_key,
     validate_output_dir,
     suppress_stdout,
     update_paths_mconfig,
     report_input_parameters,
+    validate_track_name_steps_2_3,
 )
 
 import tracemalloc
@@ -59,23 +59,9 @@ def linear_gap_fill(F, key_lead, key_int):
 app = typer.Typer(add_completion=False)
 
 
-def validate_track_name(
-    ctx: typer.Context, param: typer.CallbackParam, value: str
-) -> str:
-    pattern = r".*_\d{4}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])_\d{8}"
-    error_message = "track_name must be in the format: any_characters_YYYYMMDD_12345678"
-    return validate_pattern_wrapper(
-        ctx,
-        param,
-        value,
-        pattern,
-        error_message,
-    )
-
-
 @app.command()
 def run_B02_make_spectra_gFT(
-    track_name: str = typer.Option(..., callback=validate_track_name),
+    track_name: str = typer.Option(..., callback=validate_track_name_steps_2_3),
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
