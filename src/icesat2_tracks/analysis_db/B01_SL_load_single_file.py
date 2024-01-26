@@ -29,6 +29,7 @@ from icesat2_tracks.clitools import (
     validate_batch_key,
     validate_output_dir,
     suppress_stdout,
+    update_paths_mconfig,
     echo,
     echoparam,
 )
@@ -115,10 +116,7 @@ def run_B01_SL_load_single_file(
 
     hemis = batch_key.split("_")[0]
 
-    if output_dir:
-        workdir, plotsdir = [
-            Path(output_dir, mconfig["paths"][key]) for key in ["work", "plot"]
-        ]
+    workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
 
     save_path = Path(workdir, batch_key, "B01_regrid")
     save_path.mkdir(parents=True, exist_ok=True)
