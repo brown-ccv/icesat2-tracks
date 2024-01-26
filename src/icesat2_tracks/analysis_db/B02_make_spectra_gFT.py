@@ -26,7 +26,7 @@ import copy
 import icesat2_tracks.ICEsat2_SI_tools.spicke_remover as spicke_remover
 import datetime
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-from scipy.ndimage.measurements import label
+from scipy.ndimage import label
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
 
@@ -187,14 +187,12 @@ Pars_optm = dict()
 
 
 k = all_beams[1]
+# sliderule version
+hkey = "h_mean"
+hkey_sigma = "h_sigma"
 for k in all_beams:
     tracemalloc.start()
     # -------------------------------  use gridded data
-
-    # sliderule version
-    hkey = "h_mean"
-    hkey_sigma = "h_sigma"
-
     Gi = io.get_beam_hdf_store(Gd[k])
     x_mask = (Gi["x"] > xlims[0]) & (Gi["x"] < xlims[1])
     if sum(x_mask) / (xlims[1] - xlims[0]) < 0.005:
