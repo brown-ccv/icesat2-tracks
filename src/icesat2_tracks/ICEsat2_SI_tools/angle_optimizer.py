@@ -206,6 +206,8 @@ class sample_with_mcmc:
     def sample(self, fitting_args= None , method='emcee', steps=100, verbose= True, **kargs):
 
         fitting_args, fitting_kargs  = self.fitting_args, self.fitting_kargs
+        # TODO: this funciton throws an error in CI. The nan_policy='omit' policiy was added to avoid this issue 
+        # according to the guidelines in  https://lmfit.github.io/lmfit-py/faq.html#i-get-errors-from-nan-in-my-fit-what-can-i-do
         self.fitter = self.LM.minimize(self.objective_func, self.params,  method=method,
                         args=fitting_args, kws=fitting_kargs ,
                         nwalkers=self.nwalkers, steps=steps, pos= self.seeds,nan_policy='omit' , **kargs)
