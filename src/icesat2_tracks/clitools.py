@@ -1,9 +1,9 @@
-from pathlib import Path
 import os
-import sys
 import re
-
+import sys
 from contextlib import contextmanager
+from pathlib import Path
+
 import typer
 from termcolor import colored
 
@@ -78,3 +78,19 @@ def echoparam(text: str, value, textcolor: str = "green", valuecolor: str = "whi
     text = "\t" + text
     text = f"{text:<12}"
     echo(f"{colored(text,textcolor)}: {colored(value, valuecolor)}")
+
+
+def report_input_parameters(**kargs):
+    echo("** Input parameters:")
+    for key in kargs:
+        if key != "args":
+            echoparam(key, kargs[key])
+
+
+def update_paths_mconfig(output_dir, mconfig):
+    if output_dir:
+        workdir, plotsdir = [
+            Path(output_dir, mconfig["paths"][key]) for key in ["work", "plot"]
+        ]
+
+    return workdir, plotsdir
