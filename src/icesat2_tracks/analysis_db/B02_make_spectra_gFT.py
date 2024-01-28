@@ -33,7 +33,8 @@ from icesat2_tracks.clitools import (
     suppress_stdout,
     update_paths_mconfig,
     report_input_parameters,
-    validate_track_name_steps_2_3,
+    validate_track_name_steps_gt_1,
+    makeapp,
 )
 
 import tracemalloc
@@ -56,16 +57,15 @@ def linear_gap_fill(F, key_lead, key_int):
     return y_g
 
 
-app = typer.Typer(add_completion=False)
-
-
-@app.command()
 def run_B02_make_spectra_gFT(
-    track_name: str = typer.Option(..., callback=validate_track_name_steps_2_3),
+    track_name: str = typer.Option(..., callback=validate_track_name_steps_gt_1),
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
 ):
+    """
+    TODO: add docstring
+    """
     with suppress_stdout():
         track_name, batch_key, _ = io.init_from_input(
             [
@@ -558,5 +558,7 @@ def run_B02_make_spectra_gFT(
     echo("saved and done")
 
 
+step2app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
+
 if __name__ == "__main__":
-    app()
+    step2app()

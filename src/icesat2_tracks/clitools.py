@@ -96,7 +96,7 @@ def update_paths_mconfig(output_dir, mconfig):
     return workdir, plotsdir
 
 
-def validate_track_name_steps_2_3(
+def validate_track_name_steps_gt_1(
     ctx: typer.Context, param: typer.CallbackParam, value: str
 ) -> str:
     pattern = r".*_\d{4}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])_\d{8}"
@@ -108,3 +108,12 @@ def validate_track_name_steps_2_3(
         pattern,
         error_message,
     )
+
+
+def makeapp(f, name):
+    """
+    Make a typer app from a function.
+    """
+    app = typer.Typer(add_completion=False, name=name)
+    app.command()(f)
+    return app

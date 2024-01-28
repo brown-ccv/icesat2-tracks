@@ -1,29 +1,89 @@
+#!/usr/bin/env python
 """
 Main CLI for icesat2waves.
 """
-from typer import Typer
+from typer import Typer, Option
+from icesat2_tracks.analysis_db.B01_SL_load_single_file import (
+    run_B01_SL_load_single_file as _loadfile,
+)
+from icesat2_tracks.analysis_db.B02_make_spectra_gFT import (
+    run_B02_make_spectra_gFT as _makespectra,
+)
+from icesat2_tracks.analysis_db.B03_plot_spectra_ov import (
+    run_B03_plot_spectra_ov as _plotspectra,
+)
+from icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior import (
+    run_A02c_IOWAGA_thredds_prior as _threddsprior,
+)
 
-from icesat2_tracks.analysis_db import (
-    B01_SL_load_single_file as step1,
-    B02_make_spectra_gFT as step2,
-    B03_plot_spectra_ov as step3,
-    A02c_IOWAGA_thredds_prior as step4,
+from icesat2_tracks.clitools import (
+    validate_track_name,
+    validate_batch_key,
+    validate_output_dir,
+    validate_track_name_steps_gt_1,
 )
 
 
-def create_main_app():
-    app = Typer()
-    app.add_typer(step1.app, name="load-file")
-    app.add_typer(step2.app, name="make-spectra")
-    app.add_typer(step3.app, name="plot-spectra")
-    app.add_typer(step4.app, name="threads-prior")
-    return app
+app = Typer(add_completion=False)
+validate_track_name_gt_1_opt = Option(..., callback=validate_track_name_steps_gt_1)
+validate_batch_key_opt = Option(..., callback=validate_batch_key)
+validate_output_dir_opt = Option(None, callback=validate_output_dir)
 
 
-def main():
-    app = create_main_app()
-    app()
+def run_job(
+    analysis_func,
+    track_name: str,
+    batch_key: str,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    analysis_func(
+        track_name,
+        batch_key,
+        ID_flag,
+        output_dir,
+    )
+
+
+@app.command(help=_loadfile.__doc__)
+def loadfile(
+    track_name: str = Option(..., callback=validate_track_name),
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    run_job(_loadfile, track_name, batch_key, ID_flag, output_dir)
+
+
+@app.command(help=_makespectra.__doc__)
+def makespectra(
+    track_name: str = validate_track_name_gt_1_opt,
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    run_job(_makespectra, track_name, batch_key, ID_flag, output_dir)
+
+
+@app.command(help=_plotspectra.__doc__)
+def plotspectra(
+    track_name: str = validate_track_name_gt_1_opt,
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
+
+
+@app.command(help=_threddsprior.__doc__)
+def threddsprior(
+    track_name: str = validate_track_name_gt_1_opt,
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    run_job(_threddsprior, track_name, batch_key, ID_flag, output_dir)
 
 
 if __name__ == "__main__":
-    main()
+    app()

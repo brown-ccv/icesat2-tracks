@@ -32,9 +32,8 @@ from icesat2_tracks.clitools import (
     update_paths_mconfig,
     echo,
     echoparam,
+    makeapp,
 )
-
-app = typer.Typer(add_completion=False)
 
 
 def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
@@ -81,7 +80,6 @@ def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
         return table_data
 
 
-@app.command()
 def run_B01_SL_load_single_file(
     track_name: str = typer.Option(..., callback=validate_track_name),
     batch_key: str = typer.Option(..., callback=validate_batch_key),
@@ -267,5 +265,7 @@ def run_B01_SL_load_single_file(
     echo("done")
 
 
+step1app = makeapp(run_B01_SL_load_single_file, name="load-file")
+
 if __name__ == "__main__":
-    app()
+    step1app()
