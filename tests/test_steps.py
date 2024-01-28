@@ -35,21 +35,19 @@ def check_file_exists(directory, prefix, stepno: int = 4):
 
 
 def delete_pdf_files(directory):
-    path = Path(directory)
-    for file in path.iterdir():
-        if file.suffix == ".pdf":
-            file.unlink()
+    files = [file for file in Path(directory).iterdir() if file.suffix == ".pdf"]
+    delete_files(files)
+
+
+def delete_files(file_paths):
+    for file_path in file_paths:
+        delete_file(file_path)
 
 
 def delete_file(file_path):
     path = Path(file_path)
     if path.exists():
         path.unlink()
-
-
-def delete_files(file_paths):
-    for file_path in file_paths:
-        delete_file(file_path)
 
 
 def getoutputdir(script):
@@ -212,7 +210,7 @@ def setup_module():
     """
 
     homedir = Path(__file__).parent
-    input_data_dir = homedir / "output-per-step"
+    input_data_dir = homedir / "testdata"
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     _outdir = mkdtemp(dir=homedir, suffix=timestamp)  # temp dir for all steps
     __outdir.append(_outdir)
