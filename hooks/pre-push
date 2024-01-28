@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Count the number of 'def test_' in test_steps.py
+n=$(grep -c '^def test_' tests/test_steps.py)
+
+# if n > $(nproc) then n = $(nproc)
+if [ $n -gt $(nproc) ]; then
+  n=$(nproc)
+fi
+
+# Run your Python script
+pytest -n $n tests/test_steps.py
+
+# Check the exit status of the Python script
+if [ $? -ne 0 ]; then
+  echo "Tests failed, aborting push."
+  exit 1
+fi
