@@ -159,6 +159,7 @@ load_single_file = "icesat2_tracks.analysis_db.B01_SL_load_single_file:app"
 make_spectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:app"
 plot_spectra = "icesat2_tracks.analysis_db.B03_plot_spectra:app"
 iowaga_tp = "icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior:app"
+icesat2waves = "icesat2_tracks.app:main"
 
 
 [tool.pytest.ini_options]
