@@ -24,6 +24,6 @@ jobs:
       - name: install icesat2-tracks using pip
         run: pip install .
       - name: install pytest
-        run: pip install pytest pytest-xdist
+        run: pip install pytest pytest-xdist pytest-sugar pytest-durations
       - name: Run tests
-        run: pytest --capture=sys --verbose --showlocals --tb=long --durations=5 --numprocesses=4 tests/test_steps.py
+        run: pytest --capture=sys --verbose --showlocals --tb=long --durations=5 --numprocesses=auto tests/test_steps.py
