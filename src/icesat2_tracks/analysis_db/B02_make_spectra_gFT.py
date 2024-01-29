@@ -3,30 +3,35 @@ This file open a ICEsat2 track applied filters and corections and returns smooth
 This is python 3
 """
 
-import copy
-import datetime
-import h5py
-import time
 import sys
 
+import matplotlib.pyplot as plt
+from icesat2_tracks.config.IceSAT2_startup import mconfig
+
+from threadpoolctl import threadpool_info, threadpool_limits
+from pprint import pprint
 import numpy as np
 import xarray as xr
-from pprint import pprint
-from scipy.ndimage.measurements import label
-from threadpoolctl import threadpool_info, threadpool_limits
 
-import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
+import h5py
 import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-import icesat2_tracks.local_modules.m_general_ph3 as M
-import icesat2_tracks.local_modules.m_spectrum_ph3 as spicke_remover
+
+import time
+import imp
+import copy
+import icesat2_tracks.ICEsat2_SI_tools.spicke_remover as spicke_remover
+import datetime
+import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
+from scipy.ndimage import label
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
-from icesat2_tracks.config.IceSAT2_startup import mconfig, plt
+from icesat2_tracks.local_modules import m_general_ph3 as M
+
 
 import tracemalloc
 
 
-def linear_gap_fill(F, key_lead, key_int):
+def linear_gap_fill(F,key_lead, key_int):
     """
     F pd.DataFrame
     key_lead   key in F that determined the independent coordindate
@@ -43,9 +48,7 @@ def linear_gap_fill(F, key_lead, key_int):
 track_name, batch_key, test_flag = io.init_from_input(
     sys.argv
 )  # loads standard experiment
-
 hemis, batch = batch_key.split("_")
-
 ATlevel = "ATL03"
 
 load_path = mconfig["paths"]["work"] + "/" + batch_key + "/B01_regrid/"
@@ -62,28 +65,26 @@ plot_path = (
     + batch_key
     + "/"
     + track_name
-    + "/B_spectra/"
+    + "/B03_spectra/"
 )
 MT.mkdirs_r(plot_path)
 MT.mkdirs_r(save_path)
 bad_track_path = mconfig["paths"]["work"] + "bad_tracks/" + batch_key + "/"
-
 
 all_beams = mconfig["beams"]["all_beams"]
 high_beams = mconfig["beams"]["high_beams"]
 low_beams = mconfig["beams"]["low_beams"]
 
 N_process = 4
+print("N_process=", N_process)
 
-
-# open with hdf5
 Gd = h5py.File(load_path + "/" + track_name + "_B01_binned.h5", "r")
 
 
 # test amount of nans in the data
 nan_fraction = list()
 for k in all_beams:
-    heights_c_std = io.get_beam_var_hdf_store(Gd[k], "dist")
+    heights_c_std = io.get_beam_var_hdf_store(Gd[k], "x")
     nan_fraction.append(np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0])
 
 del heights_c_std
@@ -95,7 +96,7 @@ for group in mconfig["beams"]["groups"]:
     Ib = Gd[group[1]]
     ratio = Ia["x"][:].size / Ib["x"][:].size
     if (ratio > 10) | (ratio < 0.1):
-        # print("bad data ratio ", ratio, 1 / ratio) # TODO: add logger
+        print("bad data ratio ", ratio, 1 / ratio)
         bad_ratio_flag = True
 
 if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
@@ -114,10 +115,12 @@ if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
     exit()
 
 # test LS with an even grid where missing values are set to 0
+imp.reload(spec)
 print(Gd.keys())
 Gi = Gd[list(Gd.keys())[0]]  # to select a test  beam
-dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "dist")
+dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "x")
 
+# make dataframe form hdf5
 # derive spectal limits
 # Longest deserved period:
 T_max = 40  # sec
@@ -129,6 +132,7 @@ min_datapoint = 2 * np.pi / k_0 / dx
 Lpoints = int(np.round(min_datapoint) * 10)
 Lmeters = Lpoints * dx
 
+
 print("L number of gridpoint:", Lpoints)
 print("L length in km:", Lmeters / 1e3)
 print("approx number windows", 2 * dist.iloc[-1] / Lmeters - 1)
@@ -136,6 +140,7 @@ print("approx number windows", 2 * dist.iloc[-1] / Lmeters - 1)
 T_min = 6
 lambda_min = 9.81 * T_min**2 / (2 * np.pi)
 flim = 1 / T_min
+
 
 oversample = 2
 dlambda = Lmeters * oversample
@@ -148,31 +153,22 @@ print("2 M = ", kk.size * 2)
 print("define global xlims")
 dist_list = np.array([np.nan, np.nan])
 for k in all_beams:
-    # print(k) # TODO: add logger
-    hkey = "heights_c_weighted_mean"
-    x = Gd[k + "/dist"][:]
-    # print(x[0], x[-1]) # TODO: add logger
+    print(k)
+    x = Gd[k + "/x"][:]
+    print(x[0], x[-1])
     dist_list = np.vstack([dist_list, [x[0], x[-1]]])
 
 xlims = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
 
-dist_lim = 2000e3  # maximum distanc in the sea ice tha tis analysed:
-
-
-if (xlims[1] - xlims[0]) > dist_lim:
-    xlims = xlims[0], xlims[0] + dist_lim
-    print("-reduced xlims length to ", xlims[0] + dist_lim, "m")
-
 
 for k in all_beams:
-    dist_i = io.get_beam_var_hdf_store(Gd[k], "dist")
+    dist_i = io.get_beam_var_hdf_store(Gd[k], "x")
     x_mask = (dist_i > xlims[0]) & (dist_i < xlims[1])
-    # print(k, sum(x_mask["dist"]) / (xlims[1] - xlims[0])) # TODO: add logger
+    print(k, sum(x_mask["x"]) / (xlims[1] - xlims[0]))
 
 
 print("-reduced frequency resolution")
 kk = kk[::2]
-
 print("set xlims: ", xlims)
 print(
     "Loop start:  ",
@@ -180,37 +176,35 @@ print(
     tracemalloc.get_traced_memory()[1] / 1e6,
 )
 
-
 G_gFT = dict()
 G_gFT_x = dict()
 G_rar_fft = dict()
 Pars_optm = dict()
 
-k = all_beams[0]
+
+k = all_beams[1]
+# sliderule version
+hkey = "h_mean"
+hkey_sigma = "h_sigma"
 for k in all_beams:
     tracemalloc.start()
     # -------------------------------  use gridded data
-    hkey = "heights_c_weighted_mean"
     Gi = io.get_beam_hdf_store(Gd[k])
-    x_mask = (Gi["dist"] > xlims[0]) & (Gi["dist"] < xlims[1])
+    x_mask = (Gi["x"] > xlims[0]) & (Gi["x"] < xlims[1])
     if sum(x_mask) / (xlims[1] - xlims[0]) < 0.005:
-        # print("------------------- not data in beam found; skip") # TODO: add logger
-        continue
+        print("------------------- not data in beam found; skip")
 
     Gd_cut = Gi[x_mask]
-    x = Gd_cut["dist"]
+    x = Gd_cut["x"]
     del Gi
     # cut data:
     x_mask = (x >= xlims[0]) & (x <= xlims[1])
     x = x[x_mask]
-
     dd = np.copy(Gd_cut[hkey])
 
-    dd_error = np.copy(Gd_cut["heights_c_std"])
+    dd_error = np.copy(Gd_cut[hkey_sigma])
+
     dd_error[np.isnan(dd_error)] = 100
-    # plt.hist(1/dd_weight, bins=40)
-    F = M.figure_axis_xy(6, 3)
-    plt.subplot(2, 1, 1)
 
     # compute slope spectra !!
     dd = np.gradient(dd)
@@ -222,12 +216,7 @@ for k in all_beams:
     x_no_nans = x[~dd_nans]
     dd_error_no_nans = dd_error[~dd_nans]
 
-    plt.plot(
-        x_no_nans, dd_no_nans, ".", color="black", markersize=1, label="slope (m/m)"
-    )
-    plt.legend()
-    plt.show()
-
+    print("gFT")
     with threadpool_limits(limits=N_process, user_api="blas"):
         pprint(threadpool_info())
 
@@ -330,6 +319,7 @@ for k in all_beams:
             plt.ylim(ylims[0], ylims[-1])
             plt.show()
 
+    # add x-mean spectal error estimate to xarray
     S.parceval(add_attrs=True, weight_data=False)
 
     # assign beam coordinate
@@ -340,10 +330,10 @@ for k in all_beams:
     GG.coords["spec_adjust"] = (("x", "beam"), np.expand_dims(GG["spec_adjust"], 1))
 
     # add more coodindates to the Dataset
-    x_coord_no_gaps = linear_gap_fill(Gd_cut, "dist", "x")
-    y_coord_no_gaps = linear_gap_fill(Gd_cut, "dist", "y")
+    x_coord_no_gaps = linear_gap_fill(Gd_cut, "x", "x")
+    y_coord_no_gaps = linear_gap_fill(Gd_cut, "x", "y")
     mapped_coords = spec.sub_sample_coords(
-        Gd_cut["dist"], x_coord_no_gaps, y_coord_no_gaps, S.stancil_iter, map_func=None
+        Gd_cut["x"], x_coord_no_gaps, y_coord_no_gaps, S.stancil_iter, map_func=None
     )
 
     GG.coords["x_coord"] = GG_x.coords["x_coord"] = (
@@ -362,10 +352,10 @@ for k in all_beams:
         GG.coords["x_coord"][nan_mask] = np.nan
         GG.coords["y_coord"][nan_mask] = np.nan
 
-    lons_no_gaps = linear_gap_fill(Gd_cut, "dist", "lons")
-    lats_no_gaps = linear_gap_fill(Gd_cut, "dist", "lats")
+    lons_no_gaps = linear_gap_fill(Gd_cut, "x", "lons")
+    lats_no_gaps = linear_gap_fill(Gd_cut, "x", "lats")
     mapped_coords = spec.sub_sample_coords(
-        Gd_cut["dist"], lons_no_gaps, lats_no_gaps, S.stancil_iter, map_func=None
+        Gd_cut["x"], lons_no_gaps, lats_no_gaps, S.stancil_iter, map_func=None
     )
 
     GG.coords["lon"] = GG_x.coords["lon"] = (
@@ -445,10 +435,11 @@ for k in all_beams:
             label="mean FFT",
         )
         plt.legend()
-        plt.show()
+
     except:
         pass
     time.sleep(3)
+    plt.close("all")
 
 
 del Gd_cut
@@ -458,7 +449,7 @@ Gd.close()
 MT.save_pandas_table(Pars_optm, save_name + "_params", save_path)
 
 
-# repack data
+#  repack data
 def repack_attributes(DD):
     attr_dim_list = list(DD.keys())
     for k in attr_dim_list:
