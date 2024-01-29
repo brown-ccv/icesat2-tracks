@@ -66,8 +66,8 @@ def run_A02c_IOWAGA_thredds_prior(
     workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
     with suppress_stdout():
         ID, track_names, hemis, batch = io.init_data(
-            track_name, batch_key, ID_flag, workdir
-        )
+            str(track_name), str(batch_key), str(ID_flag), str(workdir)
+        )  # TODO: clean up application of str() to all arguments
 
     kargs = {
         "ID": ID,
@@ -80,7 +80,6 @@ def run_A02c_IOWAGA_thredds_prior(
     report_input_parameters(**kargs)
 
     hemis, batch = batch_key.split("_")
-    ATlevel = "ATL03"
 
     save_path = Path(workdir, batch_key, "A02_prior")
     plot_path = Path(plotsdir, hemis, batch_key, track_name)
@@ -88,13 +87,9 @@ def run_A02c_IOWAGA_thredds_prior(
     plot_name = "A02_" + track_name_short
     plot_path.mkdir(parents=True, exist_ok=True)
     save_path.mkdir(parents=True, exist_ok=True)
-    bad_track_path = Path(workdir, "bad_tracks", batch_key)
 
     all_beams = mconfig["beams"]["all_beams"]
-    high_beams = mconfig["beams"]["high_beams"]
-    low_beams = mconfig["beams"]["low_beams"]
 
-    load_path_WAVE_GLO = Path(workdir, "GLOBMULTI_ERA5_GLOBCUR_01")
     file_name_base = "LOPS_WW3-GLOB-30M_"
 
     load_path = Path(workdir, batch_key, "B01_regrid")
@@ -211,23 +206,30 @@ def run_A02c_IOWAGA_thredds_prior(
         }
     )
 
-    def sel_data(I, lon_range, lat_range, timestamp=None):
+    def sel_data(Ibeam, lon_range, lat_range, timestamp=None):
         """
         this method returns the selected data in the lon-lat box at an interpolated timestamp
         """
-        lon_flag = (lon_range[0] < I.longitude.data) & (I.longitude.data < lon_range[1])
-        lat_flag = (lat_range[0] < I.latitude.data) & (I.latitude.data < lat_range[1])
-        time_flag = (time_range[0] < I.time.data) & (I.time.data < time_range[1])
+        # TODO: refactor to avoid code duplication
+        lon_flag = (lon_range[0] < Ibeam.longitude.data) & (
+            Ibeam.longitude.data < lon_range[1]
+        )
+        lat_flag = (lat_range[0] < Ibeam.latitude.data) & (
+            Ibeam.latitude.data < lat_range[1]
+        )
+        time_flag = (time_range[0] < Ibeam.time.data) & (
+            Ibeam.time.data < time_range[1]
+        )
+
         if timestamp is None:
-            # I = I.astype({"time": "datetime64[ns]"})  # fix warning?
-            I = I.isel(latitude=lat_flag, longitude=lon_flag)
+            Ibeam = Ibeam.isel(latitude=lat_flag, longitude=lon_flag)
         else:
-            I = (
-                I.isel(latitude=lat_flag, longitude=lon_flag, time=time_flag)
+            Ibeam = (
+                Ibeam.isel(latitude=lat_flag, longitude=lon_flag, time=time_flag)
                 .sortby("time")
                 .interp(time=np.datetime64(timestamp))
             )
-        return I
+        return Ibeam
 
     try:
         G_beam = sel_data(IOWAGA, lon_range, lat_range, timestamp).load()
@@ -365,7 +367,6 @@ def run_A02c_IOWAGA_thredds_prior(
 
         F.save_pup(path=plot_path, name=plot_name + "_hindcast_data")
 
-        G_beam_masked = G_beam.where(~ice_mask, np.nan)
         ice_mask_prior = ice_mask.sel(latitude=G_prior.latitude)
         G_prior_masked = G_prior.where(~ice_mask_prior, np.nan)
 
@@ -462,7 +463,7 @@ def run_A02c_IOWAGA_thredds_prior(
 
         target_name = "A02_" + track_name + "_hindcast_success"
         MT.save_pandas_table({"priors_hindcast": Tend}, save_name, save_path)
-    except:
+    except Exception:
         target_name = "A02_" + track_name + "_hindcast_fail"
 
     def plot_prior(Prior, axx):

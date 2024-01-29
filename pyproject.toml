@@ -105,22 +105,26 @@ classifiers = [  # Optional
 # https://packaging.python.org/discussions/install-requires-vs-requirements/    # noqa
 # THIS PROJECT NEEDS MPI PRE-installed IN OUR LOCAL SYSTEM
 dependencies = [ # Optional
-  "piecewise_regression",
-  "numba",
-  "xarray",
-  "mpi4py",
-  "icesat2-toolkit==1.0.0.22",
-  "geopandas",
-  "sliderule==4.1.0",
-  "ipyleaflet",
-  "lmfit",
-  "tables",
-  "emcee==3.1.4",
-  "siphon",
+  "piecewise_regression>=1.3.0, <2.0.0",
+  "numba >=0.58.1, <1.0.0",
+  "xarray >=2024.1.0", # this doesn't look like semmatic versioning
+  "mpi4py >=3.1.4, <4.0.0",
+  "numpy >=1.26.3, <2.0.0",
+  "icesat2-toolkit >=1.0.0.22, <2.0.0",
+  "pandas >=2.2.0, <3.0.0",
+  "geopandas >=0.14.2, <1.0.0",
+  "sliderule >=4.2.3, <5.0.0",
+  "ipyleaflet >=0.18.1, <0.19.0",
+  "lmfit >=1.2.2, <2.0.0",
+  "tables >=3.9.2, <4.0.0",
+  "emcee >=3.1.4, <4.0.0",
+  "netCDF4 >=1.6.5, <2.0.0",
+  "siphon >=0.9, <1.0.0",
+  "h5py >=3.5.0, < 4.0.0",
   "termcolor >=2.4.0, < 3.0.0",
   "pytest >=7.4.4, < 8.0.0",
   "pytest-xdist >=3.5.0, < 4.0.0",
-  "typer >=0.9.0, < 1.0.0"
+  "typer >=0.9.0, < 1.0.0",
 ]
 
 # List additional groups of dependencies   here (e.g. development
@@ -133,7 +137,7 @@ dependencies = [ # Optional
 # projects.
 [project.optional-dependencies] # Optional
 dev = ["check-manifest","black","icesat2-tracks[test]"]
-test = ["coverage", "pytest"]
+test = ["coverage"]
 
 # List URLs that are relevant to your project
 #
@@ -155,22 +159,6 @@ test = ["coverage", "pytest"]
 [project.scripts]  # Optional
 #TODO: ADD ANY SCRIPTS WE WANT TO HAVE
 download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
-load_single_file = "icesat2_tracks.analysis_db.B01_SL_load_single_file:step1app"
-make_spectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:step2app"
-plot_spectra = "icesat2_tracks.analysis_db.B03_plot_spectra:step3app"
-iowaga_tp = "icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior:step4app"
-icesat2waves = "icesat2_tracks.app:app"
-
-
-[tool.pytest.ini_options]
-minversion = "7.4"
-addopts = "-ra -q"
-testpaths = [
-    "tests",
-]
-filterwarnings = [
-    "ignore::UserWarning",
-]
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
