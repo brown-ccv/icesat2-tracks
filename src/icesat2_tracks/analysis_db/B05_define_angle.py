@@ -1,10 +1,9 @@
-import os, sys
-
-
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+
+import  sys
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
