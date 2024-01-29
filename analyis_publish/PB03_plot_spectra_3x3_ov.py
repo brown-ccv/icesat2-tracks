@@ -152,7 +152,7 @@ def plot_wavenumber_spectrogram(ax, Gi, clev, plot_photon_density=True , cmap=No
 #Gmean = G_gFT_wmean['gFT_PSD_data'].rolling(k=5, center=True).mean()
 
 
-Gmean = gFT.rebin(G_gFT_wmean['gFT_PSD_data'], 10)
+Gmean,_ = gFT.rebin(G_gFT_wmean['gFT_PSD_data'], 10)
 
 #Gmean = Gmean.where(~np.isnan(Gmean), 0)
 

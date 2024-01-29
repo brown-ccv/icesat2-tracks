@@ -122,7 +122,7 @@ def likelyhood_func(pars, x, y, z, z_error= None, test_flag= False , prior= None
         return  - 0.5 * (cost_sqrt/tot_var + np.log(tot_var) ).sum() + prior_weight * penalties
 
 
-class sample_with_mcmc(object):
+class sample_with_mcmc:
     """
     sample a 2nd surface using mcmc and other methods. its made for getting a quick estimate!
 
@@ -206,9 +206,11 @@ class sample_with_mcmc(object):
     def sample(self, fitting_args= None , method='emcee', steps=100, verbose= True, **kargs):
 
         fitting_args, fitting_kargs  = self.fitting_args, self.fitting_kargs
+        # TODO: this funciton throws an error in CI. The nan_policy='omit' policiy was added to avoid this issue 
+        # according to the guidelines in  https://lmfit.github.io/lmfit-py/faq.html#i-get-errors-from-nan-in-my-fit-what-can-i-do
         self.fitter = self.LM.minimize(self.objective_func, self.params,  method=method,
                         args=fitting_args, kws=fitting_kargs ,
-                        nwalkers=self.nwalkers, steps=steps, pos= self.seeds, **kargs)
+                        nwalkers=self.nwalkers, steps=steps, pos= self.seeds,nan_policy='omit' , **kargs)
         if verbose:
             print(self.LM.report_fit(self.fitter))
             print('results at self.fitter')
