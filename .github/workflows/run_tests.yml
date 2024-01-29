@@ -26,4 +26,4 @@ jobs:
       - name: install pytest
         run: pip install pytest pytest-xdist
       - name: Run tests
-        run: pytest --capture=sys --verbose --showlocals --tb=long --durations=5 --numprocesses=4 --maxfail=inf tests/test_steps.py
+        run: pytest --capture=sys --verbose --showlocals --tb=long --durations=5 --numprocesses=4 tests/test_steps.py
