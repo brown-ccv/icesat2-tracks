@@ -1,6 +1,7 @@
 import os
 import re
 import json
+from pathlib import Path
 import warnings
 from datetime import datetime
 from netrc import netrc
@@ -108,7 +109,7 @@ def get_atl06p(ATL03_track_name, params_yapc, maximum_height):
     gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
 
     if gdf.empty:
-        raise Exception("Empty Geodataframe. No data could be retrieved.")
+        raise ValueError("Empty Geodataframe. No data could be retrieved.")
 
     print("Initial data retrieved")
     gdf = sct.correct_and_remove_height(gdf, maximum_height)
@@ -121,28 +122,30 @@ class case_ID:
     def __init__(self, track_name):
         track_name_pattern = r"(\D{2}|\d{2})_?(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?_(\d{4})(\d{2})(\d{2})_?(\d{3})?_?(\d{2})?"
 
+        # Compile the regular expression pattern for track names
         track_name_rx = re.compile(track_name_pattern)
+
+        # Use the compiled regular expression to find all matches in the track name
+        # The pop() method is used to get the last (or only) match
+        # The result is a tuple, which is unpacked into several properties of the current object
         (
-            self.hemis,
-            self.YY,
-            self.MM,
-            self.DD,
-            self.HH,
-            self.MN,
-            self.SS,
-            self.TRK,
-            self.CYC,
-            self.GRN,
-            self.RL,
-            self.VRS,
+            self.hemis,  # Hemisphere
+            self.YY,  # Year
+            self.MM,  # Month
+            self.DD,  # Day
+            self.HH,  # Hour
+            self.MN,  # Minute
+            self.SS,  # Second
+            self.TRK,  # Track
+            self.CYC,  # Cycle
+            self.GRN,  # Granule
+            self.RL,  # Release
+            self.VRS,  # Version
         ) = track_name_rx.findall(track_name).pop()
 
-        if self.hemis == "01":
-            self.hemis = "NH"
-        elif self.hemis == "02":
-            self.hemis = "SH"
-        else:
-            self.hemis = self.hemis
+        hemis_map = {"01": "NH", "02": "SH"}
+        self.hemis = hemis_map.get(self.hemis, self.hemis)
+
         self.set()
         self.track_name_init = track_name
 
@@ -346,12 +349,12 @@ def ATL03_download(username, password, dpath, product_directory, sd, file_name):
 
 
 def save_pandas_table(table_dict, name, save_path):
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
+    save_path = Path(save_path)
+    save_path.mkdir(parents=True, exist_ok=True)
 
     warnings.filterwarnings("ignore", category=PerformanceWarning)
 
-    with HDFStore(save_path + "/" + name + ".h5") as store:
+    with HDFStore(save_path / f"{name}.h5") as store:
         for name, table in table_dict.items():
             store[name] = table
 
@@ -382,23 +385,18 @@ def get_beam_var_hdf_store(ATL03_k, ikey):
 
 
 def write_track_to_HDF5(data_dict, name, path, verbose=False, mode="w"):
-    mode = "w" if mode is None else mode
-    if not os.path.exists(path):
-        os.makedirs(path)
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
 
-    full_name = os.path.join(path, name + ".h5")
-    store = h5py.File(full_name, mode)
-
-    for k in data_dict.keys():
-        store1 = store.create_group(k)
-        for kk, I in list(data_dict[k].items()):
-            store1[kk] = I
-        # store1.close()
-
-    store.close()
+    full_name = path / (name + ".h5")
+    with h5py.File(str(full_name), mode) as store:
+        for k in data_dict.keys():
+            store1 = store.create_group(k)
+            for kk, I in list(data_dict[k].items()):
+                store1[kk] = I
 
     if verbose:
-        print("saved at: " + full_name)
+        print(f"saved at: {full_name}")
 
 
 def get_time_for_track(delta_time, atlas_epoch):
@@ -452,7 +450,6 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
 
     # Photon height
     heights = ATL03[beam + "/heights/h_ph"][:]
-    # print(heights.shape)
 
     # Flag for signal confidence
     # column index:  0=Land; 1=Ocean; 2=SeaIce; 3=LandIce; 4=InlandWater
@@ -464,25 +461,25 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
     # --  3: medium
     # --  4: high
 
-    mask_ocean = (
-        ATL03[beam + "/heights/signal_conf_ph"][:, 1] > 2
-    )  # ocean points  medium or high quality
-    mask_seaice = (
-        ATL03[beam + "/heights/signal_conf_ph"][:, 2] > 2
-    )  # sea ice points medium or high quality
+    heighs_signal_conf_ph = "/heights/signal_conf_ph"
+    quality_threshold = 2
+    beam_data = ATL03[beam + heighs_signal_conf_ph]
+
+    # ocean points  medium or high quality
+    mask_ocean = beam_data[:, 1] > quality_threshold
+    # sea ice points medium or high quality
+    mask_seaice = beam_data[:, 2] > quality_threshold
     mask_total = mask_seaice | mask_ocean
 
-    if sum(~mask_total) == (ATL03[beam + "/heights/signal_conf_ph"][:, 1]).size:
+    if sum(~mask_total) == beam_data[:, 1].size:
         print("zero photons, lower photon quality to 2 or higher")
-        mask_ocean = (
-            ATL03[beam + "/heights/signal_conf_ph"][:, 1] > 1
-        )  # ocean points  medium or high quality
-        mask_seaice = (
-            ATL03[beam + "/heights/signal_conf_ph"][:, 2] > 1
-        )  # sea ice points medium or high quality
+        # lower quality threshold and recompute
+        quality_threshold = 1
+        mask_ocean = beam_data[:, 1] > quality_threshold
+        mask_seaice = beam_data[:, 2] > quality_threshold
         mask_total = mask_seaice | mask_ocean
 
-    signal_confidence = ATL03[beam + "/heights/signal_conf_ph"][:, 1:3].max(1)
+    signal_confidence = ATL03[beam + heighs_signal_conf_ph][:, 1:3].max(1)
 
     ATL03.close()
 
@@ -600,7 +597,6 @@ def getATL07_beam(fileT, beam="gt1r", maxElev=1e6):
         "height_segment_w_gaussian",  # Width of Gaussian fit
         "height_segment_quality",  # Height quality flag, 1 for good fit, 0 for bad
     ]
-    # vars = ['beam_fb_height', 'beam_fb_sigma' , 'beam_fb_confidence' , 'beam_fb_quality_flag']
 
     D_heights = dict()
     for var in vars:
@@ -621,7 +617,6 @@ def getATL07_beam(fileT, beam="gt1r", maxElev=1e6):
         D_env[var] = ATL07[beam + "/sea_ice_segments/" + I][:]
     dF_env = pd.DataFrame(D_env)
 
-    # Df = pd.concat({k: pd.DataFrame(v).T for k, v in data.items()}, axis=0)
     DF = pd.concat(
         {"time": dF_time, "ref": dF_bulk, "heights": dF_heights, "env": dF_env}, axis=1
     )
@@ -646,7 +641,6 @@ def getATL10_beam(fileT, beam="gt1r", maxElev=1e6):
     ATL07 = h5py.File(fileT, "r")
 
     ### bulk positions and statistics
-    # f['gt1r/freeboard_beam_segment/beam_freeboard'].keys()
 
     vars_bulk = [
         "seg_dist_x",
