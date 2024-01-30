@@ -1,5 +1,19 @@
+import os
+import re
+import json
+import warnings
+from datetime import datetime
+from netrc import netrc
+from lxml import etree
+from posixpath import join as posixpath_join
+from pandas import HDFStore
+from pandas.io.pytables import PerformanceWarning
+import pandas as pd
+import h5py
 from sliderule import icesat2
 from icesat2_tracks.ICEsat2_SI_tools import sliderule_converter_tools as sct
+import icesat2_toolkit.utilities
+import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
 
 
 def init_from_input(arguments):
@@ -73,8 +87,6 @@ def init_data(ID_name, batch_key, ID_flag, ID_root, prefix="A01b_ID"):
 
 
 def ID_to_str(ID_name):
-    from datetime import datetime
-
     IDs = ID_name.split("_")
     date = datetime.strptime(IDs[1], "%Y%m%d").strftime("%Y-%m-%d")
     return IDs[0] + " " + date + " granule: " + IDs[2]
@@ -107,8 +119,6 @@ class case_ID:
     """docstring for case_ID"""
 
     def __init__(self, track_name):
-        import re
-
         track_name_pattern = r"(\D{2}|\d{2})_?(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?_(\d{4})(\d{2})(\d{2})_?(\d{3})?_?(\d{2})?"
 
         track_name_rx = re.compile(track_name_pattern)
@@ -219,12 +229,6 @@ def nsidc_icesat2_get_associated_file(
     ATL03, (or, ATL10, ATL07, not tested)
 
     """
-    import netrc
-    import lxml
-    import re
-    import posixpath
-    import os
-    import icesat2_toolkit.utilities
 
     AUXILIARY = False
     DIRECTORY = None
@@ -307,9 +311,6 @@ def nsidc_icesat2_get_associated_file(
 
 
 def json_load(name, path, verbose=False):
-    import json
-    import os
-
     full_name = os.path.join(path, name + ".json")
 
     with open(full_name, "r") as ifile:
@@ -329,7 +330,6 @@ def ATL03_download(username, password, dpath, product_directory, sd, file_name):
     sd                  '2019.03.01'- subdirectory on ATLAS
     file_name           'ATL03_20190301010737_09560204_005_01.h5' - filename in subdirectory
     """
-    import icesat2_toolkit.utilities
 
     HOST = ["https://n5eil01u.ecs.nsidc.org", "ATLAS", product_directory, sd, file_name]
     print("download to:", dpath + "/" + HOST[-1])
@@ -346,14 +346,8 @@ def ATL03_download(username, password, dpath, product_directory, sd, file_name):
 
 
 def save_pandas_table(table_dict, name, save_path):
-    import os
-
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-
-    import warnings
-    from pandas import HDFStore
-    from pandas.io.pytables import PerformanceWarning
 
     warnings.filterwarnings("ignore", category=PerformanceWarning)
 
@@ -363,10 +357,6 @@ def save_pandas_table(table_dict, name, save_path):
 
 
 def load_pandas_table_dict(name, save_path):
-    import warnings
-    from pandas import HDFStore
-    from pandas.io.pytables import PerformanceWarning
-
     warnings.filterwarnings("ignore", category=PerformanceWarning)
 
     return_dict = dict()
@@ -378,8 +368,6 @@ def load_pandas_table_dict(name, save_path):
 
 
 def get_beam_hdf_store(ATL03_k):
-    import pandas as pd
-
     DD = pd.DataFrame()  # columns = ATL03.keys())
     for ikey in ATL03_k.keys():
         DD[ikey] = ATL03_k[ikey]
@@ -388,17 +376,12 @@ def get_beam_hdf_store(ATL03_k):
 
 
 def get_beam_var_hdf_store(ATL03_k, ikey):
-    import pandas as pd
-
     DD = pd.DataFrame()  # columns = ATL03.keys())
     DD[ikey] = ATL03_k[ikey]
     return DD
 
 
 def write_track_to_HDF5(data_dict, name, path, verbose=False, mode="w"):
-    import os
-    import h5py
-
     mode = "w" if mode is None else mode
     if not os.path.exists(path):
         os.makedirs(path)
@@ -420,8 +403,6 @@ def write_track_to_HDF5(data_dict, name, path, verbose=False, mode="w"):
 
 def get_time_for_track(delta_time, atlas_epoch):
     "returns pandas dataframe"
-    import pandas as pd
-    import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
 
     # Conversion of delta_time to a calendar date
     temp = cGPS.convert_GPS_time(atlas_epoch[0] + delta_time, OFFSET=0.0)
@@ -446,8 +427,6 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
     beam    key of the iceSAT2 beam.
     """
     # Add in a proper description of the function here
-    import h5py
-    import pandas as pd
 
     # Open the file
     ATL03 = h5py.File(fileT, "r")
@@ -556,9 +535,6 @@ def getATL03_height_correction(fileT, beam="gt1r"):
     """
     # Add in a proper description of the function here
 
-    import h5py
-    import pandas as pd
-
     # Open the file
     ATL03 = h5py.File(fileT, "r")
 
@@ -584,9 +560,6 @@ def getATL07_beam(fileT, beam="gt1r", maxElev=1e6):
     returns: Pandas data frame
     """
     # Add in a proper description of the function here
-
-    import h5py
-    import pandas as pd
 
     # Open the file
     ATL07 = h5py.File(fileT, "r")
@@ -668,9 +641,6 @@ def getATL10_beam(fileT, beam="gt1r", maxElev=1e6):
     returns: Pandas data frames one for sea ice heights and one for leads
     """
     # Add in a proper description of the function here
-
-    import h5py
-    import pandas as pd
 
     # Open the file
     ATL07 = h5py.File(fileT, "r")
@@ -755,9 +725,6 @@ def getATL07_height_corrections(fileT, beam="gt1r"):
     returns: Pandas data frame
     """
     # Add in a proper description of the function here
-
-    import h5py
-    import pandas as pd
 
     # Open the file
     ATL07 = h5py.File(fileT, "r")
