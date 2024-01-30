@@ -15,16 +15,15 @@ from icesat2_tracks.config.IceSAT2_startup import (
 import icesat2_tracks.ICEsat2_SI_tools.io as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 
-from numba import jit
 import xarray as xr
 import numpy as np
 import time
 import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
-
+   
 from matplotlib.gridspec import GridSpec
-
+from scipy.ndimage import label
 color_schemes.colormaps2(21)
 
 col_dict = color_schemes.rels
@@ -74,7 +73,6 @@ def weighted_means(data, weights, x_angle, color="k"):
     weights should have nans when there is no data
     data should have zeros where there is no data
     """
-    from scipy.ndimage import label
 
     # make wavenumber groups
     groups, Ngroups = label(weights.where(~np.isnan(weights), 0))
