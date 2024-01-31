@@ -1,18 +1,21 @@
 import os
-if __name__ == '__main__':
+from scipy.constants import g
 
-    exec(open(os.environ['PYTHONSTARTUP']).read())
+if __name__ == "__main__":
+    exec(open(os.environ["PYTHONSTARTUP"]).read())
     exec(open(STARTUP_2019_DP).read())
 
-    #%matplotlib inline
+    # %matplotlib inline
 
     import sys, imp
-    #import pickle
+
+    # import pickle
     from lmfit import minimize, Parameters
     import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 # %%
 def normalize_time(time):
@@ -20,32 +23,34 @@ def normalize_time(time):
     returns a time vector from 0 to 1 of the length of time
         and the time step dt in dimentional units
     """
-    time=np.copy(time)
-    dt=np.diff(time).mean()#G.dt_periodogram
-    time=(time-time[0])/dt#np.arange(0,time.size, 1)
-    return (time)/(time[-1]) , dt
+    time = np.copy(time)
+    dt = np.diff(time).mean()  # G.dt_periodogram
+    time = (time - time[0]) / dt  # np.arange(0,time.size, 1)
+    return (time) / (time[-1]), dt
 
-def gaussian(x,x0,sigma):
-  return np.exp(-np.power((x - x0)/sigma, 2.)/2.)
 
-#%% generate some data_ano
-if __name__ == '__main__':
+def gaussian(x, x0, sigma):
+    return np.exp(-np.power((x - x0) / sigma, 2.0) / 2.0)
+
+
+# %% generate some data_ano
+if __name__ == "__main__":
     from scipy.stats import gamma
 
-    f=np.arange(1/1000.0, .2, 0.001)
-    time=np.arange(0, 1, 0.001)
+    f = np.arange(1 / 1000.0, 0.2, 0.001)
+    time = np.arange(0, 1, 0.001)
 
     tt, ff = np.meshgrid(time, f)
-    fake_data=  np.sin(tt*np.pi)**4 * gaussian( ff, .05, 0.03)
+    fake_data = np.sin(tt * np.pi) ** 4 * gaussian(ff, 0.05, 0.03)
 
-    plt.contour(tt, ff, fake_data, colors='k')
+    plt.contour(tt, ff, fake_data, colors="k")
 
 
 # %% basic functions
-def gamma_time_normlized_amp(time, gammapar=2, loc=.2, scale=0.1):
+def gamma_time_normlized_amp(time, gammapar=2, loc=0.2, scale=0.1):
     from scipy.stats import gamma
 
-    np.seterr(divide='ignore', invalid='ignore')
+    np.seterr(divide="ignore", invalid="ignore")
     """
     configured for normalized time scale (0, 1)
     gammapar > 1
@@ -53,13 +58,14 @@ def gamma_time_normlized_amp(time, gammapar=2, loc=.2, scale=0.1):
     loc is position 0 ..1
     scale  >0 .. \approx 0.3
     """
-    gamma_mod=gamma(gammapar, loc = loc, scale = scale).pdf(time)
-    return  gamma_mod/gamma_mod.max()
+    gamma_mod = gamma(gammapar, loc=loc, scale=scale).pdf(time)
+    return gamma_mod / gamma_mod.max()
 
-def gamma_time_normlized_amp_shifted(time, gammapar=2, loc=.2, scale=0.1):
+
+def gamma_time_normlized_amp_shifted(time, gammapar=2, loc=0.2, scale=0.1):
     from scipy.stats import gamma
 
-    np.seterr(divide='ignore', invalid='ignore')
+    np.seterr(divide="ignore", invalid="ignore")
     """
 
     configured for normalized time scale (0, 1)
@@ -69,40 +75,45 @@ def gamma_time_normlized_amp_shifted(time, gammapar=2, loc=.2, scale=0.1):
     loc is position 0 ..1
     scale  >0 .. \approx 0.3
     """
-    gamma_mod = gamma(gammapar, loc = loc[0,:], scale = scale).pdf(time[0,:])
-    dloc = (loc[0,:]- time[0,:][gamma_mod.argmax()])
-    #print(dloc)
-    gamma_mod = gamma(gammapar, loc =loc + dloc , scale = scale).pdf(time)
-    return  gamma_mod/gamma_mod.max()
+    gamma_mod = gamma(gammapar, loc=loc[0, :], scale=scale).pdf(time[0, :])
+    dloc = loc[0, :] - time[0, :][gamma_mod.argmax()]
+    # print(dloc)
+    gamma_mod = gamma(gammapar, loc=loc + dloc, scale=scale).pdf(time)
+    return gamma_mod / gamma_mod.max()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     plt.plot(time, gamma_time_normlized_amp(time))
-    plt.plot(time, gamma_time_normlized_amp_shifted(time, gammapar=3, loc=.2, scale=0.1) )
+    plt.plot(
+        time, gamma_time_normlized_amp_shifted(time, gammapar=3, loc=0.2, scale=0.1)
+    )
 
 
 # %% JONSWAP
 
-def JONSWAP_bulk(f, floc=0.04, famp=1e-2,  gamma=3.3, peak_std=1e-1):
+
+def JONSWAP_bulk(f, floc=0.04, famp=1e-2, gamma=3.3, peak_std=1e-1):
     """
     see Ocean Surface waves - S. R. Massel eq.3.69 and eq.3.81
 
     """
-    B=0.74
-    g=9.81
-    w=f*2*np.pi
-    wp=floc*2*np.pi
-    stretch=5/4
+    B = 0.74
 
-    #peak_std=1e-01 #0.00555
-    #scale_std=1e-2
-    alpha=famp
-    #stretch=5/4
+    w = f * 2 * np.pi
+    wp = floc * 2 * np.pi
+    stretch = 5 / 4
 
-    delta=np.exp(-(w-wp)**2 / ( 2*peak_std**2 *wp**2 ) )
-    peak_factor=gamma**delta
-    return alpha * w**(-5) * np.exp(-stretch*  (w/wp)**-4)*peak_factor # units of m^2 / Hz
-    #np.exp(-B *(g/(w*U))**4)
+    # peak_std=1e-01 #0.00555
+    # scale_std=1e-2
+    alpha = famp
+    # stretch=5/4
 
+    delta = np.exp(-((w - wp) ** 2) / (2 * peak_std**2 * wp**2))
+    peak_factor = gamma**delta
+    return (
+        alpha * w ** (-5) * np.exp(-stretch * (w / wp) ** -4) * peak_factor
+    )  # units of m^2 / Hz
+    # np.exp(-B *(g/(w*U))**4)
 
 
 def pierson_moskowitz_default(f, U):
@@ -111,39 +122,42 @@ def pierson_moskowitz_default(f, U):
 
     """
 
-    g=9.81
-    wp=0.879*g / U
-    w=2.*np.pi*f
-    sigma=0.04 *g / wp**2.0
-    alpha=5.0* (wp**2.0 *sigma / g)**2.0
+    wp = 0.879 * g / U
+    w = 2.0 * np.pi * f
+    sigma = 0.04 * g / wp**2.0
+    alpha = 5.0 * (wp**2.0 * sigma / g) ** 2.0
 
-    return  alpha * w**(-5.0) * g**2.0 *np.exp(-5./4.0 * (w/wp)**-4)#
+    return alpha * w ** (-5.0) * g**2.0 * np.exp(-5.0 / 4.0 * (w / wp) ** -4)  #
 
-def pierson_moskowitz_fetch_limit(f, X,  U):
+
+def pierson_moskowitz_fetch_limit(f, X, U):
     """
     see Ocean Surface waves - S. R. Massel eq.3.81 - eq.3.84
 
     """
-    g=9.81 # m s*-2
-    w=2.*np.pi*f # rad/sec
 
-    alpha=0.076*(g *X /U**2)**(-0.22) #non-dimentional
-    wp= 7.* np.pi * (g /U) * (g * X /U**2)**(-0.33)
-    print('wp='+str(wp))
+    w = 2.0 * np.pi * f  # rad/sec
 
-    sigma_p=0.07
-    sigma_pp=0.09
-    sigma= np.array([[sigma_p if i else sigma_pp][0]  for i in list(w<=wp)  ])
+    alpha = 0.076 * (g * X / U**2) ** (-0.22)  # non-dimentional
+    wp = 7.0 * np.pi * (g / U) * (g * X / U**2) ** (-0.33)
+    print("wp=" + str(wp))
 
-    gamma=3.3
-    delta=np.exp(-(w-wp)**2 / ( 2.*sigma**2. *wp**2. ) )
-    peak_factor=gamma**delta
+    sigma_p = 0.07
+    sigma_pp = 0.09
+    sigma = np.array([[sigma_p if i else sigma_pp][0] for i in list(w <= wp)])
 
-    return alpha * g**2.0 * w**(-5.) * np.exp(-5./4.0 *  (w/wp)**-4)# Hz**-5 m**2 /s**4  = m**2 sec
+    gamma = 3.3
+    delta = np.exp(-((w - wp) ** 2) / (2.0 * sigma**2.0 * wp**2.0))
+    peak_factor = gamma**delta
+
+    return (
+        alpha * g**2.0 * w ** (-5.0) * np.exp(-5.0 / 4.0 * (w / wp) ** -4)
+    )  # Hz**-5 m**2 /s**4  = m**2 sec
+
 
 def JONSWAP_default_alt(f, f_max, U, gamma=3.3):
-
     return JONSWAP_default(f, X(f_max, U), U, gamma=gamma)
+
 
 def JONSWAP_default(f, X, U, gamma=3.3):
     """
@@ -154,63 +168,67 @@ def JONSWAP_default(f, X, U, gamma=3.3):
     gamma is defined in the JONSWAP spectrum as 3.3. However, The JONSWAP spectrum is a psectrum for a fully deleoped sea, and likely not observed in a remote location.
     varying gamma to less then its JONSWAP value will mimic the attenuation of the peak with travel time to the limit of gamma=1, which is the PM spectrums
     """
-    g   = 9.81 # m s**-2
-    w   = 2.*np.pi*f # rad/sec
 
-    alpha=0.076*(g *X /U**2)**(-0.22) #non-dimentional
-    wp= 7.* np.pi * (g /U) * (g * X /U**2)**(-0.33)
-    #print('wp='+str(wp))
-    #print('nu='+str(wp*U/(g)))
+    w = 2.0 * np.pi * f  # rad/sec
 
-    sigma_p=0.07
-    sigma_pp=0.09
-    sigma= np.array([[sigma_p if i else sigma_pp][0]  for i in list(w<=wp)  ])
+    alpha = 0.076 * (g * X / U**2) ** (-0.22)  # non-dimentional
+    wp = 7.0 * np.pi * (g / U) * (g * X / U**2) ** (-0.33)
+    # print('wp='+str(wp))
+    # print('nu='+str(wp*U/(g)))
 
-    delta=np.exp(-(w-wp)**2 / ( 2.*sigma**2. *wp**2. ) )
-    peak_factor=gamma**delta
+    sigma_p = 0.07
+    sigma_pp = 0.09
+    sigma = np.array([[sigma_p if i else sigma_pp][0] for i in list(w <= wp)])
 
-    return alpha * g**2.0 * w**(-5.) * np.exp(-5./4.0 *  (w/wp)**-4)*peak_factor # Hz**-5 m**2 /s**4  = m**2 sec  ?
+    delta = np.exp(-((w - wp) ** 2) / (2.0 * sigma**2.0 * wp**2.0))
+    peak_factor = gamma**delta
+
+    return (
+        alpha
+        * g**2.0
+        * w ** (-5.0)
+        * np.exp(-5.0 / 4.0 * (w / wp) ** -4)
+        * peak_factor
+    )  # Hz**-5 m**2 /s**4  = m**2 sec  ?
+
 
 """ add function for X_tilde(X, U10), alpha(f_max, U10) and f_max(U10, X_tilde) or f_max(U, X)"""
 
-g=9.81
 
 def X_tilde(X, U10):
-    return g*X/U10**2
+    return g * X / U10**2
+
 
 def alpha(f_max, U10):
-    return 0.033*(f_max*U10/g)**0.67
+    return 0.033 * (f_max * U10 / g) ** 0.67
+
 
 def f_max(U10, X):
-    return 3.5*g/U10*X_tilde(X,U10)**(-0.33)
+    return 3.5 * g / U10 * X_tilde(X, U10) ** (-0.33)
+
 
 def X(f_max, U10):
-    return 3.5**3 * g**2 /(U10 *f_max**3)
+    return 3.5**3 * g**2 / (U10 * f_max**3)
+
 
 # %%
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     M.figure_axis_xy()
-    plt.plot(f, JONSWAP_bulk(f, gamma=3.3), label='JONSWAP bulk (RIS version)')
-    plt.plot(f, JONSWAP_bulk(f, gamma=1), label='JONSWAP bulk --> PM (RIS version)')
+    plt.plot(f, JONSWAP_bulk(f, gamma=3.3), label="JONSWAP bulk (RIS version)")
+    plt.plot(f, JONSWAP_bulk(f, gamma=1), label="JONSWAP bulk --> PM (RIS version)")
 
-    plt.plot(f, pierson_moskowitz_default(f, 15),  label='PM default')
-    plt.plot(f, pierson_moskowitz_fetch_limit(f, 5e5,  15), label='PM fetch limited')
-    plt.plot(f, JONSWAP_default(f, 5e5,  15, 3.3), label='JONSWAP default')
+    plt.plot(f, pierson_moskowitz_default(f, 15), label="PM default")
+    plt.plot(f, pierson_moskowitz_fetch_limit(f, 5e5, 15), label="PM fetch limited")
+    plt.plot(f, JONSWAP_default(f, 5e5, 15, 3.3), label="JONSWAP default")
     plt.legend()
 
 
-
 # %%
 
-def gamma_time_JONSWAP_default(time, f,
-                   slope_t, intersectT,
-                   tgammapar, tscale,
-                    f_max,
-                    U10,
-                    gamma_peak,
-                    plot=False):
 
+def gamma_time_JONSWAP_default(
+    time, f, slope_t, intersectT, tgammapar, tscale, f_max, U10, gamma_peak, plot=False
+):
     """
     This method calculated a 2D shaped function given the parameters:
     inputs:
@@ -236,67 +254,61 @@ def gamma_time_JONSWAP_default(time, f,
                 2d function with the shape of [time,freq]
     """
 
-    #intersectf=intersect-intersect/slopet
-    intersectF=-intersectT*slope_t
-    pfreq=time*slope_t+intersectF
-    #print('intersect F=' + str(intersectF))
+    # intersectf=intersect-intersect/slopet
+    intersectF = -intersectT * slope_t
+    pfreq = time * slope_t + intersectF
+    # print('intersect F=' + str(intersectF))
 
-    #intersectf=intersect#-intersect/slope
-    slopeF=1/slope_t
-    pfreq_forgamma=f*slopeF+intersectT
+    # intersectf=intersect#-intersect/slope
+    slopeF = 1 / slope_t
+    pfreq_forgamma = f * slopeF + intersectT
 
-    #rint(pfreq.shape)
-    tt, line=np.meshgrid(time, pfreq_forgamma)
-    #print(line)
-    #print(tt)
-    func_t= gamma_time_normlized_amp_shifted(tt, gammapar=tgammapar, loc=line, scale=tscale)
-    #func_t_temp= (tamp*np.exp(- (time-t_center )**4 / tsigma ))
-    #print(func_t.shape)
+    # rint(pfreq.shape)
+    tt, line = np.meshgrid(time, pfreq_forgamma)
+    # print(line)
+    # print(tt)
+    func_t = gamma_time_normlized_amp_shifted(
+        tt, gammapar=tgammapar, loc=line, scale=tscale
+    )
+    # func_t_temp= (tamp*np.exp(- (time-t_center )**4 / tsigma ))
+    # print(func_t.shape)
 
     """ Define X(f_max and U) here """
+
     def X(f_max, U10):
-        return 3.5**3 * g**2 /(U10 *f_max**3)
+        return 3.5**3 * g**2 / (U10 * f_max**3)
 
-    func_freq_temp= JONSWAP_default(f, X=X(f_max,U10),  U=U10, gamma=gamma_peak)
+    func_freq_temp = JONSWAP_default(f, X=X(f_max, U10), U=U10, gamma=gamma_peak)
 
-    #func_freq_temp=   (famp*np.exp(- (f-fcenter)**2 / fsigma ))
-    tt, func_freq= np.meshgrid( time, func_freq_temp)
-    tt3, ff3= np.meshgrid( time, func_freq_temp)
+    # func_freq_temp=   (famp*np.exp(- (f-fcenter)**2 / fsigma ))
+    tt, func_freq = np.meshgrid(time, func_freq_temp)
+    tt3, ff3 = np.meshgrid(time, func_freq_temp)
 
     if plot:
-
-
         plt.subplot(3, 1, 1)
-        plt.contourf( func_t)
-        #plt.plot(time, pfreq)
-        #plt.ylim(f.min(), f.max())
-
+        plt.contourf(func_t)
+        # plt.plot(time, pfreq)
+        # plt.ylim(f.min(), f.max())
 
         plt.subplot(3, 1, 2)
 
-        #plt.plot(f, func_freq.mean(1))
-        #plt.ylim(f.min(), f.max())
+        # plt.plot(f, func_freq.mean(1))
+        # plt.ylim(f.min(), f.max())
         plt.contourf(func_freq)
 
         plt.subplot(3, 1, 3)
-        #plt.plot(time, pfreq)
+        # plt.plot(time, pfreq)
         plt.plot(time, pfreq)
-        plt.contourf((func_t * func_freq).reshape(tt.shape) )
-        #plt.ylim(0.04,0.08)
-        #plt.grid()
+        plt.contourf((func_t * func_freq).reshape(tt.shape))
+        # plt.ylim(0.04,0.08)
+        # plt.grid()
 
     return (func_t * func_freq).T
 
 
-
-def gamma_time_JONSWAP_nondim(time, f,
-                   slope_t, intersectT,
-                   tgammapar, tscale,
-                    f_max,
-                    U10,
-                    gamma_peak,
-                    plot=False):
-
+def gamma_time_JONSWAP_nondim(
+    time, f, slope_t, intersectT, tgammapar, tscale, f_max, U10, gamma_peak, plot=False
+):
     """
     This method calculated a 2D shaped function given the parameters:
     the JONSWAP function is non-dimensionalized to work with normalized data
@@ -323,55 +335,58 @@ def gamma_time_JONSWAP_nondim(time, f,
                 2d nondim function with the shape of [time,freq]
     """
 
-    #intersectf=intersect-intersect/slopet
-    intersectF=-intersectT*slope_t
-    pfreq=time*slope_t+intersectF
-    #print('intersect F=' + str(intersectF))
+    # intersectf=intersect-intersect/slopet
+    intersectF = -intersectT * slope_t
+    pfreq = time * slope_t + intersectF
+    # print('intersect F=' + str(intersectF))
 
-    #intersectf=intersect#-intersect/slope
-    slopeF=1/slope_t
-    pfreq_forgamma=f*slopeF+intersectT
+    # intersectf=intersect#-intersect/slope
+    slopeF = 1 / slope_t
+    pfreq_forgamma = f * slopeF + intersectT
 
-    #rint(pfreq.shape)
-    tt, line=np.meshgrid(time, pfreq_forgamma)
-    #print(line)
-    #print(tt)
-    func_t= gamma_time_normlized_amp_shifted(tt, gammapar=tgammapar, loc=line, scale=tscale)
-    #func_t_temp= (tamp*np.exp(- (time-t_center )**4 / tsigma ))
-    #print(func_t.shape)
-    g=9.81
+    # rint(pfreq.shape)
+    tt, line = np.meshgrid(time, pfreq_forgamma)
+    # print(line)
+    # print(tt)
+    func_t = gamma_time_normlized_amp_shifted(
+        tt, gammapar=tgammapar, loc=line, scale=tscale
+    )
+    # func_t_temp= (tamp*np.exp(- (time-t_center )**4 / tsigma ))
+    # print(func_t.shape)
+
     def X(f_max, U10):
-        return 3.5**3.0 * g**2.0 /(U10 *f_max**3.0)
+        return 3.5**3.0 * g**2.0 / (U10 * f_max**3.0)
 
-    func_freq_temp= JONSWAP_default(f, X=X(f_max,U10),  U=U10, gamma=gamma_peak) * (g**2.0 / U10**4.0)
+    func_freq_temp = JONSWAP_default(f, X=X(f_max, U10), U=U10, gamma=gamma_peak) * (
+        g**2.0 / U10**4.0
+    )
 
-    #func_freq_temp=   (famp*np.exp(- (f-fcenter)**2 / fsigma ))
-    tt, func_freq= np.meshgrid( time, func_freq_temp)
-    tt3, ff3= np.meshgrid( time, func_freq_temp)
+    # func_freq_temp=   (famp*np.exp(- (f-fcenter)**2 / fsigma ))
+    tt, func_freq = np.meshgrid(time, func_freq_temp)
+    tt3, ff3 = np.meshgrid(time, func_freq_temp)
 
     if plot:
-
-
         plt.subplot(3, 1, 1)
-        plt.contourf( func_t)
-        #plt.plot(time, pfreq)
-        #plt.ylim(f.min(), f.max())
-
+        plt.contourf(func_t)
+        # plt.plot(time, pfreq)
+        # plt.ylim(f.min(), f.max())
 
         plt.subplot(3, 1, 2)
 
-        #plt.plot(f, func_freq.mean(1))
-        #plt.ylim(f.min(), f.max())
+        # plt.plot(f, func_freq.mean(1))
+        # plt.ylim(f.min(), f.max())
         plt.contourf(func_freq)
 
         plt.subplot(3, 1, 3)
-        #plt.plot(time, pfreq)
+        # plt.plot(time, pfreq)
         plt.plot(time, pfreq)
-        plt.contourf((func_t * func_freq).reshape(tt.shape) )
-        #plt.ylim(0.04,0.08)
-        #plt.grid()
+        plt.contourf((func_t * func_freq).reshape(tt.shape))
+        # plt.ylim(0.04,0.08)
+        # plt.grid()
 
     return (func_t * func_freq).T
+
+
 # %%
 # if __name__ == '__main__':
 #     slope0= 1.2
@@ -384,8 +399,11 @@ def gamma_time_JONSWAP_nondim(time, f,
 #
 #
 
+
 # %% build residual
-def residual_JONSWAP_default_gamma(value_dict, time, f, data=None, weight=None, eps=None, plot_flag=False):
+def residual_JONSWAP_default_gamma(
+    value_dict, time, f, data=None, weight=None, eps=None, plot_flag=False
+):
     """
     derived the residual between model and data given params_local.
 
@@ -402,59 +420,74 @@ def residual_JONSWAP_default_gamma(value_dict, time, f, data=None, weight=None, 
     from collections import OrderedDict
 
     if type(value_dict) is Parameters:
-        vd=value_dict.valuesdict()
+        vd = value_dict.valuesdict()
     elif (type(value_dict) is dict) | (type(value_dict) is OrderedDict):
-        vd=value_dict
+        vd = value_dict
     else:
-        raise ValueError('value_dict is eiher a dicitionary or a Params instance')
+        raise ValueError("value_dict is eiher a dicitionary or a Params instance")
 
-    r0   = vd['DT'] * 9.81 / (4* np.pi * vd['slope'])
-    nue  = vd['attenuation_nue']
-    attenuation =  np.exp(-r0 * nue)
-    model= attenuation * gamma_time_JONSWAP_default(time, f,
-                        vd['slope'], vd['intersect'],
-                        vd['tgammapar'], vd['tscale'],
-                        vd['f_max'],vd['U10'],vd['gamma_peak'],
-                        plot=plot_flag )
+    r0 = vd["DT"] * g / (4 * np.pi * vd["slope"])
+    nue = vd["attenuation_nue"]
+    attenuation = np.exp(-r0 * nue)
+    model = attenuation * gamma_time_JONSWAP_default(
+        time,
+        f,
+        vd["slope"],
+        vd["intersect"],
+        vd["tgammapar"],
+        vd["tscale"],
+        vd["f_max"],
+        vd["U10"],
+        vd["gamma_peak"],
+        plot=plot_flag,
+    )
 
-    #tt, tt= np.meshgrid(time, ff)
-    model1d=model.reshape(model.shape[0]*model.shape[1])
-    model1d[np.isnan(model1d)]= 0
-    #print(model1d)
+    # tt, tt= np.meshgrid(time, ff)
+    model1d = model.reshape(model.shape[0] * model.shape[1])
+    model1d[np.isnan(model1d)] = 0
+    # print(model1d)
 
     if data is not None:
         if np.size(data.shape) != 1:
             if model.shape == data.shape:
-                data1d=data.reshape(data.shape[0]*data.shape[1])
-                nan_track=np.isnan(data1d)
+                data1d = data.reshape(data.shape[0] * data.shape[1])
+                nan_track = np.isnan(data1d)
             elif model.shape == data.T.shape:
-                data1d=data.T.reshape(data.T.shape[0]*data.T.shape[1])
-                nan_track=np.isnan(data1d)
+                data1d = data.T.reshape(data.T.shape[0] * data.T.shape[1])
+                nan_track = np.isnan(data1d)
             else:
                 raise TypeError("data shape does not match")
 
     if weight is not None:
         if (len(weight.shape) == 1) & (model1d.size == weight.size):
-            weight1d= weight
+            weight1d = weight
         elif (len(weight.shape) == 2) & (model1d.size == weight.size):
-            weight1d= weight.reshape(weight.shape[0]*weight.shape[1]).T
+            weight1d = weight.reshape(weight.shape[0] * weight.shape[1]).T
         else:
-            raise ValueError('weight has not the same dimensions as model. \n' + 'data ' +str(model.shape) +  '\n weight '+str(weight.shape) )
-
+            raise ValueError(
+                "weight has not the same dimensions as model. \n"
+                + "data "
+                + str(model.shape)
+                + "\n weight "
+                + str(weight.shape)
+            )
 
     if data is None:
         return model1d
-    if (weight is not None):
-        #print('use weight')
-        d=(model1d - data1d)*weight1d
-        d[nan_track]=np.nan
+    if weight is not None:
+        # print('use weight')
+        d = (model1d - data1d) * weight1d
+        d[nan_track] = np.nan
         return d
     if (weight is None) and (data is not None):
-        d= model1d - data1d
-        d[nan_track]=np.nan
+        d = model1d - data1d
+        d[nan_track] = np.nan
         return d
 
-def residual_JONSWAP_nondim_gamma(value_dict, time, f, data=None, weight=None, eps=None, plot_flag=False):
+
+def residual_JONSWAP_nondim_gamma(
+    value_dict, time, f, data=None, weight=None, eps=None, plot_flag=False
+):
     """
     derived the residual between model and data given params_local.
 
@@ -471,135 +504,149 @@ def residual_JONSWAP_nondim_gamma(value_dict, time, f, data=None, weight=None, e
     from collections import OrderedDict
 
     if type(value_dict) is Parameters:
-        vd=value_dict.valuesdict()
+        vd = value_dict.valuesdict()
     elif (type(value_dict) is dict) | (type(value_dict) is OrderedDict):
-        vd=value_dict
+        vd = value_dict
     else:
-        raise ValueError('value_dict is eiher a dicitionary or a Params instance')
+        raise ValueError("value_dict is eiher a dicitionary or a Params instance")
 
-    r0   = vd['DT'] * 9.81 / (4* np.pi * vd['slope'])
-    nue  = vd['attenuation_nue']
-    attenuation =  np.exp(-r0 * nue)
-    model= attenuation * gamma_time_JONSWAP_nondim(time, f,
-                        vd['slope'], vd['intersect'],
-                        vd['tgammapar'], vd['tscale'],
-                        vd['f_max'],vd['U10'],vd['gamma_peak'],
-                        plot=plot_flag )
+    r0 = vd["DT"] * g / (4 * np.pi * vd["slope"])
+    nue = vd["attenuation_nue"]
+    attenuation = np.exp(-r0 * nue)
+    model = attenuation * gamma_time_JONSWAP_nondim(
+        time,
+        f,
+        vd["slope"],
+        vd["intersect"],
+        vd["tgammapar"],
+        vd["tscale"],
+        vd["f_max"],
+        vd["U10"],
+        vd["gamma_peak"],
+        plot=plot_flag,
+    )
 
-    #tt, tt= np.meshgrid(time, ff)
-    model1d=model.reshape(model.shape[0]*model.shape[1])
-
+    # tt, tt= np.meshgrid(time, ff)
+    model1d = model.reshape(model.shape[0] * model.shape[1])
 
     if data is not None:
         if np.size(data.shape) != 1:
             if model.shape == data.shape:
-                data1d=data.reshape(data.shape[0]*data.shape[1])
-                nan_track=np.isnan(data1d)
+                data1d = data.reshape(data.shape[0] * data.shape[1])
+                nan_track = np.isnan(data1d)
             elif model.shape == data.T.shape:
-                data1d=data.T.reshape(data.T.shape[0]*data.T.shape[1])
-                nan_track=np.isnan(data1d)
+                data1d = data.T.reshape(data.T.shape[0] * data.T.shape[1])
+                nan_track = np.isnan(data1d)
             else:
                 raise TypeError("data shape does not match")
 
     if weight is not None:
         if (len(weight.shape) == 1) & (model1d.size == weight.size):
-            weight1d= weight
+            weight1d = weight
         elif (len(weight.shape) == 2) & (model1d.size == weight.size):
-            weight1d= weight.reshape(weight.shape[0]*weight.shape[1]).T
+            weight1d = weight.reshape(weight.shape[0] * weight.shape[1]).T
         else:
-            raise ValueError('weight has not the same dimensions as model. \n' + 'data ' +str(model.shape) +  '\n weight '+str(weight.shape) )
-
+            raise ValueError(
+                "weight has not the same dimensions as model. \n"
+                + "data "
+                + str(model.shape)
+                + "\n weight "
+                + str(weight.shape)
+            )
 
     if data is None:
         return model1d
-    if (weight is not None):
-        #print('use weight')
-        d=(model1d - data1d)*weight1d
-        d[nan_track]=np.nan
+    if weight is not None:
+        # print('use weight')
+        d = (model1d - data1d) * weight1d
+        d[nan_track] = np.nan
         return d
     if (weight is None) and (data is not None):
-        d= model1d - data1d
-        d[nan_track]=np.nan
+        d = model1d - data1d
+        d[nan_track] = np.nan
         return d
 
 
-def gamma_from_params(value_dict,  time,  plot_flag=False):
+def gamma_from_params(value_dict, time, plot_flag=False):
     from lmfit import Parameters
     from collections import OrderedDict
 
     if type(value_dict) is Parameters:
-        vd=value_dict.valuesdict()
+        vd = value_dict.valuesdict()
     elif (type(value_dict) is dict) | (type(value_dict) is OrderedDict):
-        vd=value_dict
+        vd = value_dict
     else:
-        raise ValueError('value_dict is eiher a dicitionary or a Params instance')
+        raise ValueError("value_dict is eiher a dicitionary or a Params instance")
 
-    spec = JONSWAP_default(f, X(vd['f_max'],vd['U10'])  , vd['U10'], vd['gamma_peak'])
-    func_t= gamma_time_normlized_amp_shifted(time, gammapar=vd['tgammapar'], loc=0.5, scale=vd['tgammapar'])
+    spec = JONSWAP_default(f, X(vd["f_max"], vd["U10"]), vd["U10"], vd["gamma_peak"])
+    func_t = gamma_time_normlized_amp_shifted(
+        time, gammapar=vd["tgammapar"], loc=0.5, scale=vd["tgammapar"]
+    )
 
     if plot_flag:
-        plt.plot(f, spec, label='JONSWAP default')
+        plt.plot(f, spec, label="JONSWAP default")
 
     return spec
 
 
-def JONSWAP_default_from_params(value_dict,  f,  plot_flag=False):
+def JONSWAP_default_from_params(value_dict, f, plot_flag=False):
     from lmfit import Parameters
     from collections import OrderedDict
 
     if type(value_dict) is Parameters:
-        vd=value_dict.valuesdict()
+        vd = value_dict.valuesdict()
     elif (type(value_dict) is dict) | (type(value_dict) is OrderedDict):
-        vd=value_dict
+        vd = value_dict
     else:
-        raise ValueError('value_dict is eiher a dicitionary or a Params instance')
+        raise ValueError("value_dict is eiher a dicitionary or a Params instance")
 
-    spec = JONSWAP_default(f, X(vd['f_max'],vd['U10'])  , vd['U10'], vd['gamma_peak'])
+    spec = JONSWAP_default(f, X(vd["f_max"], vd["U10"]), vd["U10"], vd["gamma_peak"])
     if plot_flag:
-        plt.plot(f, spec, label='JONSWAP default')
+        plt.plot(f, spec, label="JONSWAP default")
 
     return spec
 
 
-def JONSWAP_nondim_from_params(value_dict,  f,  plot_flag=False):
+def JONSWAP_nondim_from_params(value_dict, f, plot_flag=False):
     from lmfit import Parameters
     from collections import OrderedDict
 
     if type(value_dict) is Parameters:
-        vd=value_dict.valuesdict()
+        vd = value_dict.valuesdict()
     elif (type(value_dict) is dict) | (type(value_dict) is OrderedDict):
-        vd=value_dict
+        vd = value_dict
     else:
-        raise ValueError('value_dict is eiher a dicitionary or a Params instance')
+        raise ValueError("value_dict is eiher a dicitionary or a Params instance")
 
-    g=9.81
-    spec = JONSWAP_default(f, X(vd['f_max'],vd['U10'])  , vd['U10'], vd['gamma_peak']) * (g**2 / vd['U10']**4)
+    spec = JONSWAP_default(
+        f, X(vd["f_max"], vd["U10"]), vd["U10"], vd["gamma_peak"]
+    ) * (g**2 / vd["U10"] ** 4)
     if plot_flag:
-        plt.plot(f, spec, label='JONSWAP default non-dim')
+        plt.plot(f, spec, label="JONSWAP default non-dim")
 
     return spec
 
-if __name__ == '__main__':
-    #http://cars9.uchicago.edu/software/python/lmfit/fitting.html
-    params=Parameters()
 
-    params.add('slope', value= slope0, min=slope0*.1 , max=slope0*10)
-    params.add('intersect', value= intersect0, min=-0.5, max=.5)
+if __name__ == "__main__":
+    # http://cars9.uchicago.edu/software/python/lmfit/fitting.html
+    params = Parameters()
 
-    #params.add('tamp', value= tamp0, min=0., max=1)
-    params.add('tgammapar', value= tgammapar0, min=0.0001, max=4)
-    params.add('tscale', value= tscale0, min=0, max=.1)
+    params.add("slope", value=slope0, min=slope0 * 0.1, max=slope0 * 10)
+    params.add("intersect", value=intersect0, min=-0.5, max=0.5)
 
-    params.add('f_max', value= 0.01, min=0., max=.1)
-    params.add('U10', value= 10, min=2, max=25)
-    params.add('gamma_peak', value= 3.3, min=0.1, max=4, vary=False)
+    # params.add('tamp', value= tamp0, min=0., max=1)
+    params.add("tgammapar", value=tgammapar0, min=0.0001, max=4)
+    params.add("tscale", value=tscale0, min=0, max=0.1)
 
-    params.add('amp', value= 1, min=1e-4, max=1e2)
+    params.add("f_max", value=0.01, min=0.0, max=0.1)
+    params.add("U10", value=10, min=2, max=25)
+    params.add("gamma_peak", value=3.3, min=0.1, max=4, vary=False)
 
-if __name__ == '__main__':
+    params.add("amp", value=1, min=1e-4, max=1e2)
 
+if __name__ == "__main__":
     # %% should return model:
-    #JONSWAP_default_from_params(params, f, plot_flag=True)
+    # JONSWAP_default_from_params(params, f, plot_flag=True)
     model1d = residual_JONSWAP_default_gamma(params, time, f)
     M.figure_axis_xy(3, 6)
 
@@ -618,11 +665,11 @@ if __name__ == '__main__':
     plt.plot(resid1d)
 
     plt.subplot(2, 1, 2)
-    plt.contour(time, f, fake_data, colors='k')
+    plt.contour(time, f, fake_data, colors="k")
     plt.contourf(time, f, resid1d.reshape(time.size, f.size).T)
 
     # %% should return the residual weighted residual
-    weightdummy=(fake_data*0+2)
+    weightdummy = fake_data * 0 + 2
     len(weightdummy.shape)
     weightdummy.size
     len(fake_data.shape)
@@ -630,8 +677,12 @@ if __name__ == '__main__':
     weightdummy.shape
 
     # %%
-    weightdummy =100.0 * np.random.random(fake_data.shape)#.reshape(fake_data.shape[0]*fake_data.shape[1] )
-    resid1d_weight = residual_JONSWAP_default_gamma(params, time, f, data=fake_data, weight=weightdummy )
+    weightdummy = 100.0 * np.random.random(
+        fake_data.shape
+    )  # .reshape(fake_data.shape[0]*fake_data.shape[1] )
+    resid1d_weight = residual_JONSWAP_default_gamma(
+        params, time, f, data=fake_data, weight=weightdummy
+    )
 
     M.figure_axis_xy(3, 6)
 
@@ -640,12 +691,12 @@ if __name__ == '__main__':
     plt.plot(resid1d_weight, alpha=0.4)
 
     plt.subplot(2, 1, 2)
-    plt.contour(time, f, fake_data, colors='k')
+    plt.contour(time, f, fake_data, colors="k")
     plt.contourf(time, f, resid1d_weight.reshape(time.size, f.size).T)
 
 
-
 # %%
+
 
 def Jm_regulizer(value_dict, prior):
     """
@@ -659,27 +710,27 @@ def Jm_regulizer(value_dict, prior):
     from lmfit import Parameters
     from collections import OrderedDict
 
-
     if type(value_dict) is Parameters:
-        vd=value_dict.valuesdict()
+        vd = value_dict.valuesdict()
     elif (type(value_dict) is dict) | (type(value_dict) is OrderedDict):
-        vd=value_dict
+        vd = value_dict
     else:
-        raise ValueError('value_dict is eiher a dicitionary or a Params instance')
+        raise ValueError("value_dict is eiher a dicitionary or a Params instance")
 
-    Jm=list()
-    for k,I in prior.items():
-        #print(I)
-        if type(I['m_err']) is float:
-            Jm.append(    (I['m0']- vd[k] ) / I['m_err']    )
+    Jm = list()
+    for k, I in prior.items():
+        # print(I)
+        if type(I["m_err"]) is float:
+            Jm.append((I["m0"] - vd[k]) / I["m_err"])
         else:
-            if value_dict[k] >= I['m0']:
-                Jm.append( (I['m0']- vd[k] ) / I['m_err'][1] )
+            if value_dict[k] >= I["m0"]:
+                Jm.append((I["m0"] - vd[k]) / I["m_err"][1])
             else:
-                Jm.append( (I['m0']- vd[k] ) / I['m_err'][0] )
+                Jm.append((I["m0"] - vd[k]) / I["m_err"][0])
     return Jm
 
-def Jm_dimensional_regulizer(value_dict, prior , prior_percentage=True):
+
+def Jm_dimensional_regulizer(value_dict, prior, prior_percentage=True):
     """
     returns a Model cost function as list. each item is the cost for each prior given the parameter value in value_dict
 
@@ -698,56 +749,61 @@ def Jm_dimensional_regulizer(value_dict, prior , prior_percentage=True):
     from lmfit import Parameters
     from collections import OrderedDict
 
-
     if type(value_dict) is Parameters:
-        vd=value_dict.valuesdict()
+        vd = value_dict.valuesdict()
     elif (type(value_dict) is dict) | (type(value_dict) is OrderedDict):
-        vd=value_dict
+        vd = value_dict
     else:
-        raise ValueError('value_dict is eiher a dicitionary or a Params instance')
+        raise ValueError("value_dict is eiher a dicitionary or a Params instance")
 
-    Jm=list()
+    Jm = list()
 
     if prior_percentage:
-        def reg_func(p0, pi, p_err):
-            return ( (pi / p0 - 1) / p_err)
-    else:
-        def reg_func(p0, pi, p_err_unit):
-            ppercent= p_err_unit/ p0
-            return ( (pi / p0 - 1) / ppercent)
 
-    for k,I in prior.items():
-        #print(I)
-        if type(I['m_err']) is float:
-            Jm.append(  reg_func(I['m0'], vd[k], I['m_err']) )
-            #Jm.append(    (I['m0']- vd[k] ) / I['m_err']    )
+        def reg_func(p0, pi, p_err):
+            return (pi / p0 - 1) / p_err
+
+    else:
+
+        def reg_func(p0, pi, p_err_unit):
+            ppercent = p_err_unit / p0
+            return (pi / p0 - 1) / ppercent
+
+    for k, I in prior.items():
+        # print(I)
+        if type(I["m_err"]) is float:
+            Jm.append(reg_func(I["m0"], vd[k], I["m_err"]))
+            # Jm.append(    (I['m0']- vd[k] ) / I['m_err']    )
         else:
-            if value_dict[k] >= I['m0']:
-                Jm.append(  reg_func(I['m0'], vd[k], I['m_err']) )
+            if value_dict[k] >= I["m0"]:
+                Jm.append(reg_func(I["m0"], vd[k], I["m_err"]))
             else:
-                Jm.append(  reg_func(I['m0'], vd[k], I['m_err']) )
+                Jm.append(reg_func(I["m0"], vd[k], I["m_err"]))
     return Jm
 
 
-if __name__ == '__main__':
-    #test Jm_regulizer with priors
+if __name__ == "__main__":
+    # test Jm_regulizer with priors
     # create face priors
-    prior_errors={'slope': 1.0, 'intersect':.2,
-            'tgammapar':.4, 'tscale':0.2,
-            'f_max':0.01 ,
-             'amp': 10.0
-             }
+    prior_errors = {
+        "slope": 1.0,
+        "intersect": 0.2,
+        "tgammapar": 0.4,
+        "tscale": 0.2,
+        "f_max": 0.01,
+        "amp": 10.0,
+    }
 
-    priors=dict()
-    for k,I in prior_errors.items():
-        priors[k]={'m_err':I, 'm0':params[k].value}
+    priors = dict()
+    for k, I in prior_errors.items():
+        priors[k] = {"m_err": I, "m0": params[k].value}
 
     # fake parameters
-    vd=copy.copy(params.valuesdict())
-    for k,I in vd.items():
-        vd[k]= I *np.random.rand()
+    vd = copy.copy(params.valuesdict())
+    for k, I in vd.items():
+        vd[k] = I * np.random.rand()
 
-    Jm =Jm_regulizer(vd , priors)
+    Jm = Jm_regulizer(vd, priors)
     print(Jm)
 
 
@@ -762,11 +818,10 @@ def cost(value_dict, time, f, data=None, weight=None, prior=False, eps=None):
     """
     from lmfit import Parameters
 
-    #Jd = residual_JONSWAP_nondim_gamma(value_dict, time, f, data=data, weight=weight)
+    # Jd = residual_JONSWAP_nondim_gamma(value_dict, time, f, data=data, weight=weight)
     Jd = residual_JONSWAP_default_gamma(value_dict, time, f, data=data, weight=weight)
 
     if prior is not False:
-
         # if type(value_dict) is Parameters:
         #     vd=value_dict.valuesdict()
         # elif type(value_dict) is dict:
@@ -774,16 +829,15 @@ def cost(value_dict, time, f, data=None, weight=None, prior=False, eps=None):
         # else:
         #     raise ValueError('value_dict is eiher a dicitionary or a Params instance')
 
-        Jm = Jm_regulizer( value_dict, prior)
-        return np.concatenate(( Jd, Jm ))
+        Jm = Jm_regulizer(value_dict, prior)
+        return np.concatenate((Jd, Jm))
     else:
         return Jd
 
 
 # %% test cost
-if __name__ == '__main__':
-
-    cost1d_weight = cost(params, time, f, data=fake_data, weight=None, prior=False )
+if __name__ == "__main__":
+    cost1d_weight = cost(params, time, f, data=fake_data, weight=None, prior=False)
 
     M.figure_axis_xy(3, 6)
 
@@ -792,21 +846,11 @@ if __name__ == '__main__':
     plt.plot(resid1d_weight, alpha=0.4)
 
     plt.subplot(2, 1, 2)
-    plt.contour(time, f, fake_data, colors='k')
+    plt.contour(time, f, fake_data, colors="k")
     plt.contourf(time, f, cost1d_weight.reshape(time.size, f.size).T)
 
     # %%
-    cost1d_weight = cost(vd, time, f, data=fake_data, weight=None, prior= priors)
-
-
-
-
-
-
-
-
-
-
+    cost1d_weight = cost(vd, time, f, data=fake_data, weight=None, prior=priors)
 
 
 # %% build residual

@@ -24,6 +24,7 @@ import icesat2_tracks.ICEsat2_SI_tools.spicke_remover as spicke_remover
 import datetime
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
 from scipy.ndimage import label
+from scipy.constants import g
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
 
@@ -31,7 +32,7 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 import tracemalloc
 
 
-def linear_gap_fill(F,key_lead, key_int):
+def linear_gap_fill(F, key_lead, key_int):
     """
     F pd.DataFrame
     key_lead   key in F that determined the independent coordindate
@@ -124,7 +125,7 @@ dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "x")
 # derive spectal limits
 # Longest deserved period:
 T_max = 40  # sec
-k_0 = (2 * np.pi / T_max) ** 2 / 9.81
+k_0 = (2 * np.pi / T_max) ** 2 / g
 x = np.array(dist).squeeze()
 dx = np.round(np.median(np.diff(x)), 1)
 min_datapoint = 2 * np.pi / k_0 / dx
@@ -138,7 +139,7 @@ print("L length in km:", Lmeters / 1e3)
 print("approx number windows", 2 * dist.iloc[-1] / Lmeters - 1)
 
 T_min = 6
-lambda_min = 9.81 * T_min**2 / (2 * np.pi)
+lambda_min = g * T_min**2 / (2 * np.pi)
 flim = 1 / T_min
 
 

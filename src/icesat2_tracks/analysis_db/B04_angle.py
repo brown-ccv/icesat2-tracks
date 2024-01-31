@@ -1,39 +1,30 @@
-import os, sys
-
 """
-This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
+This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+
+import sys
+import time
+
+import numpy as np
+import pandas as pd
+import h5py
+import xarray as xr
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from scipy.constants import g as G
+
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
     color_schemes,
-    plt,
     font_for_print,
     font_for_pres,
 )
-
-
-import h5py
 import icesat2_tracks.ICEsat2_SI_tools.io as io
-import xarray as xr
-import numpy as np
-
-
-from matplotlib.gridspec import GridSpec
-
-from numba import jit
-
-from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
-
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
+from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
 
-import pandas as pd
-
-
-import time
-
-from contextlib import contextmanager
 
 color_schemes.colormaps2(21)
 
@@ -82,7 +73,7 @@ try:
     Prior = MT.load_pandas_table_dict("/A02_" + track_name, load_path)[
         "priors_hindcast"
     ]
-except:
+except Exception as _:
     print("Prior not found. exit")
     MT.json_save(
         "B04_fail",
@@ -142,14 +133,14 @@ dir_best = np.array(dir_best[1:])
 if len(Pperiod) == 0:
     print("constant peak wave number")
     kk = Gk.k
-    Pwavenumber = kk * 0 + (2 * np.pi / (1 / Prior.loc["fp"]["mean"])) ** 2 / 9.81
+    Pwavenumber = kk * 0 + (2 * np.pi / (1 / Prior.loc["fp"]["mean"])) ** 2 / G
     dir_best = kk * 0 + Prior.loc["dp"]["mean"]
     dir_interp_smth = dir_interp = kk * 0 + Prior.loc["dp"]["mean"]
     spread_smth = spread_interp = kk * 0 + Prior.loc["spr"]["mean"]
 
 
 else:
-    Pwavenumber = (2 * np.pi / Pperiod) ** 2 / 9.81
+    Pwavenumber = (2 * np.pi / Pperiod) ** 2 / G
     kk = Gk.k
     dir_interp = np.interp(
         kk, Pwavenumber[Pwavenumber.argsort()], dir_best[Pwavenumber.argsort()]
@@ -292,7 +283,7 @@ def define_wavenumber_weights_tot_var(
     return peaks of a power spectrum dd that in the format such that they can be used as weights for the frequencies based fitting
 
     inputs:
-    dd             xarray with PSD as data amd coordindate wavenumber k
+    dd             xarray with PSD as data amd coordinate wavenumber k
     m               running mean half-width in gridpoints
     variance_frac  (0 to 1) How much variance should be explained by the returned peaks
     verbose        if true it plots some stuff
@@ -302,7 +293,7 @@ def define_wavenumber_weights_tot_var(
     mask           size of dd. where True the data is identified as having significant amplitude
     k              wanumbers where mask is true
     dd_rm          smoothed version of dd
-    positions      postions where of significant data in array
+    positions      positions where of significant data in array
     """
 
     if len(dd.shape) == 2:
@@ -568,7 +559,7 @@ for gi in zip(ggg.flatten(), xxx.flatten()):
     SM.params.add("K_amp", amp_Z, vary=False, min=amp_Z * 0.0, max=amp_Z * 5)
     try:
         SM.test_objective_func()
-    except:
+    except Exception as _:
         raise ValueError("Objective function test fails")
 
     def get_instance(k_pair):
