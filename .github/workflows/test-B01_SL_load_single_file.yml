@@ -29,4 +29,6 @@ jobs:
         run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: third step plot_spectra
         run: python src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: fouth step IOWAGA threads
+        run: python src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
         
