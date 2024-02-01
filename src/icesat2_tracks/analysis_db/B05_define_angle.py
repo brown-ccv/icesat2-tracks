@@ -12,7 +12,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
     font_for_print    
 )
 
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 
 import xarray as xr
