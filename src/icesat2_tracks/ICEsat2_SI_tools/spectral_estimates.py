@@ -376,7 +376,7 @@ def sub_sample_coords(X, lons, lats, stancils, map_func =None):
     return coord_positions
 
 
-class wavenumber_spectrogram(object):
+class wavenumber_spectrogram:
     def __init__(self, x_grid, data, Lpoints, ov=None, window=None):
         """
         returns a wavenumber spectrogram with the resolution L-ov
@@ -512,7 +512,7 @@ class wavenumber_spectrogram(object):
             self.G.attrs['mean_variance_detrended_chunks']  = np.array(stancil_vars).mean()
             self.G.attrs['mean_variance_pwelch_spectrum']   = self.calc_var()
 
-class wavenumber_spectrogram_LS_even(object):
+class wavenumber_spectrogram_LS_even:
     def __init__(self, x, data, L, waven_method = 'fftX2' , dy=None ,  ov=None, window=None, kjumps=1):
         """
         returns a wavenumber spectrogram with the resolution L-ov
@@ -618,7 +618,7 @@ class wavenumber_spectrogram_LS_even(object):
     def mean_spectral_error(self, confidence = 0.95 ):
         return wavenumber_spectrogram.mean_spectral_error(self, confidence= confidence )
 
-class wavenumber_spectrogram_LS(object):
+class wavenumber_spectrogram_LS:
     def __init__(self, x, data, L, dx, dy = None, waven_method = 'fftX2', ov=None, window=None):
         """
         returns a wavenumber spectrogram with the resolution L-ov
@@ -925,7 +925,7 @@ class wavenumber_spectrogram_LS(object):
 
 
 # class for getting standard Pwelch spectrum. old version, deprechiate
-class wavenumber_pwelch(object):
+class wavenumber_pwelch:
     def __init__(self,data, x, L, ov=None, window=None, save_chunks=False, plot_chunks=False):
         """
         returns a wavenumber spectrum using the pwelch method
@@ -1098,7 +1098,7 @@ class wavenumber_pwelch(object):
 
 # %% optimze spectral variance
 
-class conserve_variance(object):
+class conserve_variance:
     def __init__(self,Z, freq, data, nan_mask= None):
 
         """

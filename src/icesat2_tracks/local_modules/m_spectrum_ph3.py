@@ -91,7 +91,7 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0 , verbose=False
 
     return data2 , act_flag
 
-class Spectrum(object):
+class Spectrum:
     """ A class that represents a single realization of
             the one-dimensional spectrum  of a given field phi """
 
@@ -149,7 +149,7 @@ class Spectrum(object):
 
 
 
-class moments(object):
+class moments:
     def __init__(self,data_org,dt, L=None, ov=None,window=None, save_chunks=False, plot_chunks=False, prewhite=None):
         """
         This function calculates the spectral moments from a station (buoy, GPS, or seismic station) that measures
@@ -396,7 +396,7 @@ class moments(object):
 
 
 
-class pwelch(object):
+class pwelch:
     def __init__(self,data,dt,L=None, ov=None,window=None, save_chunks=False, plot_chunks=False, periodogram=False, prewhite=None):
         """
         prewhite    None(default)
@@ -800,7 +800,7 @@ class Periodogram(pwelch):
         save_file(P, path)
 
 
-class save_data_periodogram(object):
+class save_data_periodogram:
     def __init__(self,P, S=None):
         self.meta=S.meta if S is not None else ''
         self.data_unit=S.unit if S is not None else ''
