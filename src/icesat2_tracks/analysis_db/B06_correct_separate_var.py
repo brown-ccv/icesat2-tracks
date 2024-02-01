@@ -20,7 +20,6 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 import time
 import copy
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-from scipy.ndimage import label
 import pandas as pd
 import xarray as xr
 import numpy as np
@@ -201,7 +200,6 @@ def define_noise_wavenumber_tresh_simple(
     m       slope of the fitted line
     b       intersect of the fitted line
     """
-    from scipy.ndimage.measurements import label
 
     if k_end_lim is None:
         k_end_lim = data_xr.k[-1]
