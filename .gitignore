@@ -34,6 +34,10 @@ analysis_db/makefile
 data_prehandling/
 track_lists/
 explorations/
+/tests/tests/inputdata
+/tests/input-data
+__explorations
+logs
 analysis_db/support_files/
 *.egg-info/
 .installed.cfg
@@ -45,6 +49,7 @@ analysis_db/support_files/
 # Environments
 .env
 .venv
+.venv39/
 env/
 venv/
 ENV/
