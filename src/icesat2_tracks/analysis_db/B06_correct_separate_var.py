@@ -9,9 +9,8 @@ from icesat2_tracks.config.IceSAT2_startup import (
     color_schemes,
     font_for_pres,
     font_for_print,
-    plt,
     lstrings,
-    fig_sizes,
+    fig_sizes
 )
 
 import h5py
@@ -21,10 +20,11 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 import time
 import copy
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-from scipy.ndimage.measurements import label
+from scipy.ndimage import label
 import pandas as pd
 import xarray as xr
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 xr.set_options(display_style="text")
