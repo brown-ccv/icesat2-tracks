@@ -14,7 +14,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
 
 
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import xarray as xr
 import numpy as np
 
