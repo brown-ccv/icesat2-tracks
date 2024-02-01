@@ -26,9 +26,9 @@ def get_all_filenames(directory):
     return [p.name for p in Path(directory).rglob("*")]
 
 
-def check_file_exists(directory, prefix, stepno: int = 4):
+def check_file_exists(directory, prefix, stepnum: int = 4):
     # Get a list of all files in the directory
-    files = get_all_filenames(targetdirs[str(stepno)] / directory)
+    files = get_all_filenames(targetdirs[str(stepnum)] / directory)
     # Check if there is a file with the specified prefix
     file_exists = any(file.startswith(prefix) for file in files)
     return file_exists
@@ -89,7 +89,7 @@ def makepathlist(dir, files):
     return [Path(dir, f) for f in files]
 
 
-# The scriptx variables are the scripts to be tested. The pathsx variables are the paths to the files that should be produced by the scripts. The scripts are run and the paths are checked to see whether the expected files were produced. If the files were produced, the test passes. If not, the test fails.
+# The `scriptx` variables are the scripts to be tested. The `pathsx` variables are the paths to the files that should be produced by the scripts. The scripts are run and the paths are checked to see whether the expected files were produced. If the files were produced, the test passes. If not, the test fails.
 
 
 script1 = [
@@ -195,8 +195,8 @@ def setup_module():
     This function makes a temporary directory with subdirectories with the required input data for each step.
 
     ```shell
-    $ tree -L 1 tests/tmpcpn_6tne
-    tests/tmpcpn_6tne
+    $ tree -L 1 tests/tempdir
+    tests/tempdir
     ├── step1
     ├── step2
     ├── step3
@@ -261,6 +261,7 @@ def test_step1():
     assert run_test(script1, paths1, delete_paths=False)  # passing
 
 
+# TODO: for steps 2-5 after their respective prs are merged
 # def test_step2():
 #     # Step 2: B02_make_spectra_gFT.py ~ 2 min
 #     assert run_test(script2, paths2)  # passing
@@ -294,7 +295,6 @@ def test_step1():
 #     assert t2
 
 
-# TODO: step 5 after first merge of PR
 # def test_step5():
 #     # Step 5: B04_angle.py ~ 9 min
 #     assert run_test(script5, paths5)
