@@ -87,7 +87,7 @@ def dict_weighted_mean(Gdict, weight_key):
     N_photons = np.zeros(GSUM.N_per_stancil.size)
 
     counter = 0
-    for k, I in Gdict.items():
+    for _,I in Gdict.items():
         I = I.squeeze()
         print(len(I.x))
         if len(I.x) != 0:
@@ -742,28 +742,25 @@ Gk_v2.attrs["best_guess_incident_angle"] = theta
 
 # save collected spectral data
 Gk_v2.to_netcdf(save_path + "/B06_" + ID_name + "_gFT_k_corrected.nc")
-Gx
+
 # save real space data
 Gx.to_netcdf(save_path + "/B06_" + ID_name + "_gFT_x_corrected.nc")
-try:
-    io.save_pandas_table(
-        B2_v2, "B06_" + ID_name + "_B06_corrected_resid", save_path
-    )  # all photos but heights adjusted and with distance coordinate
-except:
-    os.remove(save_path + "B06_" + ID_name + "_B06_corrected_resid.h5")
-    io.save_pandas_table(
-        B2_v2, "B06_" + ID_name + "_B06_corrected_resid", save_path
-    )  # all photos but heights adjusted and with distance coordinate
 
-try:
-    io.save_pandas_table(
-        B3_v2, "B06_" + ID_name + "_binned_resid", save_path
-    )  # regridding heights
-except:
-    os.remove(save_path + "B06_" + ID_name + "_binned_resid.h5")
-    io.save_pandas_table(
-        B3_v2, "B06_" + ID_name + "_binned_resid", save_path
-    )  # regridding heights
+
+def save_table(data, tablename, save_path):
+    try:
+        io.save_pandas_table(data, tablename, save_path)
+    except Exception as e:
+        tabletoremove = save_path + tablename + ".h5"
+        print(e, f"Failed to save table. Removing {tabletoremove} and re-trying..")
+        os.remove(tabletoremove)
+        io.save_pandas_table(data, tablename, save_path)
+
+B06_ID_name = "B06_" + ID_name
+table_names = [B06_ID_name + suffix for suffix in ["_B06_corrected_resid", "_binned_resid"]]
+data = [B2_v2, B3_v2]
+for tablename, data in zip(table_names, data):
+    save_table(data, tablename, save_path)
 
 MT.json_save(
     "B06_success",
