@@ -14,7 +14,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
 )
 
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
 import time
