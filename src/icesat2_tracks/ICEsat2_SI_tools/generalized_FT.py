@@ -1,14 +1,15 @@
+import copy
+import time
+
+from numpy import linalg
 import numpy as np
-import matplotlib.pyplot as plt
-from icesat2_tracks.ICEsat2_SI_tools import lanczos, spectral_estimates as spec
+import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
-import copy
-import pandas as pd
-import time
 from scipy.signal import detrend
-from numpy import linalg
 import lmfit as LM
+
+from icesat2_tracks.ICEsat2_SI_tools import lanczos, spectral_estimates as spec
 import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
 
 
