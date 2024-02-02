@@ -37,3 +37,4 @@ jobs:
         run: python src/icesat2_tracks/analysis_db/B05_define_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
       - name: Seventh step B06_correct_separate_var
         run: python src/icesat2_tracks/analysis_db/B06_correct_separate_var.py SH_20190502_05180312 SH_testSLsinglefile2 True
+
