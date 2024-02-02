@@ -1,15 +1,12 @@
-import sys
-
-
 """
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
 
-from icesat2_tracks.config.IceSAT2_startup import (
-    mconfig,
-    plt,
-)
+import sys
+
+import matplotlib.pyplot as plt
+from icesat2_tracks.config.IceSAT2_startup import mconfig
 
 from threadpoolctl import threadpool_info, threadpool_limits
 from pprint import pprint
@@ -17,7 +14,7 @@ import numpy as np
 import xarray as xr
 
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 
 import time
@@ -26,7 +23,7 @@ import copy
 import icesat2_tracks.ICEsat2_SI_tools.spicke_remover as spicke_remover
 import datetime
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-from scipy.ndimage.measurements import label
+from scipy.ndimage import label
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
 
@@ -34,7 +31,7 @@ from icesat2_tracks.local_modules import m_general_ph3 as M
 import tracemalloc
 
 
-def linear_gap_fill(F,key_lead, key_int):
+def linear_gap_fill(F, key_lead, key_int):
     """
     F pd.DataFrame
     key_lead   key in F that determined the independent coordindate
@@ -157,7 +154,6 @@ print("define global xlims")
 dist_list = np.array([np.nan, np.nan])
 for k in all_beams:
     print(k)
-    hkey = "h_mean"
     x = Gd[k + "/x"][:]
     print(x[0], x[-1])
     dist_list = np.vstack([dist_list, [x[0], x[-1]]])
@@ -187,14 +183,12 @@ Pars_optm = dict()
 
 
 k = all_beams[1]
+# sliderule version
+hkey = "h_mean"
+hkey_sigma = "h_sigma"
 for k in all_beams:
     tracemalloc.start()
     # -------------------------------  use gridded data
-
-    # sliderule version
-    hkey = "h_mean"
-    hkey_sigma = "h_sigma"
-
     Gi = io.get_beam_hdf_store(Gd[k])
     x_mask = (Gi["x"] > xlims[0]) & (Gi["x"] < xlims[1])
     if sum(x_mask) / (xlims[1] - xlims[0]) < 0.005:
