@@ -1,6 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from icesat2_tracks.ICEsat2_SI_tools import lanczos, spectral_estimates as spec
+import xarray as xr
+import matplotlib.pyplot as plt
+import copy
+import pandas as pd
+import time
+from scipy.signal import detrend
+from numpy import linalg
+import lmfit as LM
+import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
 
 
 def rebin(data, dk):
@@ -119,8 +128,6 @@ def define_weight_shutter(weight, k, Ncut=3):
 
 
 def make_xarray_from_dict(D, name, dims, coords):
-    import xarray as xr
-
     D_return = dict()
     for xi, I in D.items():
         coords["x"] = xi
@@ -155,8 +162,6 @@ def define_weights(stancil, prior, x, y, dx, k, max_nfev, plot_flag=False):
     weight = weight * define_weight_shutter(weight, k, Ncut=3)
 
     if plot_flag:
-        import matplotlib.pyplot as plt
-
         plt.plot(k, weight, zorder=12, c="darkgreen", linewidth=0.8, label=weight_name)
 
     # peak normlize weights by std of data
@@ -226,9 +231,6 @@ class wavenumber_spectrogram_gFT:
         self.GG, params_dataframe
             params_dataframe is a pd.DataFrame that containes all the parameters of the fitting process (and may contain uncertainties too once they are calculated)
         """
-        import xarray as xr
-        import copy
-        import pandas as pd
 
         X = self.x if x is None else x  # all x positions
         DATA = self.data if data is None else data  # all data points
@@ -244,8 +246,6 @@ class wavenumber_spectrogram_gFT:
             windows the data accoding to stencil and applies LS spectrogram
             returns: stancil center, spectrum for this stencil, number of datapoints in stancil
             """
-            import matplotlib.pyplot as plt
-            import time
 
             ta = time.perf_counter()
             x_mask = (stancil[0] <= X) & (X <= stancil[-1])
@@ -274,8 +274,6 @@ class wavenumber_spectrogram_gFT:
             FT = generalized_Fourier(x, y, self.k)
 
             if plot_flag:
-                import matplotlib.pyplot as plt
-
                 plt.figure(figsize=(3.34, 1.8), dpi=300)
 
             # define weights. Weights are normalized to 1
@@ -628,14 +626,11 @@ class wavenumber_spectrogram_gFT:
 
     def parceval(self, add_attrs=True, weight_data=False):
         "test Parceval theorem"
-        import copy
 
         DATA = self.data
         X = self.x
 
         def get_stancil_var_apply(stancil):
-            from scipy.signal import detrend
-
             "returns the variance of yy for stancil"
             x_mask = (stancil[0] < X) & (X <= stancil[-1])
             idata = DATA[x_mask]
@@ -749,7 +744,6 @@ class generalized_Fourier:
         """
         non_dimensionalize (bool, default=True) if True, then the data and R_data_uncertainty is non-dimensionalized by the std of the data
         """
-        import numpy as np
 
         self.x, self.ydata, self.k = x, ydata, k
         self.M = self.k.size  # number of wavenumbers
@@ -784,8 +778,6 @@ class generalized_Fourier:
         self.R_1d = R_data_uncertainty
 
     def solve(self):
-        from numpy import linalg
-
         inv = linalg.inv
         """ 
         solves the linear inverse problem, return hessian and p_hat
@@ -887,8 +879,6 @@ class generalized_Fourier:
 
 class get_prior_spec:
     def __init__(self, freq, data):
-        import lmfit as LM
-
         self.LM = LM
         self.data = data
         self.freq = freq
@@ -910,7 +900,6 @@ class get_prior_spec:
         self.params LMfit.parameters class needed for optimization
 
         """
-        import numpy as np
 
         params = self.LM.Parameters()
 
@@ -940,8 +929,6 @@ class get_prior_spec:
         )
 
     def non_dim_spec_model(self, f, f_max, amp, gamma=1, angle_rad=0):
-        import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
-
         f_true = f * np.cos(angle_rad)
         model = spectal_models.JONSWAP_default_alt(f_true, f_max, 20, gamma=gamma)
         model = amp * model / np.nanmean(model)
@@ -974,13 +961,9 @@ class get_prior_spec:
         return self.fitter
 
     def plot_data(self):
-        import matplotlib.pyplot as plt
-
         plt.plot(self.freq, self.data, "k")
 
     def plot_model(self, pars):
-        import matplotlib.pyplot as plt
-
         plt.plot(self.freq, self.model_func(self.freq, pars), "b--")
 
     def runningmean(self, var, m, tailcopy=False):
