@@ -13,9 +13,8 @@ from icesat2_tracks.config.IceSAT2_startup import (
 )
 
 
-
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import xarray as xr
 import numpy as np
 
@@ -37,17 +36,6 @@ import time
 from contextlib import contextmanager
 
 color_schemes.colormaps2(21)
-
-
-@contextmanager
-def suppress_stdout():
-    with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
 
 
 col_dict = color_schemes.rels
@@ -119,7 +107,6 @@ if np.isnan(Prior["mean"]["dir"]):
     exit()
 
 #### Define Prior
-Prior
 Pperiod = Prior.loc[["ptp0", "ptp1", "ptp2", "ptp3", "ptp4", "ptp5"]]["mean"]
 Pdir = Prior.loc[["pdp0", "pdp1", "pdp2", "pdp3", "pdp4", "pdp5"]]["mean"].astype(
     "float"
@@ -558,7 +545,10 @@ for gi in zip(ggg.flatten(), xxx.flatten()):
 
     SM = angle_optimizer.sample_with_mcmc(params_dict)
     SM.set_objective_func(angle_optimizer.objective_func)
-
+    nan_list = np.isnan(x_concat) | np.isnan(y_concat) | np.isnan(y_concat)
+    x_concat[nan_list] = []
+    y_concat[nan_list] = []
+    z_concat[nan_list] = []
     SM.fitting_args = fitting_args = (x_concat, y_concat, z_concat)
 
     # test:
@@ -700,9 +690,7 @@ for gi in zip(ggg.flatten(), xxx.flatten()):
         marginal_stack_i = xr.DataArray(
             y_hist, dims=("angle"), coords={"angle": bins_pos}
         )
-        marginal_stack_i.coords["k"] = np.array(
-            k_prime_max
-        )
+        marginal_stack_i.coords["k"] = np.array(k_prime_max)
 
         rdict = {
             "marginal_stack_i": marginal_stack_i,
@@ -785,8 +773,7 @@ try:
     LL = pd.concat(L_collect)
     MT.save_pandas_table({"L_sample": LL}, save_name + "_res_table", save_path)
 except Exception as e:
-    print(e)
-    pass
+    print(f"This is a warning: {e}")
 
 # plot
 font_for_print()
