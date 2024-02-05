@@ -90,6 +90,7 @@ def run_B01_SL_load_single_file(
     ID_flag: bool = True,
     plot_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
+    verbose: bool = False
 ):
     """
     Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and output smoothed photon heights on a regular grid in an .nc file.
@@ -106,7 +107,7 @@ def run_B01_SL_load_single_file(
     matplotlib.use("Agg")  # prevent plot windows from opening
 
     # Select region and retrieve batch of tracks
-    with suppress_stdout():
+    with suppress_stdout(verbose):
         track_name, batch_key, ID_flag = io.init_from_input(
             [
                 None,
