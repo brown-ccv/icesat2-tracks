@@ -1,14 +1,12 @@
 #!/usr/bin/env python
-import os, sys
-
 """
-This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
+This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
     color_schemes,
-    plt,
     font_for_print,
     font_for_pres,
 )
@@ -21,8 +19,8 @@ import numpy as np
 
 
 from matplotlib.gridspec import GridSpec
-
-from numba import jit
+import matplotlib.pyplot as plt
+from numba import jit # maybe for later optimizations?  # noqa: F401
 
 from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
 
@@ -34,12 +32,9 @@ import pandas as pd
 
 import time
 
-from contextlib import contextmanager
-
 from typer import Option
 
 from icesat2_tracks.clitools import (
-    echo,
     validate_batch_key,
     validate_output_dir,
     suppress_stdout,
@@ -69,45 +64,48 @@ def run_B04_angle(
         ]
     )
 
+    kargs = {
+        "track_name": track_name,
+        "batch_key": batch_key,
+        "ID_flag": ID_flag,
+        "output_dir": output_dir,
+    }
+    report_input_parameters(**kargs)
+
     hemis, batch = batch_key.split("_")
 
-    ATlevel = "ATL03"
 
-    save_path = mconfig["paths"]["work"] + batch_key + "/B04_angle/"
-    save_name = "B04_" + track_name
-
-    plot_path = (
-        mconfig["paths"]["plot"] + "/" + hemis + "/" + batch_key + "/" + track_name + "/"
-    )
-    MT.mkdirs_r(plot_path)
-    MT.mkdirs_r(save_path)
-    bad_track_path = mconfig["paths"]["work"] + "bad_tracks/" + batch_key + "/"
+    workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
+    
+    save_path = workdir / batch_key / "B04_angle"
+    plot_path = plotsdir / hemis / batch_key / track_name
+    save_path.mkdir(parents=True, exist_ok=True)
+    plot_path.mkdir(parents=True, exist_ok=True)
 
     all_beams = mconfig["beams"]["all_beams"]
-    high_beams = mconfig["beams"]["high_beams"]
-    low_beams = mconfig["beams"]["low_beams"]
     beam_groups = mconfig["beams"]["groups"]
 
-    load_path = mconfig["paths"]["work"] + batch_key + "/B01_regrid/"
-    G_binned_store = h5py.File(load_path + "/" + track_name + "_B01_binned.h5", "r")
+    load_path = workdir / batch_key / "B01_regrid"
+    G_binned_store = h5py.File(load_path / (track_name + "_B01_binned.h5"), "r")
     G_binned = dict()
     for b in all_beams:
         G_binned[b] = io.get_beam_hdf_store(G_binned_store[b])
     G_binned_store.close()
 
-    load_path = mconfig["paths"]["work"] + batch_key + "/B02_spectra/"
-    Gx = xr.load_dataset(load_path + "/B02_" + track_name + "_gFT_x.nc")  #
-    Gk = xr.load_dataset(load_path + "/B02_" + track_name + "_gFT_k.nc")  #
+    load_path = workdir / batch_key / "B02_spectra"
+    xtrack, ktrack = [load_path / ("B02_" + track_name + f"_gFT_{var}.nc") for var in ["x", "k"]]
 
-
+    Gx = xr.load_dataset(xtrack)
+    Gk = xr.load_dataset(ktrack)
+    
     # load prior information
-    load_path = mconfig["paths"]["work"] + batch_key + "/A02_prior/"
+    load_path = workdir / batch_key / "A02_prior"
 
     try:
-        Prior = MT.load_pandas_table_dict("/A02_" + track_name, load_path)[
+        Prior = MT.load_pandas_table_dict("/A02_" + track_name, str(load_path))[
             "priors_hindcast"
         ]
-    except:
+    except FileNotFoundError:
         print("Prior not found. exit")
         MT.json_save(
             "B04_fail",
@@ -266,7 +264,7 @@ def run_B04_angle(
         print("exit()")
         exit()
 
-    # define paramater range
+    # define parameter range
     params_dict = {
         "alpha": [-0.85 * np.pi / 2, 0.85 * np.pi / 2, 5],
         "phase": [0, 2 * np.pi, 10],
@@ -281,7 +279,7 @@ def run_B04_angle(
 
     plot_flag = False
 
-    Nworkers = 6
+    # Nworkers = 6 for later parallelization?
     N_sample_chain = 300
     N_sample_chain_burn = 30
 
@@ -317,7 +315,7 @@ def run_B04_angle(
         return peaks of a power spectrum dd that in the format such that they can be used as weights for the frequencies based fitting
 
         inputs:
-        dd             xarray with PSD as data amd coordindate wavenumber k
+        dd             xarray with PSD as data amd coordinate wavenumber k
         m               running mean half-width in gridpoints
         variance_frac  (0 to 1) How much variance should be explained by the returned peaks
         verbose        if true it plots some stuff
@@ -327,7 +325,7 @@ def run_B04_angle(
         mask           size of dd. where True the data is identified as having significant amplitude
         k              wanumbers where mask is true
         dd_rm          smoothed version of dd
-        positions      postions where of significant data in array
+        positions      positions where of significant data in array
         """
 
         if len(dd.shape) == 2:
@@ -465,10 +463,10 @@ def run_B04_angle(
         ["beam_group" + g[2] for g in data_mask.beam.data],
     )
     data_mask_group = data_mask.groupby("beam_group").mean(skipna=False)
-    # these stancils are actually used
+    # these stencils are actually used
     data_sel_mask = data_mask_group.sum("beam_group") != 0
 
-    x_list = data_sel_mask.x[data_sel_mask]  # iterate over these x posistions
+    x_list = data_sel_mask.x[data_sel_mask]  # iterate over these x positions
     x_list_flag = ~np.isnan(
         data_mask_group.sel(x=x_list)
     )  # flag that is False if there is no data
@@ -532,7 +530,6 @@ def run_B04_angle(
         # normalize data
         key = "y_data"
         amp_Z = (GGx[key] - GGx[key].mean(["eta"])) / GGx[key].std(["eta"])
-        N = amp_Z.shape[0]
 
         # define x,y positions
         eta_2d = GGx.eta + GGx.x_coord - GGx.x_coord.mean()
@@ -585,7 +582,8 @@ def run_B04_angle(
                 Prior_smth.sel(k=k_prime_max, method="nearest").Prior_spread.data,
             )
         }
-        SM.fitting_kargs = fitting_kargs = {"prior": prior_sel, "prior_weight": 3}
+        SM.fitting_kargs = {"prior": prior_sel, "prior_weight": 3} # not sure this might be used somewhere. CP
+
         # test if it works
         SM.params.add(
             "K_prime", k_prime_max, vary=False, min=k_prime_max * 0.5, max=k_prime_max * 1.5
@@ -593,7 +591,7 @@ def run_B04_angle(
         SM.params.add("K_amp", amp_Z, vary=False, min=amp_Z * 0.0, max=amp_Z * 5)
         try:
             SM.test_objective_func()
-        except:
+        except ValueError:
             raise ValueError("Objective function test fails")
 
         def get_instance(k_pair):
@@ -606,7 +604,7 @@ def run_B04_angle(
                 )
             }
 
-            SM.fitting_kargs = fitting_kargs = {"prior": prior_sel, "prior_weight": 2}
+            SM.fitting_kargs = {"prior": prior_sel, "prior_weight": 2} # not sure this might be used somewhere. CP
 
             amp_Z = 1
             SM.params.add(
@@ -661,7 +659,7 @@ def run_B04_angle(
                     view_scale=0.6,
                 )
 
-                if fitting_kargs["prior"] is not None:
+                if not prior_sel: # check if prior is empty
                     F.ax3.axhline(
                         prior_sel["alpha"][0], color="green", linewidth=2, label="Prior"
                     )
@@ -734,7 +732,7 @@ def run_B04_angle(
             weight_list = weight_list[0:max_wavenumbers]
 
         # # parallel version tends to fail...
-        # Let's keep this in case we decided to work on parallellize it
+        # Let's keep this in case we decided to work on parallelize it
         # with futures.ProcessPoolExecutor(max_workers=Nworkers) as executor:
         #     A = dict( executor.map(get_instance, zip(k_list, weight_list)   ))
 
@@ -792,141 +790,143 @@ def run_B04_angle(
 
     MM = xr.merge(Marginals.values())
     MM = xr.merge([MM, Prior_smth])
-    MM.to_netcdf(save_path + save_name + "_marginals.nc")
+
+    save_name = "B04_" + track_name
+    MM.to_netcdf(save_path / (save_name + "_marginals.nc"))
 
     try:
         LL = pd.concat(L_collect)
-        MT.save_pandas_table({"L_sample": LL}, save_name + "_res_table", save_path)
+        MT.save_pandas_table({"L_sample": LL}, save_name + "_res_table", str(save_path)) # TODO: clean up save_pandas_table to use pathlib
     except Exception as e:
         print(f"This is a warning: {e}")
+    else:
+        # plotting with LL
+        font_for_print()
+        F = M.figure_axis_xy(6, 5.5, view_scale=0.7, container=True)
 
-    # plot
-    font_for_print()
-    F = M.figure_axis_xy(6, 5.5, view_scale=0.7, container=True)
+        gs = GridSpec(4, 6, wspace=0.2, hspace=0.8)
 
-    gs = GridSpec(4, 6, wspace=0.2, hspace=0.8)
+        ax0 = F.fig.add_subplot(gs[0:2, -1])
+        ax0.tick_params(labelleft=False)
 
-    ax0 = F.fig.add_subplot(gs[0:2, -1])
-    ax0.tick_params(labelleft=False)
-
-    klims = 0, LL["K_prime"].max() * 1.2
-
-
-    for g in MM.beam_group:
-        MMi = MM.sel(beam_group=g)
-        plt.plot(
-            MMi.weight.T,
-            MMi.k,
-            ".",
-            color=col_dict[str(g.data)],
-            markersize=3,
-            linewidth=0.8,
-        )
-
-    plt.xlabel("Power")
-    plt.ylim(klims)
-
-    ax1 = F.fig.add_subplot(gs[0:2, 0:-1])
-
-    for g in MM.beam_group:
-        Li = LL.loc[str(g.data)]
-
-        angle_list = np.array(Li["alpha"]) * 180 / np.pi
-        kk_list = np.array(Li["K_prime"])
-        weight_list_i = np.array(Li["weight"])
-
-        plt.scatter(
-            angle_list,
-            kk_list,
-            s=(weight_list_i * 8e1) ** 2,
-            c=col_dict[str(g.data)],
-            label="mode " + str(g.data),
-        )
+        klims = 0, LL["K_prime"].max() * 1.2
 
 
-    dir_best[dir_best > 180] = dir_best[dir_best > 180] - 360
-    plt.plot(dir_best, Pwavenumber, ".r", markersize=6)
+        for g in MM.beam_group:
+            MMi = MM.sel(beam_group=g)
+            plt.plot(
+                MMi.weight.T,
+                MMi.k,
+                ".",
+                color=col_dict[str(g.data)],
+                markersize=3,
+                linewidth=0.8,
+            )
 
-    dir_interp[dir_interp > 180] = dir_interp[dir_interp > 180] - 360
-    plt.plot(dir_interp, Gk.k, "-", color="red", linewidth=0.3, zorder=11)
+        plt.xlabel("Power")
+        plt.ylim(klims)
 
+        ax1 = F.fig.add_subplot(gs[0:2, 0:-1])
 
-    plt.fill_betweenx(
-        Gk.k,
-        (dir_interp_smth - spread_smth) * 180 / np.pi,
-        (dir_interp_smth + spread_smth) * 180 / np.pi,
-        zorder=1,
-        color=color_schemes.green1,
-        alpha=0.2,
-    )
-    plt.plot(
-        dir_interp_smth * 180 / np.pi, Gk.k, ".", markersize=1, color=color_schemes.green1
-    )
+        for g in MM.beam_group:
+            Li = LL.loc[str(g.data)]
 
-    ax1.axvline(85, color="gray", linewidth=2)
-    ax1.axvline(-85, color="gray", linewidth=2)
+            angle_list = np.array(Li["alpha"]) * 180 / np.pi
+            kk_list = np.array(Li["K_prime"])
+            weight_list_i = np.array(Li["weight"])
 
-
-    plt.legend()
-    plt.ylabel("wavenumber (deg)")
-    plt.xlabel("Angle (deg)")
-
-
-    plt.ylim(klims)
-
-    prior_angle_str = str(np.round((prior_sel["alpha"][0]) * 180 / np.pi))
-    plt.title(track_name + "\nprior=" + prior_angle_str + "deg", loc="left")
-
-    plt.xlim(min([-90, np.nanmin(dir_best)]), max([np.nanmax(dir_best), 90]))
+            plt.scatter(
+                angle_list,
+                kk_list,
+                s=(weight_list_i * 8e1) ** 2,
+                c=col_dict[str(g.data)],
+                label="mode " + str(g.data),
+            )
 
 
-    ax3 = F.fig.add_subplot(gs[2, 0:-1])
+        dir_best[dir_best > 180] = dir_best[dir_best > 180] - 360
+        plt.plot(dir_best, Pwavenumber, ".r", markersize=6)
 
-    for g in MM.beam_group:
-        MMi = MM.sel(beam_group=g)
-        wegihted_margins = (MMi.marginals * MMi.weight).sum(["x", "k"]) / MMi.weight.sum(
-            ["x", "k"]
+        dir_interp[dir_interp > 180] = dir_interp[dir_interp > 180] - 360
+        plt.plot(dir_interp, Gk.k, "-", color="red", linewidth=0.3, zorder=11)
+
+
+        plt.fill_betweenx(
+            Gk.k,
+            (dir_interp_smth - spread_smth) * 180 / np.pi,
+            (dir_interp_smth + spread_smth) * 180 / np.pi,
+            zorder=1,
+            color=color_schemes.green1,
+            alpha=0.2,
         )
         plt.plot(
-            MMi.angle * 180 / np.pi,
-            wegihted_margins,
-            ".",
-            color=col_dict[str(g.data)],
-            markersize=2,
-            linewidth=0.8,
+            dir_interp_smth * 180 / np.pi, Gk.k, ".", markersize=1, color=color_schemes.green1
         )
 
-    plt.ylabel("Density")
-    plt.title("weight margins", loc="left")
-
-    plt.xlim(-90, 90)
+        ax1.axvline(85, color="gray", linewidth=2)
+        ax1.axvline(-85, color="gray", linewidth=2)
 
 
-    ax3 = F.fig.add_subplot(gs[-1, 0:-1])
+        plt.legend()
+        plt.ylabel("wavenumber (deg)")
+        plt.xlabel("Angle (deg)")
 
-    for g in MM.beam_group:
-        MMi = MM.sel(beam_group=g)
-        wegihted_margins = MMi.marginals.mean(["x", "k"])
-        plt.plot(
-            MMi.angle * 180 / np.pi,
-            wegihted_margins,
-            ".",
-            color=col_dict[str(g.data)],
-            markersize=2,
-            linewidth=0.8,
+
+        plt.ylim(klims)
+
+        prior_angle_str = str(np.round((prior_sel["alpha"][0]) * 180 / np.pi))
+        plt.title(track_name + "\nprior=" + prior_angle_str + "deg", loc="left")
+
+        plt.xlim(min([-90, np.nanmin(dir_best)]), max([np.nanmax(dir_best), 90]))
+
+
+        ax3 = F.fig.add_subplot(gs[2, 0:-1]) # can the assignment be removed? CP
+
+        for g in MM.beam_group:
+            MMi = MM.sel(beam_group=g)
+            weighted_margins = (MMi.marginals * MMi.weight).sum(["x", "k"]) / MMi.weight.sum(
+                ["x", "k"]
+            )
+            plt.plot(
+                MMi.angle * 180 / np.pi,
+                weighted_margins,
+                ".",
+                color=col_dict[str(g.data)],
+                markersize=2,
+                linewidth=0.8,
+            )
+
+        plt.ylabel("Density")
+        plt.title("weight margins", loc="left")
+
+        plt.xlim(-90, 90)
+
+
+        ax3 = F.fig.add_subplot(gs[-1, 0:-1]) # can the assignment be removed? Not used later. CP
+
+        for g in MM.beam_group:
+            MMi = MM.sel(beam_group=g)
+            weighted_margins = MMi.marginals.mean(["x", "k"])
+            plt.plot(
+                MMi.angle * 180 / np.pi,
+                weighted_margins,
+                ".",
+                color=col_dict[str(g.data)],
+                markersize=2,
+                linewidth=0.8,
+            )
+
+        plt.ylabel("Density")
+        plt.xlabel("Angle (deg)")
+        plt.title("unweighted margins", loc="left")
+
+        plt.xlim(-90, 90)
+
+        F.save_pup(path=plot_path, name="B04_marginal_distributions")
+
+        MT.json_save(
+            "B04_success", plot_path, {"time": "time.asctime( time.localtime(time.time()) )"}
         )
-
-    plt.ylabel("Density")
-    plt.xlabel("Angle (deg)")
-    plt.title("unweighted margins", loc="left")
-
-    plt.xlim(-90, 90)
-
-    F.save_pup(path=plot_path, name="B04_marginal_distributions")
-
-    MT.json_save(
-        "B04_success", plot_path, {"time": "time.asctime( time.localtime(time.time()) )"}
-    )
 
 step5app = makeapp(run_B04_angle, name="B04_angle")
 
