@@ -6,14 +6,19 @@ import sys
 import numpy as np
 import xarray as xr
 from matplotlib.gridspec import GridSpec
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
-from icesat2_tracks.config.IceSAT2_startup import mconfig, color_schemes, plt, font_for_print
+from icesat2_tracks.config.IceSAT2_startup import (
+    mconfig,
+    color_schemes,
+    plt,
+    font_for_print,
+)
 
 track_name, batch_key, test_flag = io.init_from_input(
-    sys.argv # TODO: Handle via CLI
+    sys.argv  # TODO: Handle via CLI
 )  # loads standard experiment
 hemis, batch = batch_key.split("_")
 
@@ -21,7 +26,7 @@ load_path = mconfig["paths"]["work"] + batch_key + "/B02_spectra/"
 load_file = load_path + "B02_" + track_name
 plot_path = (
     mconfig["paths"]["plot"] + "/" + hemis + "/" + batch_key + "/" + track_name + "/"
-) # TODO: Update with pathlib
+)  # TODO: Update with pathlib
 MT.mkdirs_r(plot_path)
 
 Gk = xr.open_dataset(load_file + "_gFT_k.nc")
@@ -481,11 +486,11 @@ for i in xpp:
             dd = Gk_1.gFT_PSD_data.rolling(k=10, min_periods=1, center=True).mean()
             plt.plot(Gk_1.k, dd, color=col_d[k], linewidth=0.8)
             # handle the 'All-NaN slice encountered' warning
-            if np.all(np.isnan(dd.data)): 
+            if np.all(np.isnan(dd.data)):
                 dd_max.append(np.nan)
             else:
                 dd_max.append(np.nanmax(dd.data))
-                
+
             plt.xlim(klim)
             if lflag:
                 plt.ylabel("$(m/m)^2/k$")
@@ -495,11 +500,11 @@ for i in xpp:
 
         ax11.axvline(k_thresh, linewidth=1, color="gray", alpha=1)
         ax11.axvspan(k_thresh, klim[-1], color="gray", alpha=0.5, zorder=12)
-    
+
     if not np.all(np.isnan(dd_max)):
-            max_vale = np.nanmax(dd_max)
-            for ax in ax1_list:
-                ax.set_ylim(0,max_vale  * 1.1)
+        max_vale = np.nanmax(dd_max)
+        for ax in ax1_list:
+            ax.set_ylim(0, max_vale * 1.1)
 
     ax0 = F.fig.add_subplot(gs[-2:, :])
 

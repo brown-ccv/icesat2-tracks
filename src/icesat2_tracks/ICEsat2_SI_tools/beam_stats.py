@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-import icesat2_tracks.ICEsat2_SI_tools.io as io_local
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io_local
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-def derive_beam_statistics(Gd, all_beams,  Lmeter=10e3, dx =10):
+
+def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
     """
     this method returns a dict of dataframes with the beam statistics
     Gd          is a dict of beam tables or a hdf5 file
@@ -16,18 +17,18 @@ def derive_beam_statistics(Gd, all_beams,  Lmeter=10e3, dx =10):
     """
     import h5py
 
-    D=dict()
+    D = dict()
     for k in all_beams:
         if isinstance(Gd, dict):
-            Gi = Gd[k]    
+            Gi = Gd[k]
         elif isinstance(Gd, h5py.File):
-            Gi  = io_local.get_beam_hdf_store(Gd[k])
+            Gi = io_local.get_beam_hdf_store(Gd[k])
         else:
-            print('Gd is neither dict nor hdf5 file')
+            print("Gd is neither dict nor hdf5 file")
             break
 
-        dd = Gi['h_mean']
-        xx = Gi['dist']
+        dd = Gi["h_mean"]
+        xx = Gi["dist"]
 
         def get_var(sti):
             mask = (sti[0] < xx) & (xx <= sti[1])
@@ -39,31 +40,40 @@ def derive_beam_statistics(Gd, all_beams,  Lmeter=10e3, dx =10):
 
         def get_lat(sti):
             mask = (sti[0] < xx) & (xx <= sti[1])
-            return np.nanmean(Gi['lats'][mask])
+            return np.nanmean(Gi["lats"][mask])
 
-        iter_x       = spec.create_chunk_boundaries_unit_lengths( Lmeter, [ xx.min(), xx.max()],ov =0, iter_flag= False)[1,:]
+        iter_x = spec.create_chunk_boundaries_unit_lengths(
+            Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=False
+        )[1, :]
 
-        stencil_iter = spec.create_chunk_boundaries_unit_lengths( Lmeter, [ xx.min(), xx.max()],ov =0, iter_flag= True)
+        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
+            Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
+        )
         var_list = np.array(list(map(get_var, stencil_iter)))
 
-        stencil_iter = spec.create_chunk_boundaries_unit_lengths( Lmeter, [ xx.min(), xx.max()],ov =0, iter_flag= True)
-        N_list   = np.array(list(map(get_N, stencil_iter)))
+        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
+            Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
+        )
+        N_list = np.array(list(map(get_N, stencil_iter)))
 
-        stencil_iter = spec.create_chunk_boundaries_unit_lengths( Lmeter, [ xx.min(), xx.max()],ov =0, iter_flag= True)
+        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
+            Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
+        )
         lat_list = np.array(list(map(get_lat, stencil_iter)))
 
-        # make Dataframe 
+        # make Dataframe
         df = pd.DataFrame()
-        df['x'] = iter_x
-        df['lat'] = lat_list
-        df['var']    = var_list
-        df['N']      = N_list * 2* dx / Lmeter
-        
+        df["x"] = iter_x
+        df["lat"] = lat_list
+        df["var"] = var_list
+        df["N"] = N_list * 2 * dx / Lmeter
+
         D[k] = df
 
     return D
 
-def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name =None):
+
+def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
     """
     Plots the beam statistics in a 2 x 2 plot
     D is a dict of dataframes with the beam statistics
@@ -84,63 +94,99 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name =None):
     # make 2 x 2 plot
     ax1 = plt.subplot(gs[0, 0])
     for k in high_beams:
-        plt.plot(D[k]['x']/1e3, np.sqrt(D[k]['var']), '.', color=  col_dict[k], markersize=4, label=k)
+        plt.plot(
+            D[k]["x"] / 1e3,
+            np.sqrt(D[k]["var"]),
+            ".",
+            color=col_dict[k],
+            markersize=4,
+            label=k,
+        )
 
-    plt.title('high beams std', loc='left')
-    plt.ylabel('segment std log(m)')
-    
-    ax1.set_yscale('log')
+    plt.title("high beams std", loc="left")
+    plt.ylabel("segment std log(m)")
+
+    ax1.set_yscale("log")
 
     ax2 = plt.subplot(gs[1, 0])
     for k in high_beams:
-        Di = D[k]['N']
-        Di[Di ==0] =np.nan
-        plt.plot(D[k]['x']/1e3, D[k]['N'], '.', color= col_dict[k], markersize=4, label=k)
+        Di = D[k]["N"]
+        Di[Di == 0] = np.nan
+        plt.plot(
+            D[k]["x"] / 1e3, D[k]["N"], ".", color=col_dict[k], markersize=4, label=k
+        )
 
-    plt.title('high beams N', loc='left')
-    plt.xlabel('along track distance (km)')
-    plt.ylabel('Point Density (m)')
+    plt.title("high beams N", loc="left")
+    plt.xlabel("along track distance (km)")
+    plt.ylabel("Point Density (m)")
 
     ax3 = plt.subplot(gs[0, 1])
     for k in low_beams:
-        plt.plot(D[k]['x']/1e3, np.sqrt(D[k]['var']), '.', color=  col_dict[k], markersize=4, label=k)
+        plt.plot(
+            D[k]["x"] / 1e3,
+            np.sqrt(D[k]["var"]),
+            ".",
+            color=col_dict[k],
+            markersize=4,
+            label=k,
+        )
 
-    plt.title('low beams std', loc='left')
-    
-    ax3.set_yscale('log')
+    plt.title("low beams std", loc="left")
+
+    ax3.set_yscale("log")
 
     ax4 = plt.subplot(gs[1, 1])
     for k in low_beams:
-        Di = D[k]['N']
-        Di[Di ==0] =np.nan
-        plt.plot(D[k]['x']/1e3, D[k]['N'], '.', color= col_dict[k], markersize=4, label=k)
+        Di = D[k]["N"]
+        Di[Di == 0] = np.nan
+        plt.plot(
+            D[k]["x"] / 1e3, D[k]["N"], ".", color=col_dict[k], markersize=4, label=k
+        )
 
-    plt.title('low beams N', loc='left')
-    plt.xlabel('along track distance (km)')
-    #plt.ylabel('Point density (m)')
+    plt.title("low beams N", loc="left")
+    plt.xlabel("along track distance (km)")
+    # plt.ylabel('Point density (m)')
 
     ax5 = plt.subplot(gs[0:2, 2])
 
     lat_shift = 0
     for k in low_beams:
         Di = D[k]
-        plt.scatter(Di['x']/1e3, Di['lat']+lat_shift, s= np.exp(Di['N'] *5) , marker='.', color=  col_dict[k],  label=k, alpha = 0.3)
+        plt.scatter(
+            Di["x"] / 1e3,
+            Di["lat"] + lat_shift,
+            s=np.exp(Di["N"] * 5),
+            marker=".",
+            color=col_dict[k],
+            label=k,
+            alpha=0.3,
+        )
         lat_shift = lat_shift + 2
 
     for k in high_beams:
         Di = D[k]
-        plt.scatter(Di['x']/1e3, Di['lat']+lat_shift, s= np.exp(Di['N'] *5) , marker='.', color=  col_dict[k],  label=k, alpha = 0.3)
+        plt.scatter(
+            Di["x"] / 1e3,
+            Di["lat"] + lat_shift,
+            s=np.exp(Di["N"] * 5),
+            marker=".",
+            color=col_dict[k],
+            label=k,
+            alpha=0.3,
+        )
         lat_shift = lat_shift + 2
 
-    plt.title('Density in space', loc='left')
-    plt.ylabel('Latitude (deg)')
-    plt.xlabel('along track distance (km)')
+    plt.title("Density in space", loc="left")
+    plt.ylabel("Latitude (deg)")
+    plt.xlabel("along track distance (km)")
     plt.legend()
     plt.show()
 
+
 ## plot track stats basics for sliderules ATL06 output
 
-def plot_ATL06_track_data( G2, cdict):
+
+def plot_ATL06_track_data(G2, cdict):
     """
     Plots the beam statistics in a 3 x 3 plot
     G2      is a GeoDataFrame from SL (ATL06)
@@ -157,42 +203,50 @@ def plot_ATL06_track_data( G2, cdict):
     ax5 = plt.subplot(gs[1, 2])
     ax6 = plt.subplot(gs[2, 2])
 
-    for sp in G2['spot'].unique():
-        Gc = G2[G2['spot'] == 1]
+    for sp in G2["spot"].unique():
+        Gc = G2[G2["spot"] == 1]
 
-        Gc['h_mean_gradient'] = np.gradient(Gc['h_mean'])
-        ts_config = {'marker': '.', 'markersize': 0.2, 'linestyle': 'none', 'color': cdict[sp], 'alpha': 0.3}
-        hist_confit = {'density': True, 'color': cdict[sp], 'alpha': 0.3}
+        Gc["h_mean_gradient"] = np.gradient(Gc["h_mean"])
+        ts_config = {
+            "marker": ".",
+            "markersize": 0.2,
+            "linestyle": "none",
+            "color": cdict[sp],
+            "alpha": 0.3,
+        }
+        hist_confit = {"density": True, "color": cdict[sp], "alpha": 0.3}
 
-        ax1.plot(Gc.geometry.y, Gc['h_mean'], **ts_config)
-        ax2.plot(Gc.geometry.y, Gc['h_mean_gradient'], **ts_config)
-        ax3.plot(Gc.geometry.y, Gc['n_fit_photons'], **ts_config)
+        ax1.plot(Gc.geometry.y, Gc["h_mean"], **ts_config)
+        ax2.plot(Gc.geometry.y, Gc["h_mean_gradient"], **ts_config)
+        ax3.plot(Gc.geometry.y, Gc["n_fit_photons"], **ts_config)
 
-        Gc['h_mean'].plot.hist(ax=ax4, bins=30, **hist_confit)
-        Gc['h_mean_gradient'].plot.hist(ax=ax5, bins=np.linspace(-5, 5, 30), **hist_confit)
-        Gc['rms_misfit'].plot.hist(ax=ax6, bins=30, **hist_confit)
+        Gc["h_mean"].plot.hist(ax=ax4, bins=30, **hist_confit)
+        Gc["h_mean_gradient"].plot.hist(
+            ax=ax5, bins=np.linspace(-5, 5, 30), **hist_confit
+        )
+        Gc["rms_misfit"].plot.hist(ax=ax6, bins=30, **hist_confit)
 
-    ax1.set_ylabel('h_mean (m)')
-    ax2.set_ylabel('slope (m/m)')
-    ax3.set_ylabel('N Photons')
-    ax3.set_xlabel('Latitude (degree)')
+    ax1.set_ylabel("h_mean (m)")
+    ax2.set_ylabel("slope (m/m)")
+    ax3.set_ylabel("N Photons")
+    ax3.set_xlabel("Latitude (degree)")
     ax1.set_xticklabels([])
     ax2.set_xticklabels([])
 
-    ax1.axhline(0, color='k', linestyle='-', linewidth=0.8)
-    ax2.axhline(0, color='k', linestyle='-', linewidth=0.8)
+    ax1.axhline(0, color="k", linestyle="-", linewidth=0.8)
+    ax2.axhline(0, color="k", linestyle="-", linewidth=0.8)
 
-    ax1.set_title('Height', loc='left')
-    ax2.set_title('Slope', loc='left')
-    ax3.set_title('Photons per extend', loc='left')
+    ax1.set_title("Height", loc="left")
+    ax2.set_title("Slope", loc="left")
+    ax3.set_title("Photons per extend", loc="left")
 
-    ax4.set_title('Histograms', loc='left')
-    ax5.set_title('Histograms', loc='left')
+    ax4.set_title("Histograms", loc="left")
+    ax5.set_title("Histograms", loc="left")
 
-    ax6.set_title('Error Hist.', loc='left')
-    ax6.set_xlabel('rms_misfit (m)')
+    ax6.set_title("Error Hist.", loc="left")
+    ax6.set_xlabel("rms_misfit (m)")
 
     for axi in [ax4, ax5, ax6]:
-        axi.set_ylabel('')
+        axi.set_ylabel("")
 
     return [ax1, ax2, ax3, ax4, ax5, ax6]
