@@ -1,4 +1,4 @@
-name: Test B01_SL_load_single_file
+name: Test Steps
 on:
   pull_request: {}
   push:
@@ -23,18 +23,23 @@ jobs:
         run: pip install .
       - name: List dependencies
         run: pip list
-      - name: first step B01_SL_load_single_file
-        run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
-      - name: second step make_spectra
-        run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      - name: third step plot_spectra
-        run: python src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      - name: fourth step IOWAGA thredds
-        run: python src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      - name: Fifth step B04_angle
-        run: python src/icesat2_tracks/analysis_db/B04_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      - name: Sixth step B05_define_angle
-        run: python src/icesat2_tracks/analysis_db/B05_define_angle.py SH_20190502_05180312 SH_testSLsinglefile2 True
-      - name: Seventh step B06_correct_separate_var
-        run: python src/icesat2_tracks/analysis_db/B06_correct_separate_var.py SH_20190502_05180312 SH_testSLsinglefile2 True
+      - name: test icesat2waves app
+        run: |
+            icesat2waves --help
+            icesat2waves loadfile --help
+            icesat2waves makespectra --help
+            icesat2waves plotspectra --help
+            icesat2waves iowagatp --help
+            icesat2waves b04angle --help # prelim name
 
+      - name: first step B01_SL_load_single_file
+        run: loadfile --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: second step make_spectra
+        run: makespectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: third step plot_spectra
+        run: plotspectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: fouth step IOWAGA threads 
+        run:  iowagatp --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: fifth step B04_angle
+        run: b04angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+        
