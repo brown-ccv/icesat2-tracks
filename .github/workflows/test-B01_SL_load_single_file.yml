@@ -24,12 +24,12 @@ jobs:
       - name: List dependencies
         run: pip list
       - name: test icesat2waves app
-        run: icesat2waves --help
-      - name: test command for step 1
-        run: load_single_file --help
+        run: |
+            icesat2waves --help
+            icesat2waves loadfile --help
+            icesat2waves makespectra --help
       - name: first step B01_SL_load_single_file
-        run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
-      - name: test command for step 2
-        run: make_spectra --help
+        run: loadfile --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: second step make_spectra
-        run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+        run: makespectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+        
