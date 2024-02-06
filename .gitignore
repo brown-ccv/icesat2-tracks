@@ -38,7 +38,7 @@ analysis_db/support_files/
 *.egg-info/
 .installed.cfg
 *.egg
-
+logs/
 *__pycache__/
 *__pycache__/*
 
@@ -47,6 +47,7 @@ analysis_db/support_files/
 .venv
 env/
 venv/
+.venv39/
 ENV/
 env.bak/
 venv.bak/
