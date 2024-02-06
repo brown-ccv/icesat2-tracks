@@ -24,7 +24,7 @@ jobs:
       - name: List dependencies
         run: pip list
       - name: test icesat2waves app
-        run: iesat2waves --help
+        run: icesat2waves --help
       - name: test command for step 1
         run: load_single_file --help
       - name: first step B01_SL_load_single_file
