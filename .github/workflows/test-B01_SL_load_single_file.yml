@@ -33,3 +33,4 @@ jobs:
         run: make_spectra --help
       - name: second step make_spectra
         run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+
