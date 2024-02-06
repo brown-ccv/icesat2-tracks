@@ -7,6 +7,10 @@ from icesat2_tracks.analysis_db.B01_SL_load_single_file import (
     run_B01_SL_load_single_file as _loadfile,
 )
 
+from icesat2_tracks.analysis_db.B02_make_spectra_gFT import (
+    run_B02_make_spectra_gFT as _makespectra,
+)
+
 from icesat2_tracks.clitools import (
     validate_track_name,
     validate_batch_key,
@@ -44,6 +48,16 @@ def loadfile(
     output_dir: str = validate_output_dir_opt,
 ):
     run_job(_loadfile, track_name, batch_key, ID_flag, output_dir)
+
+
+@app.command(help=_makespectra.__doc__)
+def makespectra(
+    track_name: str = validate_track_name_gt_1_opt,
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    run_job(_makespectra, track_name, batch_key, ID_flag, output_dir)
 
 
 if __name__ == "__main__":
