@@ -2,6 +2,7 @@
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+
 import os, sys
 
 from icesat2_tracks.config.IceSAT2_startup import (
@@ -10,7 +11,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
     font_for_pres,
     font_for_print,
     lstrings,
-    fig_sizes
+    fig_sizes,
 )
 
 import h5py
@@ -86,7 +87,7 @@ def dict_weighted_mean(Gdict, weight_key):
     N_photons = np.zeros(GSUM.N_per_stancil.size)
 
     counter = 0
-    for _,I in Gdict.items():
+    for _, I in Gdict.items():
         I = I.squeeze()
         print(len(I.x))
         if len(I.x) != 0:
@@ -754,8 +755,11 @@ def save_table(data, tablename, save_path):
         os.remove(tabletoremove)
         io.save_pandas_table(data, tablename, save_path)
 
+
 B06_ID_name = "B06_" + ID_name
-table_names = [B06_ID_name + suffix for suffix in ["_B06_corrected_resid", "_binned_resid"]]
+table_names = [
+    B06_ID_name + suffix for suffix in ["_B06_corrected_resid", "_binned_resid"]
+]
 data = [B2_v2, B3_v2]
 for tablename, data in zip(table_names, data):
     save_table(data, tablename, save_path)

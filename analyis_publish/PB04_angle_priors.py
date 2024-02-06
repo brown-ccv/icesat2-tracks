@@ -24,7 +24,7 @@ import datetime
 import concurrent.futures as futures
 
 #from numba import jit
-%matplotlib widget
+#%matplotlib widget
 #from ICEsat2_SI_tools import angle_optimizer
 import ICEsat2_SI_tools.wave_tools as waves
 import concurrent.futures as futures

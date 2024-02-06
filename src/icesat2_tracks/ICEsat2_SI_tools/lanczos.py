@@ -1,6 +1,7 @@
 import numpy as np
 
-def lanczos_1d(width,  dx, a=2):
+
+def lanczos_1d(width, dx, a=2):
     """
     This is a 1D lanczos Filter for time series analysis.
     it generates the Filter to be convolved with the timeseries
@@ -18,25 +19,26 @@ def lanczos_1d(width,  dx, a=2):
     # a=     1   # Lanczos parameter. the length of the filter is a*width
     # dx=   .1   # deltax of the to be filtered timeseries
 
-    r=width/2.0
-    xl=a*r
-    x= np.arange(-xl, xl, dx)
-    xprime=x/r
+    r = width / 2.0
+    xl = a * r
+    x = np.arange(-xl, xl, dx)
+    xprime = x / r
 
     # define the filter
-    L = np.sinc(xprime) * np.sinc(xprime/a)
-    L = np.where((xprime > -a) & (xprime < a),L, 0)
+    L = np.sinc(xprime) * np.sinc(xprime / a)
+    L = np.where((xprime > -a) & (xprime < a), L, 0)
 
-    return x, L/L.sum()
+    return x, L / L.sum()
 
 
-def lanczos_2d(width , dx, a=2):
-    x , L =lanczos_1d(width,  dx, a=a)
-    L2d =np.outer(L ,L.T)
+def lanczos_2d(width, dx, a=2):
+    x, L = lanczos_1d(width, dx, a=a)
+    L2d = np.outer(L, L.T)
 
     return x, L2d
 
-def lanczos_filter_1d(x, data, width, a=2 , mode='same', method='direct'):
+
+def lanczos_filter_1d(x, data, width, a=2, mode="same", method="direct"):
     """
     colvolves the lanzcos filter with data.
     inputs
@@ -52,15 +54,16 @@ def lanczos_filter_1d(x, data, width, a=2 , mode='same', method='direct'):
     data_lp low-passed data, same size as before.
     """
     import scipy.signal as signal
-    dx     =   np.diff(x).mean()
-    x , L  =    lanczos_1d(width,  dx, a=a)
 
+    dx = np.diff(x).mean()
+    x, L = lanczos_1d(width, dx, a=a)
 
-    data_lp= signal.convolve(data, L, mode=mode, method=method)#*
+    data_lp = signal.convolve(data, L, mode=mode, method=method)  # *
 
     return data_lp
 
-def lanczos_filter_1d_wrapping(x, data, width, a=2 , mode='wrap'):
+
+def lanczos_filter_1d_wrapping(x, data, width, a=2, mode="wrap"):
     """
     colvolves the lanzcos filter with data.
     same as lanczos_filter_1d but can wrap around
@@ -78,16 +81,16 @@ def lanczos_filter_1d_wrapping(x, data, width, a=2 , mode='wrap'):
     data_lp low-passed data, same size as before.
     """
     import scipy.ndimage
-    dx     =   np.diff(x).mean()
-    x , L  =    lanczos_1d(width,  dx, a=a)
 
-    data_lp= scipy.ndimage.convolve(data, L, mode=mode)#*
+    dx = np.diff(x).mean()
+    x, L = lanczos_1d(width, dx, a=a)
+
+    data_lp = scipy.ndimage.convolve(data, L, mode=mode)  # *
 
     return data_lp
 
 
-
-def lanczos_filter_2d(x, data, width, a=2 , mode='same'):
+def lanczos_filter_2d(x, data, width, a=2, mode="same"):
     """
     colvolves the lanzcos filter with data in 3 dimensions.
     inputs
@@ -104,27 +107,28 @@ def lanczos_filter_2d(x, data, width, a=2 , mode='same'):
     """
     import scipy.ndimage.filters as signal
 
-    #import scipy.ndimage.filters as signal
-    dx     =   abs(np.diff(x).mean())
-    x , L2d  =    lanczos_2d(width,  dx, a=a)
+    # import scipy.ndimage.filters as signal
+    dx = abs(np.diff(x).mean())
+    x, L2d = lanczos_2d(width, dx, a=a)
 
-
-    data_lp= signal.convolve(data, L2d, mode=mode)#*
+    data_lp = signal.convolve(data, L2d, mode=mode)  # *
 
     return data_lp
 
-def lanczos_filter_2d_apply(data,  x, width, a=2 , mode='same'):
-    return lanczos_filter_2d(x, data, width, a=a , mode=mode)
 
-def lanczos_3d(width , dx, a=2):
-    x , L =lanczos_1d(width,  dx, a=a)
-    L2d =np.outer(L ,L.T)
+def lanczos_filter_2d_apply(data, x, width, a=2, mode="same"):
+    return lanczos_filter_2d(x, data, width, a=a, mode=mode)
+
+
+def lanczos_3d(width, dx, a=2):
+    x, L = lanczos_1d(width, dx, a=a)
+    L2d = np.outer(L, L.T)
     L3d = np.multiply.outer(L2d, L.T)
 
     return x, L3d
 
 
-def lanczos_filter_3d(x, data, width, a=2 , mode='same'):
+def lanczos_filter_3d(x, data, width, a=2, mode="same"):
     """
     colvolves the lanzcos filter with data in 3 dimensions.
     inputs
@@ -141,11 +145,10 @@ def lanczos_filter_3d(x, data, width, a=2 , mode='same'):
     """
     import scipy.ndimage.filters as signal
 
-    #import scipy.ndimage.filters as signal
-    dx     =   abs(np.diff(x).mean())
-    x , L3d  =    lanczos_3d(width,  dx, a=a)
+    # import scipy.ndimage.filters as signal
+    dx = abs(np.diff(x).mean())
+    x, L3d = lanczos_3d(width, dx, a=a)
 
-
-    data_lp= signal.convolve(data, L3d, mode=mode)#*
+    data_lp = signal.convolve(data, L3d, mode=mode)  # *
 
     return data_lp
