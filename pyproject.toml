@@ -122,8 +122,6 @@ dependencies = [ # Optional
   "siphon >=0.9, <1.0.0",
   "h5py >=3.5.0, < 4.0.0",
   "termcolor >=2.4.0, < 3.0.0",
-  "pytest >=7.4.4, < 8.0.0",
-  "pytest-xdist >=3.5.0, < 4.0.0",
   "typer >=0.9.0, < 1.0.0",
 ]
 
@@ -137,7 +135,7 @@ dependencies = [ # Optional
 # projects.
 [project.optional-dependencies] # Optional
 dev = ["check-manifest","black","icesat2-tracks[test]"]
-test = ["coverage"]
+test = ["coverage", "pytest >=7.4.4, <8.0.0", "pytest-xdist >=3.5.0, <4.0.0"]
 
 # List URLs that are relevant to your project
 #
@@ -159,6 +157,9 @@ test = ["coverage"]
 [project.scripts]  # Optional
 #TODO: ADD ANY SCRIPTS WE WANT TO HAVE
 download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
+load_single_file = "icesat2_tracks.analysis_db.B01_SL_load_single_file:step1app"
+icesat2waves = "icesat2_tracks.app:app"
+
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.

@@ -19,7 +19,8 @@ import matplotlib
 import typer
 
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import h5py
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 import icesat2_tracks.local_modules.m_general_ph3 as M
 import icesat2_tracks.local_modules.m_spectrum_ph3 as spicke_remover
@@ -41,7 +42,6 @@ import tracemalloc
 
 
 matplotlib.use("Agg")  # prevent plot windows from opening
-
 
 def linear_gap_fill(F, key_lead, key_int):
     """
