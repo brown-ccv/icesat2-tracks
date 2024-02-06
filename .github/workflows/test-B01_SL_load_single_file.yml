@@ -28,7 +28,7 @@ jobs:
       - name: test command for step 1
         run: load_single_file --help
       - name: first step B01_SL_load_single_file
-        run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
+        run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir .
       - name: second step make_spectra
         run: python src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py SH_20190502_05180312 SH_testSLsinglefile2 True
       - name: third step plot_spectra
