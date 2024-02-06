@@ -10,7 +10,7 @@ import xarray as xr
 from matplotlib.gridspec import GridSpec
 import typer
 
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
@@ -559,6 +559,7 @@ def run_B03_plot_spectra_ov(
     )
 
 
+step3app = makeapp(run_B03_plot_spectra_ov, name="plotspectra")
+
 if __name__ == "__main__":
-    step3app = makeapp(run_B03_plot_spectra_ov, name="plotspectra")
     step3app()
