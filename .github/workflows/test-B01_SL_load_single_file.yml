@@ -1,4 +1,4 @@
-name: Test B01_SL_load_single_file
+name: Test Steps
 on:
   pull_request: {}
   push:
@@ -23,6 +23,11 @@ jobs:
         run: pip install .
       - name: List dependencies
         run: pip list
+      - name: test icesat2waves app
+        run: icesat2waves --help
+      - name: test command for step 1
+        run: load_single_file --help
       - name: first step B01_SL_load_single_file
         run: python src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
+
         

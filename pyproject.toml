@@ -157,6 +157,9 @@ test = ["coverage", "pytest >=7.4.4, <8.0.0", "pytest-xdist >=3.5.0, <4.0.0"]
 [project.scripts]  # Optional
 #TODO: ADD ANY SCRIPTS WE WANT TO HAVE
 download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
+load_single_file = "icesat2_tracks.analysis_db.B01_SL_load_single_file:step1app"
+icesat2waves = "icesat2_tracks.app:app"
+
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
