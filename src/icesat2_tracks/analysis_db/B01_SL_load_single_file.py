@@ -23,7 +23,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
     plt,
 )
 import icesat2_tracks.ICEsat2_SI_tools.sliderule_converter_tools as sct
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.beam_stats as beam_stats
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
@@ -90,6 +90,7 @@ def run_B01_SL_load_single_file(
     ID_flag: bool = True,
     plot_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
+    verbose: bool = False
 ):
     """
     Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and output smoothed photon heights on a regular grid in an .nc file.
@@ -106,7 +107,7 @@ def run_B01_SL_load_single_file(
     matplotlib.use("Agg")  # prevent plot windows from opening
 
     # Select region and retrieve batch of tracks
-    with suppress_stdout():
+    with suppress_stdout(verbose):
         track_name, batch_key, ID_flag = io.init_from_input(
             [
                 None,
@@ -156,10 +157,10 @@ def run_B01_SL_load_single_file(
     }
 
     maximum_height = 30  # (meters) maximum height past dem_h correction
-    echo("STARTS", "white")
-    echo("Fetching ATL03 data from sliderule", "white")
+    print("STARTS")
+    print("Fetching ATL03 data from sliderule")
     gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
-    echo("ENDS", "white")
+    print("ENDS")
     gdf = sct.correct_and_remove_height(gdf, maximum_height)
 
     cdict = dict()

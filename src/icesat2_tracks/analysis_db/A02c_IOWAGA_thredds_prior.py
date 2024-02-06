@@ -14,7 +14,7 @@ from siphon.catalog import TDSCatalog
 import typer
 
 from icesat2_tracks.config.IceSAT2_startup import mconfig
-import icesat2_tracks.ICEsat2_SI_tools.io as io
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
@@ -91,8 +91,6 @@ def run_A02c_IOWAGA_thredds_prior(
     save_path.mkdir(parents=True, exist_ok=True)
 
     all_beams = mconfig["beams"]["all_beams"]
-
-    file_name_base = "LOPS_WW3-GLOB-30M_"
 
     load_path = Path(workdir, batch_key, "B01_regrid")
     Gd = h5py.File(load_path / (track_name + "_B01_binned.h5"), "r")
@@ -327,6 +325,8 @@ def run_A02c_IOWAGA_thredds_prior(
         font_for_print()
 
         F = M.figure_axis_xy(4, 3.5, view_scale=0.9, container=True)
+        
+        file_name_base = "LOPS_WW3-GLOB-30M_"
         plt.suptitle(
             track_name_short + " | " + file_name_base[0:-1].replace("_", " "), y=1.3
         )
