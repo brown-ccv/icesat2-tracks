@@ -12,7 +12,7 @@ import h5py
 import xarray as xr
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from scipy.constants import g as G
+from scipy.constants import g
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
@@ -133,14 +133,14 @@ dir_best = np.array(dir_best[1:])
 if len(Pperiod) == 0:
     print("constant peak wave number")
     kk = Gk.k
-    Pwavenumber = kk * 0 + (2 * np.pi / (1 / Prior.loc["fp"]["mean"])) ** 2 / G
+    Pwavenumber = kk * 0 + (2 * np.pi / (1 / Prior.loc["fp"]["mean"])) ** 2 / g
     dir_best = kk * 0 + Prior.loc["dp"]["mean"]
     dir_interp_smth = dir_interp = kk * 0 + Prior.loc["dp"]["mean"]
     spread_smth = spread_interp = kk * 0 + Prior.loc["spr"]["mean"]
 
 
 else:
-    Pwavenumber = (2 * np.pi / Pperiod) ** 2 / G
+    Pwavenumber = (2 * np.pi / Pperiod) ** 2 / g
     kk = Gk.k
     dir_interp = np.interp(
         kk, Pwavenumber[Pwavenumber.argsort()], dir_best[Pwavenumber.argsort()]
@@ -428,7 +428,7 @@ def plot_instance(
 data_mask = Gk.gFT_PSD_data.mean("k")
 data_mask.coords["beam_group"] = (
     "beam",
-    ["beam_group" + g[2] for g in data_mask.beam.data],
+    ["beam_group" + g_[2] for g_ in data_mask.beam.data],
 )
 data_mask_group = data_mask.groupby("beam_group").mean(skipna=False)
 # these stancils are actually used
@@ -778,13 +778,13 @@ ax0.tick_params(labelleft=False)
 klims = 0, LL["K_prime"].max() * 1.2
 
 
-for g in MM.beam_group:
-    MMi = MM.sel(beam_group=g)
+for g_ in MM.beam_group:
+    MMi = MM.sel(beam_group=g_)
     plt.plot(
         MMi.weight.T,
         MMi.k,
         ".",
-        color=col_dict[str(g.data)],
+        color=col_dict[str(g_.data)],
         markersize=3,
         linewidth=0.8,
     )
@@ -794,8 +794,8 @@ plt.ylim(klims)
 
 ax1 = F.fig.add_subplot(gs[0:2, 0:-1])
 
-for g in MM.beam_group:
-    Li = LL.loc[str(g.data)]
+for g_ in MM.beam_group:
+    Li = LL.loc[str(g_.data)]
 
     angle_list = np.array(Li["alpha"]) * 180 / np.pi
     kk_list = np.array(Li["K_prime"])
@@ -805,8 +805,8 @@ for g in MM.beam_group:
         angle_list,
         kk_list,
         s=(weight_list_i * 8e1) ** 2,
-        c=col_dict[str(g.data)],
-        label="mode " + str(g.data),
+        c=col_dict[str(g_.data)],
+        label="mode " + str(g_.data),
     )
 
 
@@ -848,16 +848,16 @@ plt.xlim(min([-90, np.nanmin(dir_best)]), max([np.nanmax(dir_best), 90]))
 
 ax3 = F.fig.add_subplot(gs[2, 0:-1])
 
-for g in MM.beam_group:
-    MMi = MM.sel(beam_group=g)
-    wegihted_margins = (MMi.marginals * MMi.weight).sum(["x", "k"]) / MMi.weight.sum(
+for g_ in MM.beam_group:
+    MMi = MM.sel(beam_group=g_)
+    weighted_margins = (MMi.marginals * MMi.weight).sum(["x", "k"]) / MMi.weight.sum(
         ["x", "k"]
     )
     plt.plot(
         MMi.angle * 180 / np.pi,
-        wegihted_margins,
+        weighted_margins,
         ".",
-        color=col_dict[str(g.data)],
+        color=col_dict[str(g_.data)],
         markersize=2,
         linewidth=0.8,
     )
@@ -870,14 +870,14 @@ plt.xlim(-90, 90)
 
 ax3 = F.fig.add_subplot(gs[-1, 0:-1])
 
-for g in MM.beam_group:
-    MMi = MM.sel(beam_group=g)
-    wegihted_margins = MMi.marginals.mean(["x", "k"])
+for g_ in MM.beam_group:
+    MMi = MM.sel(beam_group=g_)
+    weighted_margins = MMi.marginals.mean(["x", "k"])
     plt.plot(
         MMi.angle * 180 / np.pi,
-        wegihted_margins,
+        weighted_margins,
         ".",
-        color=col_dict[str(g.data)],
+        color=col_dict[str(g_.data)],
         markersize=2,
         linewidth=0.8,
     )
