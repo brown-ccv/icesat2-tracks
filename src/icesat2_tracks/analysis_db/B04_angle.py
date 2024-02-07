@@ -4,6 +4,8 @@ This file open a ICEsat2 track applied filters and corrections and returns smoot
 This is python 3
 """
 
+import itertools
+
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
     color_schemes,
@@ -50,7 +52,7 @@ def run_B04_angle(
     track_name: str = Option(..., callback=validate_track_name_steps_gt_1),
     batch_key: str = Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
-    output_dir: str = Option(None, callback=validate_output_dir),
+    output_dir: str = Option(..., callback=validate_output_dir),
     verbose: bool = False,
 ):
     """
@@ -422,8 +424,6 @@ def run_B04_angle(
             plt.suptitle(title_str)
             gs = GridSpec(4, 3, wspace=0.4, hspace=1.2)
             F.gs = gs
-
-            import itertools
 
             col_list = itertools.cycle(
                 [
