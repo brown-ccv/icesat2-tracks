@@ -41,7 +41,7 @@ def run_A02c_IOWAGA_thredds_prior(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """
     TODO: add docstring
@@ -326,7 +326,7 @@ def run_A02c_IOWAGA_thredds_prior(
         font_for_print()
 
         F = M.figure_axis_xy(4, 3.5, view_scale=0.9, container=True)
-        
+
         file_name_base = "LOPS_WW3-GLOB-30M_"
         plt.suptitle(
             track_name_short + " | " + file_name_base[0:-1].replace("_", " "), y=1.3
@@ -589,7 +589,9 @@ def run_A02c_IOWAGA_thredds_prior(
     echo("done")
 
 
-step4app = makeapp(run_A02c_IOWAGA_thredds_prior, name="threads-prior")
+make_iowaga_threads_prior_app = makeapp(
+    run_A02c_IOWAGA_thredds_prior, name="threads-prior"
+)
 
 if __name__ == "__main__":
-    step4app()
+    make_iowaga_threads_prior_app()
