@@ -162,10 +162,9 @@ def report_input_parameters(heading: str = "** Input parameters:", **kwargs):
 
 
 def update_paths_mconfig(output_dir, mconfig):
-    if output_dir:
-        workdir, plotsdir = [
-            Path(output_dir, mconfig["paths"][key]) for key in ["work", "plot"]
-        ]
+    workdir, plotsdir = [
+        Path(output_dir, mconfig["paths"][key]) for key in ["work", "plot"]
+    ]
 
     return workdir, plotsdir
 
