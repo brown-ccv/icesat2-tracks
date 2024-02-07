@@ -162,6 +162,7 @@ makespectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:step2app"
 plotspectra = "icesat2_tracks.analysis_db.B03_plot_spectra_ov:step3app"
 iowagatp = "icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior:step4app"
 b04angle = "icesat2_tracks.analysis_db.B04_angle:step5app"
+b06corrects= "icesat2_tracks.analysis_db.B06_corrected_separate_var:step7app"
 icesat2waves = "icesat2_tracks.app:app"
 
 

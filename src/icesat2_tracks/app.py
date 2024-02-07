@@ -29,6 +29,9 @@ from icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior import (
 from icesat2_tracks.analysis_db.B04_angle import run_B04_angle as _run_B04_angle
 
 
+from icesat2_tracks.analysis_db.B06_correct_separate_var import run_B06_correct_separate_var as _run_correct_separate_var
+
+
 app = Typer(add_completion=False)
 validate_track_name_gt_1_opt = Option(..., callback=validate_track_name_steps_gt_1)
 validate_batch_key_opt = Option(..., callback=validate_batch_key)
@@ -80,6 +83,15 @@ def plotspectra(
     run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
 
 
+@app.command(help=_plotspectra.__doc__)
+def separate_var(
+    track_name: str = validate_track_name_gt_1_opt,
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
+
 @app.command(help=_threddsprior.__doc__)
 def iowagatp(
     track_name: str = validate_track_name_gt_1_opt,
@@ -98,6 +110,16 @@ def b04angle(  # TODO: rename with a verb or something
     output_dir: str = validate_output_dir_opt,
 ):
     run_job(_run_B04_angle, track_name, batch_key, ID_flag, output_dir)
+
+
+@app.command(help=_run_B04_angle.__doc__)
+def b06correctvar(  # TODO: rename with a verb or something
+    track_name: str = validate_track_name_gt_1_opt,
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+):
+    run_job(_run_correct_separate_var, track_name, batch_key, ID_flag, output_dir)
 
 
 if __name__ == "__main__":
