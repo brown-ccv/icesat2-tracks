@@ -1,15 +1,16 @@
+#!/usr/bin/env python
 """
-This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
+This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
 
-import  sys
+import sys
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
     color_schemes,
     plt,
-    font_for_print    
+    font_for_print,
 )
 
 import icesat2_tracks.ICEsat2_SI_tools.iotools as io
@@ -21,9 +22,47 @@ import time
 import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
-   
+
 from matplotlib.gridspec import GridSpec
 from scipy.ndimage import label
+
+
+def derive_weights(weights):
+    weights = (weights - weights.mean()) / weights.std()
+    weights = weights - weights.min()
+    return weights
+
+
+def weighted_means(data, weights, x_angle, color="k"):
+    """
+    weights should have nans when there is no data
+    data should have zeros where there is no data
+    """
+
+    # make wavenumber groups
+    groups, Ngroups = label(weights.where(~np.isnan(weights), 0))
+
+    for ng in np.arange(1, Ngroups + 1):
+        wi = weights[groups == ng]
+        weight_norm = weights.sum("k")
+        k = wi.k.data
+        data_k = data.sel(k=k).squeeze()
+        data_weight = data_k * wi
+        plt.stairs(
+            data_weight.sum("k") / weight_norm, x_angle, linewidth=1, color=color
+        )
+        if data_k.k.size > 1:
+            for k in data_k.k.data:
+                plt.stairs(
+                    data_weight.sel(k=k) / weight_norm, x_angle, color="gray", alpha=0.5
+                )
+
+    data_weighted_mean = (
+        data.where((~np.isnan(data)) & (data != 0), np.nan) * weights
+    ).sum("k") / weight_norm
+    return data_weighted_mean
+
+
 color_schemes.colormaps2(21)
 
 col_dict = color_schemes.rels
@@ -62,41 +101,7 @@ Prior = MT.load_pandas_table_dict("/A02_" + track_name, load_path)["priors_hindc
 save_path = mconfig["paths"]["work"] + batch_key + "/B04_angle/"
 
 
-def derive_weights(weights):
-    weights = (weights - weights.mean()) / weights.std()
-    weights = weights - weights.min()
-    return weights
-
-
-def weighted_means(data, weights, x_angle, color="k"):
-    """
-    weights should have nans when there is no data
-    data should have zeros where there is no data
-    """
-
-    # make wavenumber groups
-    groups, Ngroups = label(weights.where(~np.isnan(weights), 0))
-
-    for ng in np.arange(1, Ngroups + 1):
-        wi = weights[groups == ng]
-        weight_norm = weights.sum("k")
-        k = wi.k.data
-        data_k = data.sel(k=k).squeeze()
-        data_weight = data_k * wi
-        plt.stairs(data_weight.sum("k") / weight_norm, x_angle, linewidth=1, color="k")
-        if data_k.k.size > 1:
-            for k in data_k.k.data:
-                plt.stairs(
-                    data_weight.sel(k=k) / weight_norm, x_angle, color="gray", alpha=0.5
-                )
-
-    data_weighted_mean = (
-        data.where((~np.isnan(data)) & (data != 0), np.nan) * weights
-    ).sum("k") / weight_norm
-    return data_weighted_mean
-
-
-# cut out data at the boundary and redistibute variance
+# cut out data at the boundary and redistribute variance
 angle_mask = Marginals.angle * 0 == 0
 angle_mask[0], angle_mask[-1] = False, False
 corrected_marginals = (
@@ -104,16 +109,18 @@ corrected_marginals = (
     + Marginals.marginals.isel(angle=~angle_mask).sum("angle") / sum(angle_mask).data
 )
 
-# get groupweights
-# ----------------- thius does not work jet.ckeck with data on server how to get number of data points per stancil
+# get group weights
+# ----------------- this does not work yet. Check with data on server how to get number of data points per stancil
 # Gx['x'] = Gx.x - Gx.x[0]
 
-# makde dummy variables
+# make dummy variables
 M_final = xr.full_like(
-    corrected_marginals.isel(k=0, beam_group=0).drop_vars("beam_group").drop_vars("k"), np.nan
+    corrected_marginals.isel(k=0, beam_group=0).drop_vars("beam_group").drop_vars("k"),
+    np.nan,
 )
 M_final_smth = xr.full_like(
-    corrected_marginals.isel(k=0, beam_group=0).drop_vars("beam_group").drop_vars("k"), np.nan
+    corrected_marginals.isel(k=0, beam_group=0).drop_vars("beam_group").drop_vars("k"),
+    np.nan,
 )
 if M_final.shape[0] > M_final.shape[1]:
     M_final = M_final.T
@@ -183,13 +190,13 @@ for xi in range(x_list.size):
         d_angle = np.diff(x_angle)[0]
         x_angle = np.insert(x_angle, x_angle.size, x_angle[-1].data + d_angle)
 
-        if ((~np.isnan(data)).sum().data == 0) | ((~np.isnan(weights)).sum().data == 0):
+        if any(np.all(np.isnan(x)) for x in [data, weights]):
             data_wmean = data.mean("k")
         else:
             data_wmean = weighted_means(data, weights, x_angle, color=col_dict[group])
             plt.stairs(data_wmean, x_angle, color=col_dict[group], alpha=1)
 
-        plt.title("Marginal PDF " + group, loc="left")
+        plt.title(f"Marginal PDF {group}", loc="left")
         plt.sca(ax_sum)
 
         data_collect[group] = data_wmean
@@ -210,13 +217,14 @@ for xi in range(x_list.size):
         axx.set_xticks(xticks_pi)
         axx.set_xticklabels(xtick_labels_pi)
 
-    try:
-        ax_list["group3"].set_ylabel("PDF")
-        ax_list["group1"].set_ylabel("PDF")
-        ax_list["group3"].tick_params(labelbottom=True)
-        ax_list["group3"].set_xlabel("Angle (rad)")
-    except:
-        pass
+    for key in ["group3", "group1"]:
+        if key in ax_list:
+            ax_list[key].set_ylabel("PDF")
+            if key == "group3":
+                ax_list[key].tick_params(labelbottom=True)
+                ax_list[key].set_xlabel("Angle (rad)")
+        else:
+            print(f"Key {key} not found in ax_list")
 
     ax_final = F.fig.add_subplot(gs[-1, :])
     plt.title("Final angle PDF", loc="left")
@@ -255,7 +263,7 @@ for xi in range(x_list.size):
     M_final[xi, :] = final_data
     M_final_smth[xi, :] = final_data_smth
 
-    F.save_pup(path=plot_path, name="B05_weigthed_margnials_x" + x_str)
+    F.save_pup(path=plot_path, name="B05_weighted_marginals_x" + x_str)
 
 
 M_final.name = "weighted_angle_PDF"
@@ -276,11 +284,11 @@ if len(Gpdf.x) < 2:
     exit()
 
 
-class plot_polarspectra(object):
+class PlotPolarSpectra:
     def __init__(self, k, thetas, data, data_type="fraction", lims=None, verbose=False):
         """
         data_type       either 'fraction' or 'energy', default (fraction)
-        lims            (None) limts of k. if None set by the limits of the vector k
+        lims            (None) limits of k. if None set by the limits of the vector k
         """
         self.k = k
         self.data = data
@@ -306,15 +314,15 @@ class plot_polarspectra(object):
             self.clevs = np.linspace(self.min + self.min * 0.05, self.max * 0.60, 21)
 
     def linear(self, radial_axis="period", ax=None, cbar_flag=True):
-        """ """
+        """
+        TODO: add docstring
+        """
         if ax is None:
             ax = plt.subplot(111, polar=True)
-        else:
-            ax = ax
+
         ax.set_theta_direction(-1)
         ax.set_theta_zero_location("W")
-
-        grid = ax.grid(color="k", alpha=0.5, linestyle="-", linewidth=0.5)
+        ax.grid(color="k", alpha=0.5, linestyle="-", linewidth=0.5)
 
         if self.data_type == "fraction":
             cm = plt.cm.RdYlBu_r
@@ -327,7 +335,7 @@ class plot_polarspectra(object):
             cm.set_bad = "w"
             colorax = ax.contourf(
                 self.thetas, self.k, self.data, self.clevs, cmap=cm, zorder=1
-            )  # , vmin=self.ctrs_min)
+            )
 
         if cbar_flag:
             cbar = plt.colorbar(
@@ -349,7 +357,7 @@ class plot_polarspectra(object):
         xx_tick_names, xx_ticks = MT.tick_formatter(
             radial_ticks, expt_flag=False, shift=1, rounder=0, interval=1
         )
-        xx_tick_names = ["  " + str(d) + "m" for d in xx_tick_names]
+        xx_tick_names = [f"  {d}m" for d in xx_tick_names]
 
         ax.set_yticks(xx_ticks[::1])
         ax.set_yticklabels(xx_tick_names[::1])
@@ -361,7 +369,9 @@ class plot_polarspectra(object):
             degrange_label[degrange_label > 180] - 360
         )
 
-        degrange_label = [str(d) + "$^{\circ}$" for d in degrange_label]
+        degrange_label = [
+            str(d) + "$^{\circ}$" for d in degrange_label
+        ]  # TODO: maybe replace the latex with "°"?
 
         lines, labels = plt.thetagrids(degrange, labels=degrange_label)
 
@@ -491,7 +501,7 @@ for x_pos, gs in zip(x_chunks.T, [gs[-3:, 0:2], gs[-3:, 2:4], gs[-3:, 4:]]):
 
     if np.nanmax(plot_data.data) != np.nanmin(plot_data.data):
         ax3 = F.fig.add_subplot(gs, polar=True)
-        FP = plot_polarspectra(
+        FP = PlotPolarSpectra(
             xx,
             plot_data.angle,
             plot_data,
