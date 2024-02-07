@@ -44,12 +44,14 @@ def run_job(
     batch_key: str,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
+    verbose: bool = False
 ):
     analysis_func(
         track_name,
         batch_key,
         ID_flag,
         output_dir,
+        verbose
     )
 
 
@@ -59,8 +61,9 @@ def loadfile(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
+    verbose: bool = False
 ):
-    run_job(_loadfile, track_name, batch_key, ID_flag, output_dir)
+    run_job(_loadfile, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
 @app.command(help=_makespectra.__doc__)
@@ -69,8 +72,9 @@ def makespectra(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
+    verbose: bool = False
 ):
-    run_job(_makespectra, track_name, batch_key, ID_flag, output_dir)
+    run_job(_makespectra, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
 @app.command(help=_plotspectra.__doc__)
@@ -79,8 +83,9 @@ def plotspectra(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
+    verbose: bool = False
 ):
-    run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
+    run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
 @app.command(help=_plotspectra.__doc__)
@@ -98,8 +103,9 @@ def iowagatp(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
+    verbose: bool = False
 ):
-    run_job(_threddsprior, track_name, batch_key, ID_flag, output_dir)
+    run_job(_threddsprior, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
 @app.command(help=_run_B04_angle.__doc__)
@@ -108,8 +114,9 @@ def b04angle(  # TODO: rename with a verb or something
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
+    verbose: bool = False
 ):
-    run_job(_run_B04_angle, track_name, batch_key, ID_flag, output_dir)
+    run_job(_run_B04_angle, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
 @app.command(help=_run_B04_angle.__doc__)
