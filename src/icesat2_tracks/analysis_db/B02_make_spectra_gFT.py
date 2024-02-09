@@ -68,24 +68,25 @@ def run_B02_make_spectra_gFT(
     """
     TODO: add docstring
     """
+
+    track_name, batch_key, _ = io.init_from_input(
+        [
+            None,
+            track_name,
+            batch_key,
+            ID_flag,
+        ]  # init_from_input expects sys.argv with 4 elements
+    )
+
+    kargs = {
+        "track_name": track_name,
+        "batch_key": batch_key,
+        "ID_flag": ID_flag,
+        "output_dir": output_dir,
+    }
+    report_input_parameters(**kargs)
+    
     with suppress_stdout(verbose):
-        track_name, batch_key, _ = io.init_from_input(
-            [
-                None,
-                track_name,
-                batch_key,
-                ID_flag,
-            ]  # init_from_input expects sys.argv with 4 elements
-        )
-
-        kargs = {
-            "track_name": track_name,
-            "batch_key": batch_key,
-            "ID_flag": ID_flag,
-            "output_dir": output_dir,
-        }
-        report_input_parameters(**kargs)
-
         hemis, batch = batch_key.split("_")
 
         workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
