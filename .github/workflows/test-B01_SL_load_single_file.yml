@@ -31,5 +31,5 @@ jobs:
       - name: first step B01_SL_load_single_file
         run: loadfile --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: second step make_spectra
-        run: makespectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+        run: make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
         
