@@ -7,8 +7,8 @@ This is python 3
 import copy
 import datetime
 import h5py
-import time
 from pathlib import Path
+from functools import partial
 
 import numpy as np
 import xarray as xr
@@ -104,14 +104,14 @@ def run_B02_make_spectra_gFT(
         all_beams = mconfig["beams"]["all_beams"]
 
         N_process = 4
+        print("N_process=", N_process)
 
-        # open with hdf5
         Gd = h5py.File(Path(load_path) / (track_name + "_B01_binned.h5"), "r")
 
         # test amount of nans in the data
         nan_fraction = list()
         for k in all_beams:
-            heights_c_std = io.get_beam_var_hdf_store(Gd[k], "dist")
+            heights_c_std = io.get_beam_var_hdf_store(Gd[k], "x")
             nan_fraction.append(
                 np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0]
             )
@@ -125,7 +125,7 @@ def run_B02_make_spectra_gFT(
             Ib = Gd[group[1]]
             ratio = Ia["x"][:].size / Ib["x"][:].size
             if (ratio > 10) | (ratio < 0.1):
-                # print("bad data ratio ", ratio, 1 / ratio) # TODO: add logger
+                print("bad data ratio ", ratio, 1 / ratio)
                 bad_ratio_flag = True
 
         if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
@@ -146,8 +146,8 @@ def run_B02_make_spectra_gFT(
         # test LS with an even grid where missing values are set to 0
         print(Gd.keys())
         Gi = Gd[list(Gd.keys())[0]]  # to select a test  beam
-        dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "dist")
-
+        dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "x")
+        # make dataframe form hdf5
         # derive spectral limits
         # Longest deserved period:
         T_max = 40  # sec
@@ -176,24 +176,17 @@ def run_B02_make_spectra_gFT(
         print("define global xlims")
         dist_list = np.array([np.nan, np.nan])
         for k in all_beams:
-            # print(k) # TODO: add logger
-            hkey = "heights_c_weighted_mean"
-            x = Gd[k + "/dist"][:]
-            # print(x[0], x[-1]) # TODO: add logger
+            print(k)
+            x = Gd[k + "/x"][:]
+            print(x[0], x[-1])
             dist_list = np.vstack([dist_list, [x[0], x[-1]]])
 
         xlims = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
 
-        dist_lim = 2000e3  # maximum distance in the sea ice that is analyzed:
-
-        if (xlims[1] - xlims[0]) > dist_lim:
-            xlims = xlims[0], xlims[0] + dist_lim
-            print("-reduced xlims length to ", xlims[0] + dist_lim, "m")
-
         for k in all_beams:
-            dist_i = io.get_beam_var_hdf_store(Gd[k], "dist")
+            dist_i = io.get_beam_var_hdf_store(Gd[k], "x")
             x_mask = (dist_i > xlims[0]) & (dist_i < xlims[1])
-            # print(k, sum(x_mask["dist"]) / (xlims[1] - xlims[0])) # TODO: add logger
+            print(k, sum(x_mask["x"]) / (xlims[1] - xlims[0]))
 
         print("-reduced frequency resolution")
         kk = kk[::2]
@@ -212,18 +205,19 @@ def run_B02_make_spectra_gFT(
         G_rar_fft = dict()
         Pars_optm = dict()
 
+        # sliderule version
+        hkey = "h_mean"
+        hkey_sigma = "h_sigma"
         for k in all_beams:
             # tracemalloc.start()
             # -------------------------------  use gridded data
-            hkey = "heights_c_weighted_mean"
             Gi = io.get_beam_hdf_store(Gd[k])
-            x_mask = (Gi["dist"] > xlims[0]) & (Gi["dist"] < xlims[1])
+            x_mask = (Gi["x"] > xlims[0]) & (Gi["x"] < xlims[1])
             if sum(x_mask) / (xlims[1] - xlims[0]) < 0.005:
-                # print("------------------- not data in beam found; skip") # TODO: add logger
-                continue
+                print("------------------- no data in beam found; skip")
 
             Gd_cut = Gi[x_mask]
-            x = Gd_cut["dist"]
+            x = Gd_cut["x"]
             del Gi
             # cut data:
             x_mask = (x >= xlims[0]) & (x <= xlims[1])
@@ -231,11 +225,8 @@ def run_B02_make_spectra_gFT(
 
             dd = np.copy(Gd_cut[hkey])
 
-            dd_error = np.copy(Gd_cut["heights_c_std"])
+            dd_error = np.copy(Gd_cut[hkey_sigma])
             dd_error[np.isnan(dd_error)] = 100
-            # plt.hist(1/dd_weight, bins=40)
-            F = M.figure_axis_xy(6, 3)
-            plt.subplot(2, 1, 1)
 
             # compute slope spectra !!
             dd = np.gradient(dd)
@@ -247,16 +238,7 @@ def run_B02_make_spectra_gFT(
             x_no_nans = x[~dd_nans]
             dd_error_no_nans = dd_error[~dd_nans]
 
-            plt.plot(
-                x_no_nans,
-                dd_no_nans,
-                ".",
-                color="black",
-                markersize=1,
-                label="slope (m/m)",
-            )
-            plt.legend()
-            plt.show()
+            print("gFT")
 
             with threadpool_limits(limits=N_process, user_api="blas"):
                 pprint(threadpool_info())
@@ -381,6 +363,7 @@ def run_B02_make_spectra_gFT(
                     plt.ylim(ylims[0], ylims[-1])
                     plt.show()
 
+            # add x-mean spectral error estimate to xarray
             S.parceval(add_attrs=True, weight_data=False)
 
             # assign beam coordinate
@@ -399,10 +382,10 @@ def run_B02_make_spectra_gFT(
             )
 
             # add more coordinates to the Dataset
-            x_coord_no_gaps = linear_gap_fill(Gd_cut, "dist", "x")
-            y_coord_no_gaps = linear_gap_fill(Gd_cut, "dist", "y")
+            x_coord_no_gaps = linear_gap_fill(Gd_cut, "x", "x")
+            y_coord_no_gaps = linear_gap_fill(Gd_cut, "x", "y")
             mapped_coords = spec.sub_sample_coords(
-                Gd_cut["dist"],
+                Gd_cut["x"],
                 x_coord_no_gaps,
                 y_coord_no_gaps,
                 S.stancil_iter,
@@ -425,10 +408,10 @@ def run_B02_make_spectra_gFT(
                 GG.coords["x_coord"][nan_mask] = np.nan
                 GG.coords["y_coord"][nan_mask] = np.nan
 
-            lons_no_gaps = linear_gap_fill(Gd_cut, "dist", "lons")
-            lats_no_gaps = linear_gap_fill(Gd_cut, "dist", "lats")
+            lons_no_gaps = linear_gap_fill(Gd_cut, "x", "lons")
+            lats_no_gaps = linear_gap_fill(Gd_cut, "x", "lats")
             mapped_coords = spec.sub_sample_coords(
-                Gd_cut["dist"],
+                Gd_cut["x"],
                 lons_no_gaps,
                 lats_no_gaps,
                 S.stancil_iter,
@@ -445,14 +428,15 @@ def run_B02_make_spectra_gFT(
             )
 
             # calculate number data points
-            def get_stancil_nans(stancil):
+            def _get_stancil_nans(stancil, Gd_cut=Gd_cut):
                 x_mask = (stancil[0] < x) & (x <= stancil[-1])
-                idata = Gd_cut["N_photos"][x_mask]  # noqa: F821
-                return stancil[1], idata.sum()
+                idata = Gd_cut["N_photos"][x_mask].sum()
+                return stancil[1], idata
 
+            get_stancil_nans = partial(_get_stancil_nans, Gd_cut=Gd_cut)
             photon_list = np.array(
                 list(dict(map(get_stancil_nans, copy.copy(S.stancil_iter))).values())
-            )
+            )  # TODO: make more readable. CP
             GG.coords["N_photons"] = (("x", "beam"), np.expand_dims(photon_list, 1))
 
             # Save to dict
@@ -492,9 +476,12 @@ def run_B02_make_spectra_gFT(
 
             def get_stancil_nans(stancil):
                 idata = dd_nans[stancil[0] : stancil[-1]]
-                return stancil[1], idata.size - idata.sum()
+                result = idata.size - idata.sum()
+                return stancil[1], result
 
-            N_list = np.array(list(dict(map(get_stancil_nans, stancil_iter)).values()))
+            N_list = np.array(
+                list(dict(map(get_stancil_nans, stancil_iter)).values())
+            )  # TODO: make more readable. CP
 
             # repack such that all coords are associated with beam
             G.coords["N_per_stancil"] = (("x", "beam"), np.expand_dims(N_list, 1))
@@ -518,9 +505,8 @@ def run_B02_make_spectra_gFT(
                 )
                 plt.legend()
                 plt.show()
-            except Exception:
-                print("The command G_rar_fft_p = G.squeeze() failed. Nothing to plot.")
-            time.sleep(3)
+            except Exception as e:
+                print(e, "An error occurred. Nothing to plot.")
 
         del Gd_cut
         Gd.close()
@@ -588,7 +574,7 @@ def run_B02_make_spectra_gFT(
         echo("saved and done")
 
 
-step2app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
+make_spectra_app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
 
 if __name__ == "__main__":
-    step2app()
+    make_spectra_app()
