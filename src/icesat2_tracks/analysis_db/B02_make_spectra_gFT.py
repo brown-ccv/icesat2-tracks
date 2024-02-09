@@ -16,16 +16,16 @@ from pprint import pprint
 from scipy.ndimage import label
 from threadpoolctl import threadpool_info, threadpool_limits
 import matplotlib
+from matplotlib import pyplot as plt
 import typer
 
 import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-import h5py
 import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 import icesat2_tracks.local_modules.m_general_ph3 as M
 import icesat2_tracks.local_modules.m_spectrum_ph3 as spicke_remover
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
-from icesat2_tracks.config.IceSAT2_startup import mconfig, plt
+from icesat2_tracks.config.IceSAT2_startup import mconfig
 
 from icesat2_tracks.clitools import (
     echo,
@@ -38,10 +38,11 @@ from icesat2_tracks.clitools import (
     makeapp,
 )
 
-import tracemalloc
+# import tracemalloc # removing this for now. CP
 
 
 matplotlib.use("Agg")  # prevent plot windows from opening
+
 
 def linear_gap_fill(F, key_lead, key_int):
     """
@@ -62,7 +63,7 @@ def run_B02_make_spectra_gFT(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """
     TODO: add docstring
@@ -111,7 +112,9 @@ def run_B02_make_spectra_gFT(
         nan_fraction = list()
         for k in all_beams:
             heights_c_std = io.get_beam_var_hdf_store(Gd[k], "dist")
-            nan_fraction.append(np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0])
+            nan_fraction.append(
+                np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0]
+            )
 
         del heights_c_std
 
@@ -181,7 +184,7 @@ def run_B02_make_spectra_gFT(
 
         xlims = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
 
-        dist_lim = 2000e3  # maximum distance in the sea ice tha tis analysed:
+        dist_lim = 2000e3  # maximum distance in the sea ice that is analyzed:
 
         if (xlims[1] - xlims[0]) > dist_lim:
             xlims = xlims[0], xlims[0] + dist_lim
@@ -196,20 +199,21 @@ def run_B02_make_spectra_gFT(
         kk = kk[::2]
 
         print("set xlims: ", xlims)
-        print(
-            "Loop start:  ",
-            tracemalloc.get_traced_memory()[0] / 1e6,
-            tracemalloc.get_traced_memory()[1] / 1e6,
-        )
+
+        # Commented out for now. CP
+        # print(
+        #     "Loop start:  ",
+        #     tracemalloc.get_traced_memory()[0] / 1e6,
+        #     tracemalloc.get_traced_memory()[1] / 1e6,
+        # )
 
         G_gFT = dict()
         G_gFT_x = dict()
         G_rar_fft = dict()
         Pars_optm = dict()
 
-        k = all_beams[0]
         for k in all_beams:
-            tracemalloc.start()
+            # tracemalloc.start()
             # -------------------------------  use gridded data
             hkey = "heights_c_weighted_mean"
             Gi = io.get_beam_hdf_store(Gd[k])
@@ -244,7 +248,12 @@ def run_B02_make_spectra_gFT(
             dd_error_no_nans = dd_error[~dd_nans]
 
             plt.plot(
-                x_no_nans, dd_no_nans, ".", color="black", markersize=1, label="slope (m/m)"
+                x_no_nans,
+                dd_no_nans,
+                ".",
+                color="black",
+                markersize=1,
+                label="slope (m/m)",
             )
             plt.legend()
             plt.show()
@@ -265,12 +274,13 @@ def run_B02_make_spectra_gFT(
                     xlims=xlims, max_nfev=8000, plot_flag=False
                 )
 
-            print(
-                "after ",
-                k,
-                tracemalloc.get_traced_memory()[0] / 1e6,
-                tracemalloc.get_traced_memory()[1] / 1e6,
-            )
+            # Commented out for now. CP
+            # print(
+            #     "after ",
+            #     k,
+            #     tracemalloc.get_traced_memory()[0] / 1e6,
+            #     tracemalloc.get_traced_memory()[1] / 1e6,
+            # )
 
             plot_data_model = False
             if plot_data_model:
@@ -288,11 +298,23 @@ def run_B02_make_spectra_gFT(
 
                     y_model = GG_x.y_model[:, i]
                     plt.plot(
-                        eta + xi_1, y_model, "-", c=c1, linewidth=0.8, alpha=1, zorder=12
+                        eta + xi_1,
+                        y_model,
+                        "-",
+                        c=c1,
+                        linewidth=0.8,
+                        alpha=1,
+                        zorder=12,
                     )
                     y_model = GG_x.y_model[:, i + 1]
                     plt.plot(
-                        eta + xi_2, y_model, "-", c=c2, linewidth=0.8, alpha=1, zorder=12
+                        eta + xi_2,
+                        y_model,
+                        "-",
+                        c=c2,
+                        linewidth=0.8,
+                        alpha=1,
+                        zorder=12,
                     )
 
                     FT = gFT.generalized_Fourier(eta + xi_1, None, GG.k)
@@ -371,7 +393,10 @@ def run_B02_make_spectra_gFT(
                 ("x", "beam"),
                 np.expand_dims(GG["N_per_stancil"], 1),
             )
-            GG.coords["spec_adjust"] = (("x", "beam"), np.expand_dims(GG["spec_adjust"], 1))
+            GG.coords["spec_adjust"] = (
+                ("x", "beam"),
+                np.expand_dims(GG["spec_adjust"], 1),
+            )
 
             # add more coordinates to the Dataset
             x_coord_no_gaps = linear_gap_fill(Gd_cut, "dist", "x")
@@ -403,7 +428,11 @@ def run_B02_make_spectra_gFT(
             lons_no_gaps = linear_gap_fill(Gd_cut, "dist", "lons")
             lats_no_gaps = linear_gap_fill(Gd_cut, "dist", "lats")
             mapped_coords = spec.sub_sample_coords(
-                Gd_cut["dist"], lons_no_gaps, lats_no_gaps, S.stancil_iter, map_func=None
+                Gd_cut["dist"],
+                lons_no_gaps,
+                lats_no_gaps,
+                S.stancil_iter,
+                map_func=None,
             )
 
             GG.coords["lon"] = GG_x.coords["lon"] = (
