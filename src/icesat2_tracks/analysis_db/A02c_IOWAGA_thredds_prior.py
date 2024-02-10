@@ -35,53 +35,207 @@ from icesat2_tracks.clitools import (
 color_schemes.colormaps2(21)
 matplotlib.use("Agg")  # prevent plot windows from opening
 
+dtime = 4  # in hours
+
+# IOWAGA constants
+data_url = "https://tds3.ifremer.fr/thredds/IOWAGA-WW3-FORECAST/IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M.xml"
+dataset_key = "IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M_FIELD_NC_MARC_WW3-GLOB-30M"
+
+
+def get_iowaga(data_url=data_url, dataset_key=dataset_key):
+    ## load WW3 data
+    # ECMWF hindcast
+    # data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-HINDCAST/IOWAGA-GLOBAL_ECMWF-WW3-HINDCAST_FULL_TIME_SERIE.xml'
+
+    # CFSR hindcast
+    # data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-HINDCAST/IOWAGA-GLOBAL_CFSR-WW3-HINDCAST_FULL_TIME_SERIE.xml'
+    cat = TDSCatalog(data_url)
+    ncss = cat.datasets[dataset_key].remote_access(use_xarray=True)
+
+    var_list = [
+        "dir",
+        "dp",
+        "fp",
+        "hs",
+        "ice",
+        "spr",
+        "t01",
+        "t02",
+        "plp0",
+        "pdir0",
+        "pdir1",
+        "pdir2",
+        "pdir3",
+        "pdir4",
+        "pdir5",
+        "pspr0",
+        "pspr1",
+        "pspr2",
+        "pspr3",
+        "pspr4",
+        "pspr5",
+        "ptp0",
+        "ptp1",
+        "ptp2",
+        "ptp3",
+        "ptp4",
+        "ptp5",
+        "phs0",
+        "phs1",
+        "phs2",
+        "phs3",
+        "phs4",
+        "phs5",
+    ]
+    names_map = {
+        "pdir0": "pdp0",
+        "pdir1": "pdp1",
+        "pdir2": "pdp2",
+        "pdir3": "pdp3",
+        "pdir4": "pdp4",
+        "pdir5": "pdp5",
+    }
+    IOWAGA = ncss[var_list]
+    IOWAGA["time"] = np.array([np.datetime64(k0) for k0 in IOWAGA.time.data]).astype(
+        "M8[h]"
+    )
+    IOWAGA = IOWAGA.rename(name_dict=names_map)
+
+    return IOWAGA
+
+
+def sel_data(Ibeam, lon_range, lat_range, time_range, timestamp=None):
+    """
+    this method returns the selected data in the lon-lat box at an interpolated timestamp
+    """
+    # TODO: refactor to avoid code duplication
+    lon_flag = (lon_range[0] < Ibeam.longitude.data) & (
+        Ibeam.longitude.data < lon_range[1]
+    )
+    lat_flag = (lat_range[0] < Ibeam.latitude.data) & (
+        Ibeam.latitude.data < lat_range[1]
+    )
+    time_flag = (time_range[0] < Ibeam.time.data) & (Ibeam.time.data < time_range[1])
+
+    if timestamp is None:
+        Ibeam = Ibeam.isel(latitude=lat_flag, longitude=lon_flag)
+    else:
+        Ibeam = (
+            Ibeam.isel(latitude=lat_flag, longitude=lon_flag, time=time_flag)
+            .sortby("time")
+            .interp(time=np.datetime64(timestamp))
+        )
+    return Ibeam
+
+
+def build_prior(Tend: pd.DataFrame):
+    """
+    Build a prior dictionary from the Tend DataFrame
+
+    Args:
+        Tend (pd.DataFrame): DataFrame containing the mean and standard deviation of the wave parameters
+
+    Returns:
+        dict: A dictionary containing the prior wave parameters
+    """
+    Prior = dict()
+    key_mapping = {
+        "incident_angle": "dp",
+        "spread": "spr",
+        "Hs": "hs",
+        "center_lon": "lon",
+        "center_lat": "lat",
+    }
+
+    # populate Prior
+    for key, tend_key in key_mapping.items():
+        Prior[key] = {
+            "value": Tend["mean"][tend_key].astype("float"),
+            "name": Tend["name"][tend_key],
+        }
+
+    # Handle "peak_period" separately
+    Prior["peak_period"] = {
+        "value": 1 / Tend["mean"]["fp"].astype("float"),
+        "name": "1/" + Tend["name"]["fp"],
+    }
+
+    return Prior
+
+
+def calculate_ranges(hemis, G1, dlon_deg, dlat_deg, dlat_deg_prior):
+    lon_range = G1["lons"].min() - dlon_deg, G1["lons"].max() + dlon_deg
+
+    if hemis == "SH":
+        lat_range = np.sign(G1["lats"].min()) * 78, G1["lats"].max() + dlat_deg[1]
+    else:
+        lat_range = G1["lats"].min() - dlat_deg[0], G1["lats"].max() + dlat_deg[1]
+
+    lat_range_prior = (
+        G1["lats"].min() - dlat_deg_prior[0],
+        G1["lats"].max() + dlat_deg_prior[1],
+    )
+
+    return lon_range, lat_range, lat_range_prior
+
+
+def define_timestamp_and_time_range(ID, dtime):
+    timestamp = pd.to_datetime(ID["pars"]["start"]["delta_time"], unit="s")
+    time_range = np.datetime64(timestamp) - np.timedelta64(dtime, "h"), np.datetime64(
+        timestamp
+    ) + np.timedelta64(dtime, "h")
+    return timestamp, time_range
+
 
 def run_A02c_IOWAGA_thredds_prior(
     track_name: str = typer.Option(..., callback=validate_track_name_steps_gt_1),
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
-    output_dir: str = typer.Option(None, callback=validate_output_dir),
-    verbose: bool = False
+    data_url: str = typer.Option(data_url),
+    dataset_key: str = typer.Option(dataset_key),
+    output_dir: str = typer.Option(..., callback=validate_output_dir),
+    verbose: bool = False,
 ):
     """
     TODO: add docstring
     """
+
+    track_name, batch_key, _ = io.init_from_input(
+        [
+            None,
+            track_name,
+            batch_key,
+            ID_flag,
+        ]  # init_from_input expects sys.argv with 4 elements
+    )
+
+    kwargs = {
+        "track_name": track_name,
+        "batch_key": batch_key,
+        "ID_flag": ID_flag,
+        "output_dir": output_dir,
+    }
+    report_input_parameters(**kwargs)
+
+    track_name_short = track_name[0:-16]
+
+    workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
+
+    ID, track_names, hemis, batch = io.init_data(
+        str(track_name), str(batch_key), str(ID_flag), str(workdir)
+    )  # TODO: clean up application of str() to all arguments
+
+    kwargs = {
+        "ID": ID,
+        "track_names": track_names,
+        "hemis": hemis,
+        "batch": batch,
+        "mconfig": workdir,
+        "heading": "** Revised input parameters:",
+    }
+    report_input_parameters(**kwargs)
+
     with suppress_stdout(verbose):
-        track_name, batch_key, _ = io.init_from_input(
-            [
-                None,
-                track_name,
-                batch_key,
-                ID_flag,
-            ]  # init_from_input expects sys.argv with 4 elements
-        )
-
-        kargs = {
-            "track_name": track_name,
-            "batch_key": batch_key,
-            "ID_flag": ID_flag,
-            "output_dir": output_dir,
-        }
-        report_input_parameters(**kargs)
-
-        track_name_short = track_name[0:-16]
-
-        workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
-        with suppress_stdout():
-            ID, track_names, hemis, batch = io.init_data(
-                str(track_name), str(batch_key), str(ID_flag), str(workdir)
-            )  # TODO: clean up application of str() to all arguments
-
-        kargs = {
-            "ID": ID,
-            "track_names": track_names,
-            "hemis": hemis,
-            "batch": batch,
-            "mconfig": workdir,
-            "heading": "** Revised input parameters:",
-        }
-        report_input_parameters(**kargs)
-
         hemis, batch = batch_key.split("_")
 
         save_path = Path(workdir, batch_key, "A02_prior")
@@ -94,147 +248,47 @@ def run_A02c_IOWAGA_thredds_prior(
         all_beams = mconfig["beams"]["all_beams"]
 
         load_path = Path(workdir, batch_key, "B01_regrid")
-        Gd = h5py.File(load_path / (track_name + "_B01_binned.h5"), "r")
+        with h5py.File(load_path / (track_name + "_B01_binned.h5"), "r") as Gd:
 
-        G1 = dict()
-        for b in all_beams:
-            Gi = io.get_beam_hdf_store(Gd[b])
-            G1[b] = Gi.iloc[abs(Gi["lats"]).argmin()]
+            # Select the beam with the minimum absolute latitude for each beam in the dataset Gd
+            # and store the corresponding row as a dictionary in G1? CP
+            G1 = {
+                b: io.get_beam_hdf_store(Gd[b]).iloc[
+                    abs(io.get_beam_hdf_store(Gd[b])["lats"]).argmin()
+                ]
+                for b in all_beams
+            }
 
-        Gd.close()
         G1 = pd.DataFrame.from_dict(G1).T
 
         if hemis == "SH":
-            # DEFINE SEARCH REGION AND SIZE OF BOXES FOR AVERAGES
-            dlon_deg = 1  # degree range around 1st point
-            dlat_deg = 30, 5  # degree range around 1st point
-            dlat_deg_prior = 2, 1  # degree range around 1st point
-
-            dtime = 4  # in hours
-
-            lon_range = G1["lons"].min() - dlon_deg, G1["lons"].max() + dlon_deg
-            lat_range = np.sign(G1["lats"].min()) * 78, G1["lats"].max() + dlat_deg[1]
-            lat_range_prior = (
-                G1["lats"].min() - dlat_deg_prior[0],
-                G1["lats"].max() + dlat_deg_prior[1],
+            lon_range, lat_range, lat_range_prior = calculate_ranges(
+                hemis=hemis, G1=G1, dlon_deg=1, dlat_deg=(30, 5), dlat_deg_prior=(2, 1)
             )
-
         else:
-            # DEFINE SEARCH REGION AND SIZE OF BOXES FOR AVERAGES
-            dlon_deg = 2  # lon degree range around 1st point
-            dlat_deg = 20, 20  # lat degree range around 1st point
-            dlat_deg_prior = 2, 1  # degree range around 1st point
-
-            dtime = 4  # in hours
-
-            lon_range = G1["lons"].min() - dlon_deg, G1["lons"].max() + dlon_deg
-            lat_range = G1["lats"].min() - dlat_deg[0], G1["lats"].max() + dlat_deg[1]
-            lat_range_prior = (
-                G1["lats"].min() - dlat_deg_prior[0],
-                G1["lats"].max() + dlat_deg_prior[1],
+            lon_range, lat_range, lat_range_prior = calculate_ranges(
+                hemis=hemis, G1=G1, dlon_deg=2, dlat_deg=(20, 20), dlat_deg_prior=(2, 1)
             )
 
-        timestamp = pd.to_datetime(ID["pars"]["start"]["delta_time"], unit="s")
-        time_range = np.datetime64(timestamp) - np.timedelta64(dtime, "h"), np.datetime64(
-            timestamp
-        ) + np.timedelta64(dtime, "h")
+        IOWAGA = get_iowaga(data_url=data_url, dataset_key=dataset_key)
 
-        ## load WW3 data
-        # ECMWF hindcast
-        # data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-HINDCAST/IOWAGA-GLOBAL_ECMWF-WW3-HINDCAST_FULL_TIME_SERIE.xml'
+        timestamp, time_range = define_timestamp_and_time_range(ID, dtime)
 
-        # CFSR hindcast
-        # data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-HINDCAST/IOWAGA-GLOBAL_CFSR-WW3-HINDCAST_FULL_TIME_SERIE.xml'
-
-        # ECMWF forecast
-        data_url = "https://tds3.ifremer.fr/thredds/IOWAGA-WW3-FORECAST/IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M.xml"
-
-        cat = TDSCatalog(data_url)
-
-        ncss = cat.datasets[
-            "IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M_FIELD_NC_MARC_WW3-GLOB-30M"
-        ].remote_access(use_xarray=True)
-
-        var_list = [
-            "dir",
-            "dp",
-            "fp",
-            "hs",
-            "ice",
-            "spr",
-            "t01",
-            "t02",
-            "plp0",
-            "pdir0",
-            "pdir1",
-            "pdir2",
-            "pdir3",
-            "pdir4",
-            "pdir5",
-            "pspr0",
-            "pspr1",
-            "pspr2",
-            "pspr3",
-            "pspr4",
-            "pspr5",
-            "ptp0",
-            "ptp1",
-            "ptp2",
-            "ptp3",
-            "ptp4",
-            "ptp5",
-            "phs0",
-            "phs1",
-            "phs2",
-            "phs3",
-            "phs4",
-            "phs5",
-        ]
-
-        # chunk data
-        IOWAGA = ncss[var_list]
-        IOWAGA["time"] = np.array([np.datetime64(k0) for k0 in IOWAGA.time.data]).astype(
-            "M8[h]"
-        )
-        IOWAGA = IOWAGA.rename(
-            name_dict={
-                "pdir0": "pdp0",
-                "pdir1": "pdp1",
-                "pdir2": "pdp2",
-                "pdir3": "pdp3",
-                "pdir4": "pdp4",
-                "pdir5": "pdp5",
-            }
-        )
-
-        def sel_data(Ibeam, lon_range, lat_range, timestamp=None):
-            """
-            this method returns the selected data in the lon-lat box at an interpolated timestamp
-            """
-            # TODO: refactor to avoid code duplication
-            lon_flag = (lon_range[0] < Ibeam.longitude.data) & (
-                Ibeam.longitude.data < lon_range[1]
-            )
-            lat_flag = (lat_range[0] < Ibeam.latitude.data) & (
-                Ibeam.latitude.data < lat_range[1]
-            )
-            time_flag = (time_range[0] < Ibeam.time.data) & (
-                Ibeam.time.data < time_range[1]
-            )
-
-            if timestamp is None:
-                Ibeam = Ibeam.isel(latitude=lat_flag, longitude=lon_flag)
-            else:
-                Ibeam = (
-                    Ibeam.isel(latitude=lat_flag, longitude=lon_flag, time=time_flag)
-                    .sortby("time")
-                    .interp(time=np.datetime64(timestamp))
-                )
-            return Ibeam
-
+        # TODO: refactor this try-except block -- too much complexity within. CP
         try:
-            G_beam = sel_data(IOWAGA, lon_range, lat_range, timestamp).load()
-            G_prior = sel_data(G_beam, lon_range, lat_range_prior)
+            G_beam = sel_data(
+                Ibeam=IOWAGA,
+                lon_range=lon_range,
+                lat_range=lat_range,
+                time_range=time_range,
+                timestamp=timestamp,
+            ).load()
+            G_prior = sel_data(
+                Ibeam=G_beam,
+                lon_range=lon_range,
+                lat_range=lat_range_prior,
+                time_range=time_range,
+            )
 
             if hemis == "SH":
                 # create Ice mask
@@ -294,12 +348,24 @@ def run_A02c_IOWAGA_thredds_prior(
                 lat_mask["latitude"] = lats
 
             # plot 1st figure
-            def draw_range(lon_range, lat_range, *args, **kargs):
+            def draw_range(lon_range, lat_range, *args, **kwargs):
                 plt.plot(
-                    [lon_range[0], lon_range[1], lon_range[1], lon_range[0], lon_range[0]],
-                    [lat_range[0], lat_range[0], lat_range[1], lat_range[1], lat_range[0]],
+                    [
+                        lon_range[0],
+                        lon_range[1],
+                        lon_range[1],
+                        lon_range[0],
+                        lon_range[0],
+                    ],
+                    [
+                        lat_range[0],
+                        lat_range[0],
+                        lat_range[1],
+                        lat_range[1],
+                        lat_range[0],
+                    ],
                     *args,
-                    **kargs,
+                    **kwargs,
                 )
 
             dir_clev = np.arange(0, 380, 20)
@@ -326,7 +392,7 @@ def run_A02c_IOWAGA_thredds_prior(
             font_for_print()
 
             F = M.figure_axis_xy(4, 3.5, view_scale=0.9, container=True)
-            
+
             file_name_base = "LOPS_WW3-GLOB-30M_"
             plt.suptitle(
                 track_name_short + " | " + file_name_base[0:-1].replace("_", " "), y=1.3
@@ -350,13 +416,21 @@ def run_A02c_IOWAGA_thredds_prior(
                 draw_range(lon_range, lat_range, c="blue", linewidth=0.7, zorder=10)
 
                 if fv != "ice":
-                    cm = plt.pcolor(lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc)
+                    cm = plt.pcolor(
+                        lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc
+                    )
                     if G_beam.ice.shape[0] > 1:
-                        plt.contour(lon, lat, G_beam.ice, colors="black", linewidths=0.6)
+                        plt.contour(
+                            lon, lat, G_beam.ice, colors="black", linewidths=0.6
+                        )
                 else:
-                    cm = plt.pcolor(lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc)
+                    cm = plt.pcolor(
+                        lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc
+                    )
 
-                plt.title(G_beam[fv].long_name.replace(" ", "\n") + "\n" + fv, loc="left")
+                plt.title(
+                    G_beam[fv].long_name.replace(" ", "\n") + "\n" + fv, loc="left"
+                )
                 ax1.axis("equal")
 
                 ax2 = F.fig.add_subplot(gs[-1, fp])
@@ -400,10 +474,10 @@ def run_A02c_IOWAGA_thredds_prior(
                 "partion4": ("phs4", "pdp4"),
             }
 
-            key_list_pairs2 = list()
-            for k in key_list_pairs.values():
-                key_list_pairs2.append(k[0])
-                key_list_pairs2.append(k[1])
+            # flatten key_list_pairs.values to a list
+            key_list_pairs2 = [
+                item for pair in key_list_pairs.values() for item in pair
+            ]
 
             key_list_scaler = set(key_list) - set(key_list_pairs2)
 
@@ -431,41 +505,21 @@ def run_A02c_IOWAGA_thredds_prior(
                 "lontigude",  # TODO: fix typo?
             ]
             Tend["lat"] = [
-                ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0].mean().data,
-                ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0].std().data,
+                ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0]
+                .mean()
+                .data,
+                ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0]
+                .std()
+                .data,
                 "latitude",
             ]
             Tend = Tend.T
 
-            Prior = dict()
-            Prior["incident_angle"] = {
-                "value": Tend["mean"]["dp"].astype("float"),
-                "name": Tend["name"]["dp"],
-            }
-            Prior["spread"] = {
-                "value": Tend["mean"]["spr"].astype("float"),
-                "name": Tend["name"]["spr"],
-            }
-            Prior["Hs"] = {
-                "value": Tend["mean"]["hs"].astype("float"),
-                "name": Tend["name"]["hs"],
-            }
-            Prior["peak_period"] = {
-                "value": 1 / Tend["mean"]["fp"].astype("float"),
-                "name": "1/" + Tend["name"]["fp"],
-            }
-
-            Prior["center_lon"] = {
-                "value": Tend["mean"]["lon"].astype("float"),
-                "name": Tend["name"]["lon"],
-            }
-            Prior["center_lat"] = {
-                "value": Tend["mean"]["lat"].astype("float"),
-                "name": Tend["name"]["lat"],
-            }
-
+            Prior = build_prior(Tend)
             target_name = "A02_" + track_name + "_hindcast_success"
-            MT.save_pandas_table({"priors_hindcast": Tend}, save_name, save_path)
+            MT.save_pandas_table(
+                {"priors_hindcast": Tend}, save_name, str(save_path)
+            )  # TODO: refactor save_pandas_table to use Path objects
         except Exception:
             target_name = "A02_" + track_name + "_hindcast_fail"
 
@@ -522,6 +576,7 @@ def run_A02c_IOWAGA_thredds_prior(
 
             plot_prior(Prior, ax1)
 
+            # TODO: refactor as comprehension -- it might be less readable and more lines?. CP
             str_list = list()
             for i in np.arange(0, 6):
                 str_list.append(
@@ -583,7 +638,9 @@ def run_A02c_IOWAGA_thredds_prior(
             echo("print 2nd figure failed", "red")
 
         MT.json_save(
-            target_name, save_path, str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+            target_name,
+            save_path,
+            str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")),
         )
 
         echo("done")
