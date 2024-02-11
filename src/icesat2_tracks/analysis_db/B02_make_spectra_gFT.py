@@ -42,6 +42,7 @@ import tracemalloc
 
 matplotlib.use("Agg")  # prevent plot windows from opening
 
+
 def linear_gap_fill(F, key_lead, key_int):
     """
     F pd.DataFrame
@@ -61,7 +62,7 @@ def run_B02_make_spectra_gFT(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """
     TODO: add docstring
@@ -558,7 +559,7 @@ def run_B02_make_spectra_gFT(
     echo("saved and done")
 
 
-step2app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
+make_spectra_app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
 
 if __name__ == "__main__":
-    step2app()
+    make_spectra_app()
