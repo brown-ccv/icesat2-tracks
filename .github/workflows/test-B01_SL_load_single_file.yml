@@ -42,4 +42,6 @@ jobs:
         run:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: fifth step B04_angle
         run: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
-        
+      - name: Seventh step B06_correct_separate
+        run: correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+          
