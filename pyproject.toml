@@ -158,7 +158,7 @@ test = ["coverage", "pytest >=7.4.4, <8.0.0", "pytest-xdist >=3.5.0, <4.0.0"]
 #TODO: ADD ANY SCRIPTS WE WANT TO HAVE
 download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
 loadfile = "icesat2_tracks.analysis_db.B01_SL_load_single_file:step1app"
-makespectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:step2app"
+make-spectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:make_spectra_app"
 plotspectra = "icesat2_tracks.analysis_db.B03_plot_spectra_ov:step3app"
 icesat2waves = "icesat2_tracks.app:app"
 
