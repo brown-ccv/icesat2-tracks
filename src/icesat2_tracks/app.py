@@ -22,6 +22,9 @@ from icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior import (
 
 from icesat2_tracks.analysis_db.B04_angle import run_B04_angle as _run_B04_angle
 
+from icesat2_tracks.analysis_db.B05_define_angle import define_angle as _define_angle
+
+
 from icesat2_tracks.clitools import (
     validate_track_name,
     validate_batch_key,
@@ -99,6 +102,17 @@ def make_b04_angle(  # TODO: revise naming @mochell
     verbose: bool = False,
 ):
     run_job(_run_B04_angle, track_name, batch_key, ID_flag, output_dir, verbose)
+
+
+@app.command(help=_define_angle.__doc__)
+def define_angle(
+    track_name: str = validate_track_name_gt_1_opt,
+    batch_key: str = validate_batch_key_opt,
+    ID_flag: bool = True,
+    output_dir: str = validate_output_dir_opt,
+    verbose: bool = False,
+):
+    run_job(_define_angle, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
 if __name__ == "__main__":

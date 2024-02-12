@@ -31,6 +31,7 @@ jobs:
             icesat2waves plot-spectra --help
             icesat2waves make-iowaga-threads-prior --help
             icesat2waves make-b04-angle --help # prelim name
+            icesat2waves define_angle --help
 
       - name: first step B01_SL_load_single_file
         run: load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
@@ -42,4 +43,6 @@ jobs:
         run:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: fifth step B04_angle
         run: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: sixth step B04_define_angle
+        run: define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
         

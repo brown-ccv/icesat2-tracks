@@ -170,6 +170,7 @@ make-spectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:make_spectra_app
 plot-spectra = "icesat2_tracks.analysis_db.B03_plot_spectra_ov:plot_spectra"
 make-iowaga-threads-prior = "icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior:make_iowaga_threads_prior_app"
 make-b04-angle = "icesat2_tracks.analysis_db.B04_angle:make_b04_angle_app"
+define-angle = "icesat2_tracks.analysis_db.B05_define_angle:define_angle_app"
 icesat2waves = "icesat2_tracks.app:app"
 
 
