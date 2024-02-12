@@ -4,6 +4,8 @@ This file open a ICEsat2 track applied filters and corrections and returns smoot
 This is python 3
 """
 
+import itertools
+
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
     color_schemes,
@@ -16,11 +18,12 @@ import h5py
 import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import xarray as xr
 import numpy as np
+from scipy.constants import g
 
 
 from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
-from numba import jit # maybe for later optimizations?  # noqa: F401
+from numba import jit  # maybe for later optimizations?  # noqa: F401
 
 from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
 
@@ -44,18 +47,22 @@ from icesat2_tracks.clitools import (
     makeapp,
 )
 
+
 def run_B04_angle(
     track_name: str = Option(..., callback=validate_track_name_steps_gt_1),
     batch_key: str = Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
-    output_dir: str = Option(None, callback=validate_output_dir),
+    output_dir: str = Option(..., callback=validate_output_dir),
     verbose: bool = False,
 ):
+    """
+    TODO: add docstring
+    """
+
     color_schemes.colormaps2(21)
 
-
     col_dict = color_schemes.rels
-    
+
     with suppress_stdout(verbose):
         track_name, batch_key, test_flag = io.init_from_input(
             [
@@ -76,9 +83,8 @@ def run_B04_angle(
 
         hemis, batch = batch_key.split("_")
 
-
         workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
-        
+
         save_path = workdir / batch_key / "B04_angle"
         plot_path = plotsdir / hemis / batch_key / track_name
         save_path.mkdir(parents=True, exist_ok=True)
@@ -95,11 +101,13 @@ def run_B04_angle(
         G_binned_store.close()
 
         load_path = workdir / batch_key / "B02_spectra"
-        xtrack, ktrack = [load_path / ("B02_" + track_name + f"_gFT_{var}.nc") for var in ["x", "k"]]
+        xtrack, ktrack = [
+            load_path / ("B02_" + track_name + f"_gFT_{var}.nc") for var in ["x", "k"]
+        ]
 
         Gx = xr.load_dataset(xtrack)
         Gk = xr.load_dataset(ktrack)
-        
+
         # load prior information
         load_path = workdir / batch_key / "A02_prior"
 
@@ -133,15 +141,16 @@ def run_B04_angle(
 
         #### Define Prior
         Pperiod = Prior.loc[["ptp0", "ptp1", "ptp2", "ptp3", "ptp4", "ptp5"]]["mean"]
-        Pdir = Prior.loc[["pdp0", "pdp1", "pdp2", "pdp3", "pdp4", "pdp5"]]["mean"].astype(
-            "float"
-        )
-        Pspread = Prior.loc[["pspr0", "pspr1", "pspr2", "pspr3", "pspr4", "pspr5"]]["mean"]
+        Pdir = Prior.loc[["pdp0", "pdp1", "pdp2", "pdp3", "pdp4", "pdp5"]][
+            "mean"
+        ].astype("float")
+        Pspread = Prior.loc[["pspr0", "pspr1", "pspr2", "pspr3", "pspr4", "pspr5"]][
+            "mean"
+        ]
 
         Pperiod = Pperiod[~np.isnan(list(Pspread))]
         Pdir = Pdir[~np.isnan(list(Pspread))]
         Pspread = Pspread[~np.isnan(list(Pspread))]
-
 
         # this is a hack since the current data does not have a spread
         Pspread[Pspread == 0] = 20
@@ -167,14 +176,13 @@ def run_B04_angle(
         if len(Pperiod) == 0:
             print("constant peak wave number")
             kk = Gk.k
-            Pwavenumber = kk * 0 + (2 * np.pi / (1 / Prior.loc["fp"]["mean"])) ** 2 / 9.81
+            Pwavenumber = kk * 0 + (2 * np.pi / (1 / Prior.loc["fp"]["mean"])) ** 2 / g
             dir_best = kk * 0 + Prior.loc["dp"]["mean"]
             dir_interp_smth = dir_interp = kk * 0 + Prior.loc["dp"]["mean"]
             spread_smth = spread_interp = kk * 0 + Prior.loc["spr"]["mean"]
 
-
         else:
-            Pwavenumber = (2 * np.pi / Pperiod) ** 2 / 9.81
+            Pwavenumber = (2 * np.pi / Pperiod) ** 2 / g
             kk = Gk.k
             dir_interp = np.interp(
                 kk, Pwavenumber[Pwavenumber.argsort()], dir_best[Pwavenumber.argsort()]
@@ -190,13 +198,11 @@ def run_B04_angle(
             spread_smth = M.runningmean(spread_interp, 30, tailcopy=True)
             spread_smth[-1] = spread_smth[-2]
 
-
         font_for_pres()
 
         F = M.figure_axis_xy(5, 4.5, view_scale=0.5)
         plt.subplot(2, 1, 1)
         plt.title("Prior angle smoothed\n" + track_name, loc="left")
-
 
         plt.plot(Pwavenumber, dir_best, ".r", markersize=8)
         plt.plot(kk, dir_interp, "-", color="red", linewidth=0.8, zorder=11)
@@ -216,8 +222,12 @@ def run_B04_angle(
         plt.title("Prior angle adjusted ", loc="left")
 
         # adjust angle def:
-        dir_interp_smth[dir_interp_smth > 180] = dir_interp_smth[dir_interp_smth > 180] - 360
-        dir_interp_smth[dir_interp_smth < -180] = dir_interp_smth[dir_interp_smth < -180] + 360
+        dir_interp_smth[dir_interp_smth > 180] = (
+            dir_interp_smth[dir_interp_smth > 180] - 360
+        )
+        dir_interp_smth[dir_interp_smth < -180] = (
+            dir_interp_smth[dir_interp_smth < -180] + 360
+        )
 
         plt.fill_between(
             kk,
@@ -245,13 +255,21 @@ def run_B04_angle(
             name="Prior_direction",
         )
         spread_smth = xr.DataArray(
-            data=spread_smth * np.pi / 180, dims="k", coords={"k": kk}, name="Prior_spread"
+            data=spread_smth * np.pi / 180,
+            dims="k",
+            coords={"k": kk},
+            name="Prior_spread",
         )
         Prior_smth = xr.merge([dir_interp_smth, spread_smth])
 
         prior_angle = Prior_smth.Prior_direction * 180 / np.pi
         if (abs(prior_angle) > 80).all():
-            print("Prior angle is ", prior_angle.min().data, prior_angle.max().data, ". quit.")
+            print(
+                "Prior angle is ",
+                prior_angle.min().data,
+                prior_angle.max().data,
+                ". quit.",
+            )
             dd_save = {
                 "time": time.asctime(time.localtime(time.time())),
                 "angle": list(
@@ -288,7 +306,6 @@ def run_B04_angle(
         max_x_pos = 8
         x_pos_jump = 2
 
-
         def make_fake_data(xi, group):
             ki = Gk.k[0:2]
 
@@ -306,9 +323,10 @@ def run_B04_angle(
             marginal_stack.coords["beam_group"] = group_name
             marginal_stack.coords["x"] = xi
             marginal_stack.name = "marginals"
-            marginal_stack.expand_dims(dim="x", axis=2).expand_dims(dim="beam_group", axis=3)
+            marginal_stack.expand_dims(dim="x", axis=2).expand_dims(
+                dim="beam_group", axis=3
+            )
             return marginal_stack
-
 
         def define_wavenumber_weights_tot_var(
             dd, m=3, variance_frac=0.33, k_upper_lim=None, verbose=False
@@ -365,7 +383,6 @@ def run_B04_angle(
 
             return mask, k, dd_rm, pos_cumsum
 
-
         def define_wavenumber_weights_threshold(dd, m=3, Nstd=2, verbose=False):
             if m is None:
                 dd_rm = dd
@@ -389,7 +406,6 @@ def run_B04_angle(
 
             return mask, k, dd_rm, np.arange(0, mask.size)[mask]
 
-
         def plot_instance(
             z_model,
             fargs,
@@ -408,8 +424,6 @@ def run_B04_angle(
             plt.suptitle(title_str)
             gs = GridSpec(4, 3, wspace=0.4, hspace=1.2)
             F.gs = gs
-
-            import itertools
 
             col_list = itertools.cycle(
                 [
@@ -440,29 +454,36 @@ def run_B04_angle(
                     "-",
                     c=next(col_list),
                 )
-                plt.xlim(x_concat[y_concat == y_pos][0], x_concat[y_concat == y_pos][-1])
+                plt.xlim(
+                    x_concat[y_concat == y_pos][0], x_concat[y_concat == y_pos][-1]
+                )
 
             plt.xlabel("meter")
             F.ax3 = F.fig.add_subplot(gs[2:, 0:-1])
             if brute is True:
                 plt.title("Brute-force costs", loc="left")
-                SM.plot_brute(marker=".", color="blue", markersize=15, label="Brute", zorder=10)
+                SM.plot_brute(
+                    marker=".", color="blue", markersize=15, label="Brute", zorder=10
+                )
 
             if optimze is True:
-                SM.plot_optimze(color="r", markersize=10, zorder=12, label="Dual Annealing")
+                SM.plot_optimze(
+                    color="r", markersize=10, zorder=12, label="Dual Annealing"
+                )
 
             if sample is True:
-                SM.plot_sample(markersize=2, linewidth=0.8, alpha=0.2, color="black", zorder=8)
+                SM.plot_sample(
+                    markersize=2, linewidth=0.8, alpha=0.2, color="black", zorder=8
+                )
 
             F.ax4 = F.fig.add_subplot(gs[2:, -1])
             return F
-
 
         # isolate x positions with data
         data_mask = Gk.gFT_PSD_data.mean("k")
         data_mask.coords["beam_group"] = (
             "beam",
-            ["beam_group" + g[2] for g in data_mask.beam.data],
+            ["beam_group" + g_[2] for g_ in data_mask.beam.data],
         )
         data_mask_group = data_mask.groupby("beam_group").mean(skipna=False)
         # these stencils are actually used
@@ -494,15 +515,36 @@ def run_B04_angle(
         ax2 = plt.subplot(2, 1, 2)
         plt.title("Data in Group", loc="left")
         plt.pcolormesh(
-            data_mask.x / 1e3, data_mask_group.beam_group, data_mask_group, cmap=plt.cm.OrRd
+            data_mask.x / 1e3,
+            data_mask_group.beam_group,
+            data_mask_group,
+            cmap=plt.cm.OrRd,
         )
 
         for i in np.arange(0.5, 3, 1):
             ax2.axhline(i, color="black", linewidth=0.5)
 
-        plt.plot(x_list / 1e3, x_list * 0 + 0, ".", markersize=2, color=color_schemes.cascade1)
-        plt.plot(x_list / 1e3, x_list * 0 + 1, ".", markersize=2, color=color_schemes.cascade1)
-        plt.plot(x_list / 1e3, x_list * 0 + 2, ".", markersize=2, color=color_schemes.cascade1)
+        plt.plot(
+            x_list / 1e3,
+            x_list * 0 + 0,
+            ".",
+            markersize=2,
+            color=color_schemes.cascade1,
+        )
+        plt.plot(
+            x_list / 1e3,
+            x_list * 0 + 1,
+            ".",
+            markersize=2,
+            color=color_schemes.cascade1,
+        )
+        plt.plot(
+            x_list / 1e3,
+            x_list * 0 + 2,
+            ".",
+            markersize=2,
+            color=color_schemes.cascade1,
+        )
 
         plt.xlabel("Distance from Ice Edge")
 
@@ -558,7 +600,11 @@ def run_B04_angle(
             # variance method
             amp_data = np.sqrt(GGk.gFT_cos_coeff**2 + GGk.gFT_sin_coeff**2)
             mask, k, weights, positions = define_wavenumber_weights_tot_var(
-                amp_data, m=1, k_upper_lim=k_upper_lim, variance_frac=0.20, verbose=False
+                amp_data,
+                m=1,
+                k_upper_lim=k_upper_lim,
+                variance_frac=0.20,
+                verbose=False,
             )
 
             if len(k[mask]) == 0:
@@ -580,15 +626,24 @@ def run_B04_angle(
             amp_Z = 1
             prior_sel = {
                 "alpha": (
-                    Prior_smth.sel(k=k_prime_max, method="nearest").Prior_direction.data,
+                    Prior_smth.sel(
+                        k=k_prime_max, method="nearest"
+                    ).Prior_direction.data,
                     Prior_smth.sel(k=k_prime_max, method="nearest").Prior_spread.data,
                 )
             }
-            SM.fitting_kargs = {"prior": prior_sel, "prior_weight": 3} # not sure this might be used somewhere. CP
+            SM.fitting_kargs = {
+                "prior": prior_sel,
+                "prior_weight": 3,
+            }  # not sure this might be used somewhere. CP
 
             # test if it works
             SM.params.add(
-                "K_prime", k_prime_max, vary=False, min=k_prime_max * 0.5, max=k_prime_max * 1.5
+                "K_prime",
+                k_prime_max,
+                vary=False,
+                min=k_prime_max * 0.5,
+                max=k_prime_max * 1.5,
             )
             SM.params.add("K_amp", amp_Z, vary=False, min=amp_Z * 0.0, max=amp_Z * 5)
             try:
@@ -601,12 +656,19 @@ def run_B04_angle(
 
                 prior_sel = {
                     "alpha": (
-                        Prior_smth.sel(k=k_prime_max, method="nearest").Prior_direction.data,
-                        Prior_smth.sel(k=k_prime_max, method="nearest").Prior_spread.data,
+                        Prior_smth.sel(
+                            k=k_prime_max, method="nearest"
+                        ).Prior_direction.data,
+                        Prior_smth.sel(
+                            k=k_prime_max, method="nearest"
+                        ).Prior_spread.data,
                     )
                 }
 
-                SM.fitting_kargs = {"prior": prior_sel, "prior_weight": 2} # not sure this might be used somewhere. CP
+                SM.fitting_kargs = {
+                    "prior": prior_sel,
+                    "prior_weight": 2,
+                }  # not sure this might be used somewhere. CP
 
                 amp_Z = 1
                 SM.params.add(
@@ -616,14 +678,23 @@ def run_B04_angle(
                     min=k_prime_max * 0.5,
                     max=k_prime_max * 1.5,
                 )
-                SM.params.add("K_amp", amp_Z, vary=False, min=amp_Z * 0.0, max=amp_Z * 5)
+                SM.params.add(
+                    "K_amp", amp_Z, vary=False, min=amp_Z * 0.0, max=amp_Z * 5
+                )
 
                 L_sample_i = None
                 L_optimize_i = None
                 L_brute_i = None
                 if sample_flag:
-                    SM.sample(verbose=False, steps=N_sample_chain, progress=False, workers=None)
-                    L_sample_i = list(SM.fitter.params.valuesdict().values())  # mcmc results
+                    SM.sample(
+                        verbose=False,
+                        steps=N_sample_chain,
+                        progress=False,
+                        workers=None,
+                    )
+                    L_sample_i = list(
+                        SM.fitter.params.valuesdict().values()
+                    )  # mcmc results
 
                 elif optimize_flag:
                     SM.optimize(verbose=False)
@@ -645,7 +716,9 @@ def run_B04_angle(
                     "alpha", alpha_dx, burn=N_sample_chain_burn, plot_flag=False
                 )
                 fitter = SM.fitter  # MCMC results
-                z_model = SM.objective_func(fitter.params, *fitting_args, test_flag=True)
+                z_model = SM.objective_func(
+                    fitter.params, *fitting_args, test_flag=True
+                )
                 cost = (fitter.residual**2).sum() / (z_concat**2).sum()
 
                 if plot_flag:
@@ -661,9 +734,12 @@ def run_B04_angle(
                         view_scale=0.6,
                     )
 
-                    if not prior_sel: # check if prior is empty
+                    if not prior_sel:  # check if prior is empty
                         F.ax3.axhline(
-                            prior_sel["alpha"][0], color="green", linewidth=2, label="Prior"
+                            prior_sel["alpha"][0],
+                            color="green",
+                            linewidth=2,
+                            label="Prior",
                         )
                         F.ax3.axhline(
                             prior_sel["alpha"][0] - prior_sel["alpha"][1],
@@ -710,7 +786,9 @@ def run_B04_angle(
                     )
 
                     plt.show()
-                    F.save_light(path=plot_path, name=track_name + "_fit_k" + str(k_prime_max))
+                    F.save_light(
+                        path=plot_path, name=track_name + "_fit_k" + str(k_prime_max)
+                    )
 
                 marginal_stack_i = xr.DataArray(
                     y_hist, dims=("angle"), coords={"angle": bins_pos}
@@ -746,7 +824,9 @@ def run_B04_angle(
             cost_stack = dict()
             marginal_stack = dict()
             L_sample = pd.DataFrame(index=["alpha", "group_phase", "K_prime", "K_amp"])
-            L_optimize = pd.DataFrame(index=["alpha", "group_phase", "K_prime", "K_amp"])
+            L_optimize = pd.DataFrame(
+                index=["alpha", "group_phase", "K_prime", "K_amp"]
+            )
             L_brute = pd.DataFrame(index=["alpha", "group_phase", "K_prime", "K_amp"])
 
             for kk, I in A.items():
@@ -789,7 +869,6 @@ def run_B04_angle(
             L_sample["weight"] = weight_list
             L_collect[group_name, str(int(xi))] = L_sample
 
-
         MM = xr.merge(Marginals.values())
         MM = xr.merge([MM, Prior_smth])
 
@@ -798,7 +877,9 @@ def run_B04_angle(
 
         try:
             LL = pd.concat(L_collect)
-            MT.save_pandas_table({"L_sample": LL}, save_name + "_res_table", str(save_path)) # TODO: clean up save_pandas_table to use pathlib
+            MT.save_pandas_table(
+                {"L_sample": LL}, save_name + "_res_table", str(save_path)
+            )  # TODO: clean up save_pandas_table to use pathlib
         except Exception as e:
             print(f"This is a warning: {e}")
         else:
@@ -813,14 +894,13 @@ def run_B04_angle(
 
             klims = 0, LL["K_prime"].max() * 1.2
 
-
-            for g in MM.beam_group:
-                MMi = MM.sel(beam_group=g)
+            for g_ in MM.beam_group:
+                MMi = MM.sel(beam_group=g_)
                 plt.plot(
                     MMi.weight.T,
                     MMi.k,
                     ".",
-                    color=col_dict[str(g.data)],
+                    color=col_dict[str(g_.data)],
                     markersize=3,
                     linewidth=0.8,
                 )
@@ -830,8 +910,8 @@ def run_B04_angle(
 
             ax1 = F.fig.add_subplot(gs[0:2, 0:-1])
 
-            for g in MM.beam_group:
-                Li = LL.loc[str(g.data)]
+            for g_ in MM.beam_group:
+                Li = LL.loc[str(g_.data)]
 
                 angle_list = np.array(Li["alpha"]) * 180 / np.pi
                 kk_list = np.array(Li["K_prime"])
@@ -841,17 +921,15 @@ def run_B04_angle(
                     angle_list,
                     kk_list,
                     s=(weight_list_i * 8e1) ** 2,
-                    c=col_dict[str(g.data)],
-                    label="mode " + str(g.data),
+                    c=col_dict[str(g_.data)],
+                    label="mode " + str(g_.data),
                 )
-
 
             dir_best[dir_best > 180] = dir_best[dir_best > 180] - 360
             plt.plot(dir_best, Pwavenumber, ".r", markersize=6)
 
             dir_interp[dir_interp > 180] = dir_interp[dir_interp > 180] - 360
             plt.plot(dir_interp, Gk.k, "-", color="red", linewidth=0.3, zorder=11)
-
 
             plt.fill_betweenx(
                 Gk.k,
@@ -862,17 +940,19 @@ def run_B04_angle(
                 alpha=0.2,
             )
             plt.plot(
-                dir_interp_smth * 180 / np.pi, Gk.k, ".", markersize=1, color=color_schemes.green1
+                dir_interp_smth * 180 / np.pi,
+                Gk.k,
+                ".",
+                markersize=1,
+                color=color_schemes.green1,
             )
 
             ax1.axvline(85, color="gray", linewidth=2)
             ax1.axvline(-85, color="gray", linewidth=2)
 
-
             plt.legend()
             plt.ylabel("wavenumber (deg)")
             plt.xlabel("Angle (deg)")
-
 
             plt.ylim(klims)
 
@@ -881,19 +961,18 @@ def run_B04_angle(
 
             plt.xlim(min([-90, np.nanmin(dir_best)]), max([np.nanmax(dir_best), 90]))
 
+            ax3 = F.fig.add_subplot(gs[2, 0:-1])  # can the assignment be removed? CP
 
-            ax3 = F.fig.add_subplot(gs[2, 0:-1]) # can the assignment be removed? CP
-
-            for g in MM.beam_group:
-                MMi = MM.sel(beam_group=g)
-                weighted_margins = (MMi.marginals * MMi.weight).sum(["x", "k"]) / MMi.weight.sum(
+            for g_ in MM.beam_group:
+                MMi = MM.sel(beam_group=g_)
+                weighted_margins = (MMi.marginals * MMi.weight).sum(
                     ["x", "k"]
-                )
+                ) / MMi.weight.sum(["x", "k"])
                 plt.plot(
                     MMi.angle * 180 / np.pi,
                     weighted_margins,
                     ".",
-                    color=col_dict[str(g.data)],
+                    color=col_dict[str(g_.data)],
                     markersize=2,
                     linewidth=0.8,
                 )
@@ -903,17 +982,18 @@ def run_B04_angle(
 
             plt.xlim(-90, 90)
 
+            ax3 = F.fig.add_subplot(
+                gs[-1, 0:-1]
+            )  # can the assignment be removed? Not used later. CP
 
-            ax3 = F.fig.add_subplot(gs[-1, 0:-1]) # can the assignment be removed? Not used later. CP
-
-            for g in MM.beam_group:
-                MMi = MM.sel(beam_group=g)
+            for g_ in MM.beam_group:
+                MMi = MM.sel(beam_group=g_)
                 weighted_margins = MMi.marginals.mean(["x", "k"])
                 plt.plot(
                     MMi.angle * 180 / np.pi,
                     weighted_margins,
                     ".",
-                    color=col_dict[str(g.data)],
+                    color=col_dict[str(g_.data)],
                     markersize=2,
                     linewidth=0.8,
                 )
@@ -927,10 +1007,13 @@ def run_B04_angle(
             F.save_pup(path=plot_path, name="B04_marginal_distributions")
 
             MT.json_save(
-                "B04_success", plot_path, {"time": "time.asctime( time.localtime(time.time()) )"}
+                "B04_success",
+                plot_path,
+                {"time": "time.asctime( time.localtime(time.time()) )"},
             )
 
-step5app = makeapp(run_B04_angle, name="B04_angle")
+
+make_b04_angle_app = makeapp(run_B04_angle, name="B04_angle")
 
 if __name__ == "__main__":
-    step5app()
+    make_b04_angle_app()
