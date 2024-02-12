@@ -5,15 +5,17 @@ This is python 3
 """
 
 import sys
+from pathlib import Path
+import matplotlib
+from matplotlib import pyplot as plt
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
     color_schemes,
-    plt,
     font_for_print,
 )
 
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
+from icesat2_tracks.ICEsat2_SI_tools.iotools import init_from_input, ID_to_str
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 
 import xarray as xr
@@ -26,8 +28,15 @@ import icesat2_tracks.local_modules.m_general_ph3 as M
 from matplotlib.gridspec import GridSpec
 from scipy.ndimage import label
 
+matplotlib.use("Agg")
+color_schemes.colormaps2(21)
+col_dict = color_schemes.rels
+
 
 def derive_weights(weights):
+    """
+    Normalize weights to have a minimum of 0
+    """
     weights = (weights - weights.mean()) / weights.std()
     weights = weights - weights.min()
     return weights
@@ -63,43 +72,159 @@ def weighted_means(data, weights, x_angle, color="k"):
     return data_weighted_mean
 
 
-color_schemes.colormaps2(21)
+def convert_to_kilo_string(x):
+    return str(int(x / 1e3))
 
-col_dict = color_schemes.rels
 
-track_name, batch_key, test_flag = io.init_from_input(sys.argv)
+def update_axes(ax, x_ticks, x_tick_labels, xlims):
+    ax.set_xticks(x_ticks)
+    ax.set_xticklabels(x_tick_labels)
+    ax.set_xlim(xlims)
+
+
+def get_first_and_last_nonzero_data(dir_data):
+    nonzero_data = dir_data.k[(dir_data.sum("angle") != 0)]
+    return (nonzero_data[0].data, nonzero_data[-1].data)
+
+
+def build_plot_data(dir_data, i_spec, lims):
+    plot_data = dir_data * i_spec.mean("x")
+    plot_data = plot_data.rolling(angle=5, k=10).median()
+    plot_data = plot_data.sel(k=slice(lims[0], lims[-1]))
+    return plot_data
+
+
+class PlotPolarSpectra:
+    def __init__(self, k, thetas, data, data_type="fraction", lims=None, verbose=False):
+        """
+        data_type       either 'fraction' or 'energy', default (fraction)
+        lims            (None) limits of k. if None set by the limits of the vector k
+        """
+        self.k = k
+        self.data = data
+        self.thetas = thetas
+
+        self.lims = lims = [self.k.min(), self.k.max()] if lims is None else lims
+        freq_sel_bool = M.cut_nparray(self.k, lims[0], lims[1])
+
+        self.min = np.round(np.nanmin(data[freq_sel_bool, :]), 2)
+        self.max = np.round(np.nanmax(data[freq_sel_bool, :]), 2)
+        if verbose:
+            print(str(self.min), str(self.max))
+
+        self.klabels = np.linspace(self.min, self.max, 5)
+
+        self.data_type = data_type
+        if data_type == "fraction":
+            self.clevs = np.linspace(
+                np.nanpercentile(dir_data.data, 1), np.ceil(self.max * 0.9), 21
+            )
+        elif data_type == "energy":
+            self.ctrs_min = self.min + self.min * 0.05
+            self.clevs = np.linspace(self.min + self.min * 0.05, self.max * 0.60, 21)
+
+    def linear(self, radial_axis="period", ax=None, cbar_flag=True):
+        """
+        TODO: add docstring
+        """
+        if ax is None:
+            ax = plt.subplot(111, polar=True)
+
+        ax.set_theta_direction(-1)
+        ax.set_theta_zero_location("W")
+        ax.grid(color="k", alpha=0.5, linestyle="-", linewidth=0.5)
+
+        if self.data_type == "fraction":
+            cm = plt.cm.RdYlBu_r
+            colorax = ax.contourf(
+                self.thetas, self.k, self.data, self.clevs, cmap=cm, zorder=1
+            )
+        elif self.data_type == "energy":
+            cm = plt.cm.Paired
+            cm.set_under = "w"
+            cm.set_bad = "w"
+            colorax = ax.contourf(
+                self.thetas, self.k, self.data, self.clevs, cmap=cm, zorder=1
+            )
+
+        if cbar_flag:
+            cbar = plt.colorbar(
+                colorax, fraction=0.046, pad=0.1, orientation="horizontal"
+            )
+            cbar.ax.get_yaxis().labelpad = 30
+            cbar.outline.set_visible(False)
+            clev_tick_names, clev_ticks = MT.tick_formatter(
+                FP.clevs, expt_flag=False, shift=0, rounder=4, interval=1
+            )
+            cbar.set_ticks(clev_ticks[::5])
+            cbar.set_ticklabels(clev_tick_names[::5])
+            self.cbar = cbar
+
+        if (self.lims[-1] - self.lims[0]) > 500:
+            radial_ticks = np.arange(100, 1600, 300)
+        else:
+            radial_ticks = np.arange(100, 800, 100)
+        xx_tick_names, xx_ticks = MT.tick_formatter(
+            radial_ticks, expt_flag=False, shift=1, rounder=0, interval=1
+        )
+        xx_tick_names = [f"  {d}m" for d in xx_tick_names]
+
+        ax.set_yticks(xx_ticks[::1])
+        ax.set_yticklabels(xx_tick_names[::1])
+
+        degrange = np.arange(0, 360, 30)
+        degrange = degrange[(degrange <= 80) | (degrange >= 280)]
+        degrange_label = np.copy(degrange)
+        degrange_label[degrange_label > 180] = (
+            degrange_label[degrange_label > 180] - 360
+        )
+
+        degrange_label = [
+            str(d) + "$^{\circ}$" for d in degrange_label
+        ]  # TODO: maybe replace the latex with "°"?
+
+        lines, labels = plt.thetagrids(degrange, labels=degrange_label)
+
+        for line in lines:
+            line.set_linewidth(5)
+
+        ax.set_ylim(self.lims)
+        ax.spines["polar"].set_color("none")
+        ax.set_rlabel_position(87)
+        self.ax = ax
+
+
+track_name, batch_key, test_flag = init_from_input(sys.argv)
 hemis, batch = batch_key.split("_")
 
 ATlevel = "ATL03"
-plot_path = (
-    mconfig["paths"]["plot"]
-    + "/"
-    + hemis
-    + "/"
-    + batch_key
-    + "/"
-    + track_name
-    + "/B05_angle/"
+plotsdir = Path(mconfig["paths"]["plot"])
+workdir = Path(mconfig["paths"]["work"])
+
+plot_path = plotsdir / hemis / batch_key / track_name / "B05_angle"
+plot_path.mkdir(parents=True, exist_ok=True)
+
+beams = mconfig["beams"]
+all_beams, high_beams, low_beams, beam_groups, group_names = (
+    beams[grp]
+    for grp in ["all_beams", "high_beams", "low_beams", "groups", "group_names"]
 )
-MT.mkdirs_r(plot_path)
 
-all_beams = mconfig["beams"]["all_beams"]
-high_beams = mconfig["beams"]["high_beams"]
-low_beams = mconfig["beams"]["low_beams"]
-beam_groups = mconfig["beams"]["groups"]
-group_names = mconfig["beams"]["group_names"]
+# Load Gk
+load_path = workdir / batch_key / "B02_spectra"
+Gk = xr.load_dataset(load_path / ("B02_" + track_name + "_gFT_k.nc"))
 
-load_path = mconfig["paths"]["work"] + batch_key + "/B02_spectra/"
-Gk = xr.load_dataset(load_path + "/B02_" + track_name + "_gFT_k.nc")  #
+# Load Marginals
+load_path = workdir / batch_key / "B04_angle"
+Marginals = xr.load_dataset(load_path / ("B04_" + track_name + "_marginals.nc"))
 
-load_path = mconfig["paths"]["work"] + batch_key + "/B04_angle/"
-Marginals = xr.load_dataset(load_path + "/B04_" + track_name + "_marginals.nc")  #
+# Load Prior
+load_path = workdir / batch_key / "A02_prior"
+Prior = MT.load_pandas_table_dict("/A02_" + track_name, str(load_path))[
+    "priors_hindcast"
+]
 
-load_path = mconfig["paths"]["work"] + batch_key + "/A02_prior/"
-Prior = MT.load_pandas_table_dict("/A02_" + track_name, load_path)["priors_hindcast"]
-
-save_path = mconfig["paths"]["work"] + batch_key + "/B04_angle/"
-
+save_path = workdir / batch_key / "B04_angle"
 
 # cut out data at the boundary and redistribute variance
 angle_mask = Marginals.angle * 0 == 0
@@ -157,13 +282,13 @@ xtick_labels_pi = [
 
 font_for_print()
 x_list = corrected_marginals.x
-for xi in range(x_list.size):
+for xi, xval in enumerate(x_list):
     F = M.figure_axis_xy(7, 3.5, view_scale=0.8, container=True)
     gs = GridSpec(3, 2, wspace=0.1, hspace=0.8)
-    x_str = str(int(x_list[xi] / 1e3))
+    x_str = convert_to_kilo_string(xval)
 
     plt.suptitle(
-        "Weighted marginal PDFs\nx=" + x_str + "\n" + io.ID_to_str(track_name),
+        f"Weighted marginal PDFs\nx={x_str}\n{ID_to_str(track_name)}",
         y=1.05,
         x=0.125,
         horizontalalignment="left",
@@ -274,7 +399,7 @@ if len(Gpdf.x) < 2:
     print("not enough x data, exit")
     MT.json_save(
         "B05_fail",
-        plot_path + "../",
+        plot_path.parent,
         {
             "time": time.asctime(time.localtime(time.time())),
             "reason": "not enough x segments",
@@ -282,107 +407,6 @@ if len(Gpdf.x) < 2:
     )
     print("exit()")
     exit()
-
-
-class PlotPolarSpectra:
-    def __init__(self, k, thetas, data, data_type="fraction", lims=None, verbose=False):
-        """
-        data_type       either 'fraction' or 'energy', default (fraction)
-        lims            (None) limits of k. if None set by the limits of the vector k
-        """
-        self.k = k
-        self.data = data
-        self.thetas = thetas
-
-        self.lims = lims = [self.k.min(), self.k.max()] if lims is None else lims
-        freq_sel_bool = M.cut_nparray(self.k, lims[0], lims[1])
-
-        self.min = np.round(np.nanmin(data[freq_sel_bool, :]), 2)
-        self.max = np.round(np.nanmax(data[freq_sel_bool, :]), 2)
-        if verbose:
-            print(str(self.min), str(self.max))
-
-        self.klabels = np.linspace(self.min, self.max, 5)
-
-        self.data_type = data_type
-        if data_type == "fraction":
-            self.clevs = np.linspace(
-                np.nanpercentile(dir_data.data, 1), np.ceil(self.max * 0.9), 21
-            )
-        elif data_type == "energy":
-            self.ctrs_min = self.min + self.min * 0.05
-            self.clevs = np.linspace(self.min + self.min * 0.05, self.max * 0.60, 21)
-
-    def linear(self, radial_axis="period", ax=None, cbar_flag=True):
-        """
-        TODO: add docstring
-        """
-        if ax is None:
-            ax = plt.subplot(111, polar=True)
-
-        ax.set_theta_direction(-1)
-        ax.set_theta_zero_location("W")
-        ax.grid(color="k", alpha=0.5, linestyle="-", linewidth=0.5)
-
-        if self.data_type == "fraction":
-            cm = plt.cm.RdYlBu_r
-            colorax = ax.contourf(
-                self.thetas, self.k, self.data, self.clevs, cmap=cm, zorder=1
-            )
-        elif self.data_type == "energy":
-            cm = plt.cm.Paired
-            cm.set_under = "w"
-            cm.set_bad = "w"
-            colorax = ax.contourf(
-                self.thetas, self.k, self.data, self.clevs, cmap=cm, zorder=1
-            )
-
-        if cbar_flag:
-            cbar = plt.colorbar(
-                colorax, fraction=0.046, pad=0.1, orientation="horizontal"
-            )
-            cbar.ax.get_yaxis().labelpad = 30
-            cbar.outline.set_visible(False)
-            clev_tick_names, clev_ticks = MT.tick_formatter(
-                FP.clevs, expt_flag=False, shift=0, rounder=4, interval=1
-            )
-            cbar.set_ticks(clev_ticks[::5])
-            cbar.set_ticklabels(clev_tick_names[::5])
-            self.cbar = cbar
-
-        if (self.lims[-1] - self.lims[0]) > 500:
-            radial_ticks = np.arange(100, 1600, 300)
-        else:
-            radial_ticks = np.arange(100, 800, 100)
-        xx_tick_names, xx_ticks = MT.tick_formatter(
-            radial_ticks, expt_flag=False, shift=1, rounder=0, interval=1
-        )
-        xx_tick_names = [f"  {d}m" for d in xx_tick_names]
-
-        ax.set_yticks(xx_ticks[::1])
-        ax.set_yticklabels(xx_tick_names[::1])
-
-        degrange = np.arange(0, 360, 30)
-        degrange = degrange[(degrange <= 80) | (degrange >= 280)]
-        degrange_label = np.copy(degrange)
-        degrange_label[degrange_label > 180] = (
-            degrange_label[degrange_label > 180] - 360
-        )
-
-        degrange_label = [
-            str(d) + "$^{\circ}$" for d in degrange_label
-        ]  # TODO: maybe replace the latex with "°"?
-
-        lines, labels = plt.thetagrids(degrange, labels=degrange_label)
-
-        for line in lines:
-            line.set_linewidth(5)
-
-        ax.set_ylim(self.lims)
-        ax.spines["polar"].set_color("none")
-        ax.set_rlabel_position(87)
-        self.ax = ax
-
 
 font_for_print()
 F = M.figure_axis_xy(6, 5.5, view_scale=0.7, container=True)
@@ -417,8 +441,8 @@ plt.pcolor(
     cmap=cmap_spec,
 )
 
-
-plt.title(track_name + "\nPower Spectra (m/m)$^2$ k$^{-1}$", loc="left")
+_title = f"{track_name}\nPower Spectra (m/m)$^2$ k$^{{-1}}$"
+plt.title(_title, loc="left")
 
 cbar = plt.colorbar(fraction=0.018, pad=0.01, orientation="vertical", label="Power")
 cbar.outline.set_visible(False)
@@ -454,12 +478,8 @@ x_tick_labels, x_ticks = MT.tick_formatter(
     x_ticks, expt_flag=False, shift=0, rounder=1, interval=2
 )
 
-ax1.set_xticks(x_ticks)
-ax2.set_xticks(x_ticks)
-ax1.set_xticklabels(x_tick_labels)
-ax2.set_xticklabels(x_tick_labels)
-ax1.set_xlim(xlims)
-ax2.set_xlim(xlims)
+for ax in [ax1, ax2]:
+    update_axes(ax, x_ticks, x_tick_labels, xlims)
 
 
 xx_list = np.insert(corrected_marginals.x.data, 0, 0)
@@ -485,18 +505,12 @@ for x_pos, gs in zip(x_chunks.T, [gs[-3:, 0:2], gs[-3:, 2:4], gs[-3:, 4:]]):
     dir_data = (i_dir * i_dir.N_data).sum(["beam_group", "x"]) / i_dir.N_data.sum(
         ["beam_group", "x"]
     )
-    lims = (
-        dir_data.k[(dir_data.sum("angle") != 0)][0].data,
-        dir_data.k[(dir_data.sum("angle") != 0)][-1].data,
-    )
+    lims = get_first_and_last_nonzero_data(dir_data)
 
     N_angle = i_dir.angle.size
-    dir_data2 = dir_data
 
-    plot_data = dir_data2 * i_spec.mean("x")
-    plot_data = plot_data.rolling(angle=5, k=10).median()
+    plot_data = build_plot_data(dir_data, i_spec, lims)
 
-    plot_data = plot_data.sel(k=slice(lims[0], lims[-1]))
     xx = 2 * np.pi / plot_data.k
 
     if np.nanmax(plot_data.data) != np.nanmin(plot_data.data):
@@ -514,13 +528,13 @@ for x_pos, gs in zip(x_chunks.T, [gs[-3:, 0:2], gs[-3:, 2:4], gs[-3:, 4:]]):
         )
         FP.linear(ax=ax3, cbar_flag=False)
 
-F.save_pup(path=plot_path + "../", name="B05_dir_ov")
+F.save_pup(path=plot_path.parent, name="B05_dir_ov")
 
 # save data
-Gpdf.to_netcdf(save_path + "/B05_" + track_name + "_angle_pdf.nc")
+Gpdf.to_netcdf(save_path / ("B05_" + track_name + "_angle_pdf.nc"))
 
 MT.json_save(
     "B05_success",
-    plot_path + "../",
+    plot_path.parent,
     {"time": time.asctime(time.localtime(time.time()))},
 )
