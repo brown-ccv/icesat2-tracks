@@ -113,7 +113,7 @@ def make_b04_angle(  # TODO: revise naming @mochell
 
 
 @app.command(help=_run_correct_separate_var.__doc__)
-def b06correctvar(  # TODO: rename with a verb or something
+def correct_separate(  # TODO: rename with a verb or something
     track_name: str = validate_track_name_gt_1_opt,
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
