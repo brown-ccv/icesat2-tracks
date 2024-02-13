@@ -112,7 +112,7 @@ def make_b04_angle(  # TODO: revise naming @mochell
     run_job(_run_B04_angle, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
-@app.command(help=_run_B04_angle.__doc__)
+@app.command(help=_run_correct_separate_var.__doc__)
 def b06correctvar(  # TODO: rename with a verb or something
     track_name: str = validate_track_name_gt_1_opt,
     batch_key: str = validate_batch_key_opt,

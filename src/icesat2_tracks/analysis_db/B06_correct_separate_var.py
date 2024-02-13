@@ -44,30 +44,38 @@ from icesat2_tracks.clitools import (
 
 
 def get_correct_breakpoint(pw_results):
-    br_points = list()
-    for i in pw_results.keys():
-        [br_points.append(i) if "breakpoint" in i else None]
+    br_points = [i for i in pw_results.keys() if "breakpoint" in i]
+
     br_points_df = pw_results[br_points]
     br_points_sorted = br_points_df.sort_values()
 
-    alphas_sorted = [
-        i.replace("breakpoint", "alpha") for i in br_points_df.sort_values().index
-    ]
-    alphas_sorted.append("alpha" + str(len(alphas_sorted) + 1))
+    alphas_sorted = []
+    betas_sorted = []
+    for point in br_points_sorted.index:
+        alphas_sorted.append(point.replace("breakpoint", "alpha"))
+        betas_sorted.append(point.replace("breakpoint", "beta"))
 
-    betas_sorted = [
-        i.replace("breakpoint", "beta") for i in br_points_df.sort_values().index
-    ]
+    alphas_sorted.append(f"alpha{len(alphas_sorted) + 1}")
+
+    ## TODO: Camilo decided to leave this piece of code here in case the output data is not
+    ## the right one
+
+    # alphas_sorted = [
+    #     point.replace("breakpoint", "alpha") for point in br_points_df.sort_values().index
+    # ]
+    # alphas_sorted.append(f"alpha{len(alphas_sorted) + 1}")
+
+    # betas_sorted = [
+    #     point.replace("breakpoint", "beta") for point in br_points_df.sort_values().index
+    # ]
 
     # betas_sorted
     alphas_v2 = list()
     alpha_i = pw_results["alpha1"]
-    for i in [0] + list(pw_results[betas_sorted]):
-        alpha_i += i
-        alphas_v2.append(alpha_i)
+    alphas_v2 = [alpha_i := alpha_i + i for i in [0] + list(pw_results[betas_sorted])]
 
     alphas_v2_sorted = pd.Series(index=alphas_sorted, data=alphas_v2)
-    br_points_sorted["breakpoint" + str(br_points_sorted.size + 1)] = "end"
+    br_points_sorted[f"breakpoint{br_points_sorted.size + 1}"] = "end"
 
     echo("all alphas")
     echo(alphas_v2_sorted)
@@ -93,11 +101,10 @@ def get_correct_breakpoint(pw_results):
 
 def get_breakingpoints(xx, dd):
 
-    x2, y2 = xx, dd
     convergence_flag = True
     n_breakpoints = 3
     while convergence_flag:
-        pw_fit = piecewise_regression.Fit(x2, y2, n_breakpoints=n_breakpoints)
+        pw_fit = piecewise_regression.Fit(xx, dd, n_breakpoints=n_breakpoints)
         print("n_breakpoints", n_breakpoints, pw_fit.get_results()["converged"])
         convergence_flag = not pw_fit.get_results()["converged"]
         n_breakpoints += 1
@@ -118,7 +125,7 @@ def get_breakingpoints(xx, dd):
 
 
 def define_noise_wavenumber_piecewise(data_xr, plot_flag=False):
-    data_log = data_xr
+
     data_log = np.log(data_xr)
 
     k = data_log.k.data
@@ -143,11 +150,122 @@ def define_noise_wavenumber_piecewise(data_xr, plot_flag=False):
     return breakpoint_k, pw_fit
 
 
+def weighted_mean(data, weights, additional_data=None):
+    # Where data is not NaN, replace NaN with 0 and multiply by weights
+    weighted_data = data.where(~np.isnan(data), 0) * weights
+
+    # Calculate the sum of weighted data along the specified dimension
+    mean_data = weighted_data.sum("beam") / weights.sum("beam")
+
+    # Optionally, add additional data to the resulting array
+    if additional_data is not None:
+        mean_data[additional_data] = data[additional_data].sum("beam")
+
+    return mean_data
+
+
+def calculate_k_end(x, k, k_end_previous, G_gFT_smth):
+    echo(x)
+    k_end, _ = define_noise_wavenumber_piecewise(
+        G_gFT_smth.sel(x=x) / k, plot_flag=False
+    )
+    k_save = k_end_previous if k_end == k[0] else k_end
+    echo("--------------------------")
+    return k_save
+
+
+def tanh_fitler(x, x_cutoff, sigma_g=0.01):
+    """
+    zdgfsg
+    """
+
+    decay = 0.5 - np.tanh((x - x_cutoff) / sigma_g) / 2
+    return decay
+
+
+def get_k_x_corrected(Gk, theta=0, theta_flag=False):
+
+    if not theta_flag:
+        return np.nan, np.nan
+
+    lam_p = 2 * np.pi / Gk.k
+    lam = lam_p * np.cos(theta)
+    k_corrected = 2 * np.pi / lam
+    x_corrected = Gk.x * np.cos(theta)
+
+    return k_corrected, x_corrected
+
+
+### TODO: Fix the variables in this function.
+##
+# dx = Gx.eta.diff("eta").mean().dat
+###
+# def reconstruct_displacement(Gx_1, Gk_1, T3, k_thresh):
+#             """
+#             reconstructs photon displacement heights for each stancil given the model parameters in Gk_1
+#             A low-pass frequeny filter can be applied using k-thresh
+
+#             inputs:
+#             Gk_1    model data per stencil from _gFT_k file with sin and cos coefficients
+#             Gx_1    real data per stencil from _gFT_x file with mean photon heights and coordindate systems
+#             T3
+#             k_thresh (None) threshold for low-pass filter
+
+#             returns:
+#             height_model  reconstucted displements heights of the stancil
+#             poly_offset   fitted staight line to the residual between observations and model to account for low-pass variability
+#             nan_mask      mask where is observed data in
+#             """
+
+#             dist_stencil = Gx_1.eta + Gx_1.x
+
+#             gFT_cos_coeff_sel = np.copy(Gk_1.gFT_cos_coeff)
+#             gFT_sin_coeff_sel = np.copy(Gk_1.gFT_sin_coeff)
+
+#             gFT_cos_coeff_sel = gFT_cos_coeff_sel * tanh_fitler(
+#                 Gk_1.k, k_thresh, sigma_g=0.003
+#             )
+#             gFT_sin_coeff_sel = gFT_sin_coeff_sel * tanh_fitler(
+#                 Gk_1.k, k_thresh, sigma_g=0.003
+#             )
+
+#             FT_int = gFT.generalized_Fourier(Gx_1.eta + Gx_1.x, None, Gk_1.k)
+#             _ = FT_int.get_H()
+#             FT_int.p_hat = np.concatenate(
+#                 [-gFT_sin_coeff_sel / Gk_1.k, gFT_cos_coeff_sel / Gk_1.k]
+#             )
+
+#             dx = Gx.eta.diff("eta").mean().data
+#             height_model = FT_int.model() / dx
+#             dist_nanmask = np.isnan(Gx_1.y_data)
+#             height_data = np.interp(
+#                 dist_stencil, T3_sel["dist"], T3_sel["heights_c_weighted_mean"]
+#             )
+#             return height_model, np.nan, dist_nanmask
+
+
+def save_table(data, tablename, save_path):
+    try:
+        io.save_pandas_table(data, tablename, save_path)
+    except Exception as e:
+        tabletoremove = save_path + tablename + ".h5"
+        echo(e, f"Failed to save table. Removing {tabletoremove} and re-trying..")
+        os.remove(tabletoremove)
+        io.save_pandas_table(data, tablename, save_path)
+
+
+def buil_G_error(Gk_sel, PSD_list, list_name):
+
+    return xr.DataArray(
+        data=PSD_list, coords=Gk_sel.drop("N_per_stancil").coords, name=list_name
+    ).expand_dims("beam")
+
+
 def run_B06_correct_separate_var(
     track_name: str = typer.Option(..., callback=validate_track_name_steps_gt_1),
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
-    output_dir: str = typer.Option(None, callback=validate_output_dir),
+    output_dir: str = typer.Option(..., callback=validate_output_dir),
     verbose: bool = False,
 ):
 
@@ -163,14 +281,14 @@ def run_B06_correct_separate_var(
         ]  # init_from_input expects sys.argv with 4 elements
     )
 
-    kargs = {
+    kwargs = {
         "track_name": track_name,
         "batch_key": batch_key,
         "ID_flag": ID_flag,
         "output_dir": output_dir,
     }
 
-    report_input_parameters(**kargs)
+    report_input_parameters(**kwargs)
     with suppress_stdout(verbose):
 
         hemis, _ = batch_key.split("_")
@@ -186,25 +304,17 @@ def run_B06_correct_separate_var(
         load_path_work = workdir / batch_key
 
         h5_file_path = load_path_work / "B01_regrid" / (track_name + "_B01_binned.h5")
-        B3_hdf5 = h5py.File(h5_file_path, "r")
+        with h5py.File(h5_file_path, "r") as B3_hdf5:
+            load_path_angle = load_path_work / "B04_angle"
+            B3 = {b: io.get_beam_hdf_store(B3_hdf5[b]) for b in all_beams}
 
-        load_path_angle = load_path_work / batch_key / "B04_angle"
-
-        B3 = dict()
-        for b in all_beams:
-            B3[b] = io.get_beam_hdf_store(B3_hdf5[b])
-
-        B3_hdf5.close()
-
-        Gk = xr.open_dataset(
-            load_path_work / "B02_spectra" / ("B02_" + track_name + "_gFT_k.nc")
-        )
-        Gx = xr.open_dataset(
-            load_path_work / "B02_spectra" / ("B02_" + track_name + "_gFT_x.nc")
-        )
-        Gfft = xr.open_dataset(
-            load_path_work / "B02_spectra" / ("B02_" + track_name + "_FFT.nc")
-        )
+        file_suffixes = ["_gFT_k.nc", "_gFT_x.nc"]
+        Gk, Gx = [
+            xr.open_dataset(
+                load_path_work / "B02_spectra" / f"B02_{track_name}{suffix}"
+            )
+            for suffix in file_suffixes
+        ]
 
         plot_path = Path(plotsdir, hemis, batch_key, track_name, "B06_correction")
         plot_path.mkdir(parents=True, exist_ok=True)
@@ -217,17 +327,11 @@ def run_B06_correct_separate_var(
         ).sum("beam") / Gk["N_per_stancil"].sum("beam")
         G_gFT_wmean["N_photons"] = Gk["N_photons"].sum("beam")
 
-        G_fft_wmean = (Gfft.where(~np.isnan(Gfft), 0) * Gfft["N_per_stancil"]).sum(
-            "beam"
-        ) / Gfft["N_per_stancil"].sum("beam")
-        G_fft_wmean["N_per_stancil"] = Gfft["N_per_stancil"].sum("beam")
-
         # plot
         # derive spectral errors:
         Lpoints = Gk.Lpoints.mean("beam").data
         N_per_stancil = Gk.N_per_stancil.mean("beam").data  # [0:-2]
 
-        G_error_model = dict()
         G_error_data = dict()
 
         for bb in Gk.beam.data:
@@ -240,36 +344,22 @@ def run_B06_correct_separate_var(
                 Z_error, np.diff(Gk.k)[0], N_per_stancil, Lpoints
             )
 
-            G_error_model[bb] = xr.DataArray(
-                data=PSD_error_model,
-                coords=I.drop("N_per_stancil").coords,
-                name="gFT_PSD_data_error",
-            ).expand_dims("beam")
             G_error_data[bb] = xr.DataArray(
                 data=PSD_error_data,
                 coords=I.drop("N_per_stancil").coords,
                 name="gFT_PSD_data_error",
             ).expand_dims("beam")
 
-        gFT_PSD_data_error_mean = xr.concat(G_error_model.values(), dim="beam")
         gFT_PSD_data_error_mean = xr.concat(G_error_data.values(), dim="beam")
 
         gFT_PSD_data_error_mean = (
             gFT_PSD_data_error_mean.where(~np.isnan(gFT_PSD_data_error_mean), 0)
             * Gk["N_per_stancil"]
         ).sum("beam") / Gk["N_per_stancil"].sum("beam")
-        gFT_PSD_data_error_mean = (
-            gFT_PSD_data_error_mean.where(~np.isnan(gFT_PSD_data_error_mean), 0)
-            * Gk["N_per_stancil"]
-        ).sum("beam") / Gk["N_per_stancil"].sum("beam")
 
         G_gFT_wmean["gFT_PSD_data_err"] = gFT_PSD_data_error_mean
-        G_gFT_wmean["gFT_PSD_data_err"] = gFT_PSD_data_error_mean
 
-        Gk["gFT_PSD_data_err"] = xr.concat(G_error_model.values(), dim="beam")
         Gk["gFT_PSD_data_err"] = xr.concat(G_error_data.values(), dim="beam")
-
-        #
 
         G_gFT_smth = (
             G_gFT_wmean["gFT_PSD_data"].rolling(k=30, center=True, min_periods=1).mean()
@@ -292,18 +382,11 @@ def run_B06_correct_separate_var(
         k_end_previous = np.nan
         x = G_gFT_smth.x.data[0]
         k = G_gFT_smth.k.data
+        k_end_previous = np.nan
 
-        for x in G_gFT_smth.x.data:
-            echo(x)
-            # use displacement power spectrum
-            k_end, pw_fit = define_noise_wavenumber_piecewise(
-                G_gFT_smth.sel(x=x) / k, plot_flag=False
-            )
-
-            k_save = k_end_previous if k_end == k[0] else k_end
-            k_end_previous = k_save
-            k_lim_list.append(k_save)
-            echo("--------------------------")
+        k_lim_list = [
+            calculate_k_end(x, k, k_end_previous, G_gFT_smth) for x in G_gFT_smth.x.data
+        ]
 
         font_for_pres()
         G_gFT_smth.coords["k_lim"] = ("x", k_lim_list)
@@ -335,8 +418,9 @@ def run_B06_correct_separate_var(
 
         k_lims = G_gFT_wmean.k_lim
         xlims = G_gFT_wmean.k[0], G_gFT_wmean.k[-1]
-        #
+
         k = high_beams[0]
+
         for pos, k, pflag in zip(
             [gs[0:2, 0], gs[0:2, 1], gs[0:2, 2]], high_beams, [True, False, False]
         ):
@@ -349,9 +433,10 @@ def run_B06_correct_separate_var(
                 .mean()
             )
             Gplot = Gplot.where(Gplot["N_per_stancil"] / Gplot["Lpoints"] >= 0.1)
-            alpha_range = iter(np.linspace(1, 0, Gplot.x.data.size))
-            for x in Gplot.x.data:
-                ialpha = next(alpha_range)
+
+            alpha_range = np.linspace(1, 0, Gplot.x.data.size)
+
+            for x, ialpha in zip(Gplot.x.data, alpha_range):
                 plt.loglog(
                     Gplot.k,
                     Gplot.sel(x=x) / Gplot.k,
@@ -391,9 +476,8 @@ def run_B06_correct_separate_var(
 
             Gplot = Gplot.where(Gplot["N_per_stancil"] / Gplot["Lpoints"] >= 0.1)
 
-            alpha_range = iter(np.linspace(1, 0, Gplot.x.data.size))
-            for x in Gplot.x.data:
-                ialpha = next(alpha_range)
+            alpha_range = np.linspace(1, 0, Gplot.x.data.size)
+            for x, ialpha in zip(Gplot.x.data, alpha_range):
                 plt.loglog(
                     Gplot.k,
                     Gplot.sel(x=x) / Gplot.k,
@@ -483,21 +567,6 @@ def run_B06_correct_separate_var(
         F.save_light(path=plot_path, name=str(track_name) + "_B06_atten_ov")
         F.save_pup(path=plot_path, name=str(track_name) + "_B06_atten_ov")
 
-        # reconstruct slope displacement data
-        def fit_offset(x, data, model, nan_mask, deg):
-            p_offset = np.polyfit(x[~nan_mask], data[~nan_mask] - model[~nan_mask], deg)
-            p_offset[-1] = 0
-            poly_offset = np.polyval(p_offset, x)
-            return poly_offset
-
-        def tanh_fitler(x, x_cutoff, sigma_g=0.01):
-            """
-            zdgfsg
-            """
-
-            decay = 0.5 - np.tanh((x - x_cutoff) / sigma_g) / 2
-            return decay
-
         def reconstruct_displacement(Gx_1, Gk_1, T3, k_thresh):
             """
             reconstructs photon displacement heights for each stancil given the model parameters in Gk_1
@@ -536,9 +605,7 @@ def run_B06_correct_separate_var(
             dx = Gx.eta.diff("eta").mean().data
             height_model = FT_int.model() / dx
             dist_nanmask = np.isnan(Gx_1.y_data)
-            height_data = np.interp(
-                dist_stencil, T3_sel["dist"], T3_sel["heights_c_weighted_mean"]
-            )
+
             return height_model, np.nan, dist_nanmask
 
         # cutting Table data
@@ -587,6 +654,7 @@ def run_B06_correct_separate_var(
         )
 
         Gx_v2, B2_v2, B3_v2 = dict(), dict(), dict()
+
         for bb in Gx.beam.data:
             echo(bb)
             Gx_k = Gx.sel(beam=bb)
@@ -596,7 +664,6 @@ def run_B06_correct_separate_var(
 
             concented_heights = Gh.data.reshape(Gh.data.size)
             concented_err = Gh_err.data.reshape(Gh.data.size)
-            concented_nans = Gnans.data.reshape(Gnans.data.size)
             concented_x = (Gh.x + Gh.eta).data.reshape(Gh.data.size)
 
             dx = Gh.eta.diff("eta")[0].data
@@ -625,11 +692,15 @@ def run_B06_correct_separate_var(
 
         try:
             G_angle = xr.open_dataset(
-                load_path_angle + "/B05_" + track_name + "_angle_pdf.nc"
+                load_path_angle / (f"B05_{track_name}_angle_pdf.nc")
             )
 
+        except ValueError as e:
+            echo(f"{e} no angle data found, skip angle corretion")
+            theta = 0
+            theta_flag = False
+        else:
             font_for_pres()
-
             Ga_abs = (
                 G_angle.weighted_angle_PDF_smth.isel(angle=G_angle.angle > 0).data
                 + G_angle.weighted_angle_PDF_smth.isel(angle=G_angle.angle < 0).data[
@@ -663,21 +734,8 @@ def run_B06_correct_separate_var(
             plt.title("angle front " + str(theta * 180 / np.pi), loc="left")
             ax.axvline(theta, color="red")
             F.save_light(path=plot_path, name="B06_angle_def")
-        except:
-            echo("no angle data found, skip angle corretion")
-            theta = 0
-            theta_flag = False
 
-        # %%
-        lam_p = 2 * np.pi / Gk.k
-        lam = lam_p * np.cos(theta)
-
-        if theta_flag:
-            k_corrected = 2 * np.pi / lam
-            x_corrected = Gk.x * np.cos(theta)
-        else:
-            k_corrected = 2 * np.pi / lam * np.nan
-            x_corrected = Gk.x * np.cos(theta) * np.nan
+        k_corrected, x_corrected = get_k_x_corrected(Gk, theta, theta_flag)
 
         # spectral save
         G5 = G_gFT_wmean.expand_dims(dim="beam", axis=1)
@@ -692,6 +750,7 @@ def run_B06_correct_separate_var(
             k_corrected=("k", k_corrected.data)
         )
 
+        ## TODO: abstract to a function Github Iusse #117
         Gk_v2.attrs["best_guess_incident_angle"] = theta
 
         # save collected spectral data
@@ -699,17 +758,6 @@ def run_B06_correct_separate_var(
 
         # save real space data
         Gx.to_netcdf(save_path / ("B06_" + track_name + "_gFT_x_corrected.nc"))
-
-        def save_table(data, tablename, save_path):
-            try:
-                io.save_pandas_table(data, tablename, save_path)
-            except Exception as e:
-                tabletoremove = save_path + tablename + ".h5"
-                echo(
-                    e, f"Failed to save table. Removing {tabletoremove} and re-trying.."
-                )
-                os.remove(tabletoremove)
-                io.save_pandas_table(data, tablename, save_path)
 
         B06_ID_name = "B06_" + track_name
         table_names = [
