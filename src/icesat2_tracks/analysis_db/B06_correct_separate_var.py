@@ -776,7 +776,7 @@ def run_B06_correct_separate_var(
     echo("Done B06_correct_separate_var")
 
 
-corrected_separate_app = makeapp(run_B06_correct_separate_var, name="correct-separate")
+correct_separate_app = makeapp(run_B06_correct_separate_var, name="correct-separate")
 
 if __name__ == "__main__":
-    corrected_separate_app()
+    correct_separate_app()
