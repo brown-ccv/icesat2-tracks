@@ -215,7 +215,7 @@ def define_angle(
     TODO: add docstring
     """
 
-    track_name, batch_key, test_flag = init_from_input(
+    track_name, batch_key, _ = init_from_input(
         [
             None,
             track_name,
@@ -224,7 +224,7 @@ def define_angle(
         ]
     )
 
-    hemis, batch = batch_key.split("_")
+    hemis, _ = batch_key.split("_")
 
     plotsdir = Path(output_dir, mconfig["paths"]["plot"])
     workdir = Path(output_dir, mconfig["paths"]["work"])
