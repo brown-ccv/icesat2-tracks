@@ -42,7 +42,7 @@ analysis_db/support_files/
 *.egg-info/
 .installed.cfg
 *.egg
-
+logs/
 *__pycache__/
 *__pycache__/*
 
