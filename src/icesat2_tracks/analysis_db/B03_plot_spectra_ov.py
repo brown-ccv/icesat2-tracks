@@ -550,7 +550,7 @@ def run_B03_plot_spectra_ov(
         )
 
         F.save_pup(
-            path=str(plot_path) + "B03_spectra/", name="B03_freq_reconst_x" + str(i)
+            path=str(plot_path / "B03_spectra"), name="B03_freq_reconst_x" + str(i)
         )
 
     MT.json_save(
