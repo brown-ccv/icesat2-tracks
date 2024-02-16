@@ -90,7 +90,7 @@ def run_B01_SL_load_single_file(
     ID_flag: bool = True,
     plot_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """
     Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and output smoothed photon heights on a regular grid in an .nc file.
@@ -274,7 +274,7 @@ def run_B01_SL_load_single_file(
     echo("done")
 
 
-step1app = makeapp(run_B01_SL_load_single_file, name="load-file")
+load_file_app = makeapp(run_B01_SL_load_single_file, name="load-file")
 
 if __name__ == "__main__":
-    step1app()
+    load_file_app()

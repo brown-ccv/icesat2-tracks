@@ -42,6 +42,7 @@ import tracemalloc
 
 matplotlib.use("Agg")  # prevent plot windows from opening
 
+
 def linear_gap_fill(F, key_lead, key_int):
     """
     F pd.DataFrame
@@ -61,11 +62,12 @@ def run_B02_make_spectra_gFT(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
+    verbose: bool = False,
 ):
     """
     TODO: add docstring
     """
-    with suppress_stdout():
+    with suppress_stdout(verbose):
         track_name, batch_key, _ = io.init_from_input(
             [
                 None,
@@ -83,17 +85,13 @@ def run_B02_make_spectra_gFT(
     }
     report_input_parameters(**kargs)
 
-    hemis, batch = batch_key.split("_")
-
-    workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
+    workdir, _ = update_paths_mconfig(output_dir, mconfig)
 
     load_path = Path(workdir, batch_key, "B01_regrid")
 
     save_path = Path(workdir, batch_key, "B02_spectra")
     save_name = f"B02_{track_name}"
 
-    plot_path = Path(plotsdir, hemis, batch_key, track_name, "B_spectra")
-    plot_path.mkdir(parents=True, exist_ok=True)
     save_path.mkdir(parents=True, exist_ok=True)
 
     bad_track_path = Path(workdir, "bad_tracks", batch_key)
@@ -557,7 +555,7 @@ def run_B02_make_spectra_gFT(
     echo("saved and done")
 
 
-step2app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
+make_spectra_app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
 
 if __name__ == "__main__":
-    step2app()
+    make_spectra_app()

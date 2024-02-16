@@ -88,11 +88,12 @@ def run_B03_plot_spectra_ov(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
+    verbose: bool = False,
 ):
     """
     TODO: add docstring
     """
-    with suppress_stdout():
+    with suppress_stdout(verbose):
         track_name, batch_key, _ = io.init_from_input(
             [
                 None,
@@ -549,7 +550,7 @@ def run_B03_plot_spectra_ov(
         )
 
         F.save_pup(
-            path=str(plot_path) + "B03_spectra/", name="B03_freq_reconst_x" + str(i)
+            path=str(plot_path / "B03_spectra"), name="B03_freq_reconst_x" + str(i)
         )
 
     MT.json_save(
@@ -559,7 +560,7 @@ def run_B03_plot_spectra_ov(
     )
 
 
-step3app = makeapp(run_B03_plot_spectra_ov, name="plotspectra")
+plot_spectra = makeapp(run_B03_plot_spectra_ov, name="plotspectra")
 
 if __name__ == "__main__":
-    step3app()
+    plot_spectra()
