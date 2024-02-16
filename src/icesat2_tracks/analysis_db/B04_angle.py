@@ -63,23 +63,24 @@ def run_B04_angle(
 
     col_dict = color_schemes.rels
 
-    with suppress_stdout(verbose):
-        track_name, batch_key, test_flag = io.init_from_input(
-            [
-                None,
-                track_name,
-                batch_key,
-                ID_flag,
-            ]
-        )
+    track_name, batch_key, test_flag = io.init_from_input(
+        [
+            None,
+            track_name,
+            batch_key,
+            ID_flag,
+        ]
+    )
 
-        kargs = {
-            "track_name": track_name,
-            "batch_key": batch_key,
-            "ID_flag": ID_flag,
-            "output_dir": output_dir,
-        }
-        report_input_parameters(**kargs)
+    kargs = {
+        "track_name": track_name,
+        "batch_key": batch_key,
+        "ID_flag": ID_flag,
+        "output_dir": output_dir,
+    }
+    report_input_parameters(**kargs)
+
+    with suppress_stdout(verbose):
 
         hemis, batch = batch_key.split("_")
 
