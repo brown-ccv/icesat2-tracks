@@ -85,17 +85,13 @@ def run_B02_make_spectra_gFT(
     }
     report_input_parameters(**kargs)
 
-    hemis, batch = batch_key.split("_")
-
-    workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
+    workdir, _ = update_paths_mconfig(output_dir, mconfig)
 
     load_path = Path(workdir, batch_key, "B01_regrid")
 
     save_path = Path(workdir, batch_key, "B02_spectra")
     save_name = f"B02_{track_name}"
 
-    plot_path = Path(plotsdir, hemis, batch_key, track_name, "B_spectra")
-    plot_path.mkdir(parents=True, exist_ok=True)
     save_path.mkdir(parents=True, exist_ok=True)
 
     bad_track_path = Path(workdir, "bad_tracks", batch_key)

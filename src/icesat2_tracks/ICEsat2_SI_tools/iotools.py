@@ -39,7 +39,7 @@ def init_from_input(arguments):
         batch_key = arguments[2]
         # $(hemisphere) $(coords) $(config)
 
-        print("read vars from file: " + str(arguments[1]))
+        # print("read vars from file: " + str(arguments[1]))
 
         if len(arguments) >= 4:
             if arguments[3] == "True":
@@ -49,13 +49,16 @@ def init_from_input(arguments):
             else:
                 test_flag = arguments[3]
 
-            print("test_flag found, test_flag= " + str(test_flag))
+            # print("test_flag found, test_flag= " + str(test_flag))
         else:
             test_flag = False
-    print(track_name)
 
-    print("----- batch =" + batch_key)
-    print("----- test_flag: " + str(test_flag))
+    # TODO: print statements to be handled with logger
+    # # print(track_name)
+
+    # print("----- batch =" + batch_key)
+    # print("----- test_flag: " + str(test_flag))
+
     return track_name, batch_key, test_flag
 
 
