@@ -168,9 +168,12 @@ dir4, prefix4 = (
 script5 = [
     "python",
     "src/icesat2_tracks/analysis_db/B04_angle.py",
+    "--track-name",
     "SH_20190502_05180312",
+    "--batch-key",
     "SH_testSLsinglefile2",
-    "True",
+    "--id-flag",
+    "--output-dir",
 ]
 paths5 = [
     "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B04_success.json",
@@ -225,15 +228,19 @@ def setup_module():
     for tarball in input_data_dir.glob("*.tar.gz"):
         source_script, for_step_num = tarball.stem.split("-for-step-")
         for_step_num = for_step_num.split(".")[0]
-        targetdir = Path(_outdir) / f"step{for_step_num}"
-        targetdirs[for_step_num] = targetdir
-        extract_tarball(targetdir, tarball)
+        target_output_dir = Path(_outdir) / f"step{for_step_num}"
+        targetdirs[for_step_num] = target_output_dir
+        print("Target Dir")
+        print(target_output_dir)
+        print("TarBall")
+        print(tarball)
+        extract_tarball(target_output_dir, tarball)
 
         # Extracted files are in targetdir/script_name. Move them to its parent targetdir. Delete the script_name dir.
-        parent = targetdir / "work"
+        parent = target_output_dir / "work"
 
         # Rename and update parent to targetdir / script_name
-        new_parent = Path(targetdir, source_script)
+        new_parent = Path(target_output_dir, source_script)
         parent.rename(new_parent)
 
         for child in new_parent.iterdir():
@@ -262,48 +269,52 @@ def test_step1():
 
 
 # TODO: for steps 2-5 after their respective prs are merged
-# def test_step2():
-#     # Step 2: B02_make_spectra_gFT.py ~ 2 min
-#     assert run_test(script2, paths2)  # passing
+def test_step2():
+    # Step 2: B02_make_spectra_gFT.py ~ 2 min
+    assert run_test(script2, paths2)  # passing
 
 
-# def check_B03_freq_reconst_x():
-#     outputdir = getoutputdir(script3)
-#     directory = Path(
-#         outputdir, "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312B03_spectra/"
-#     )
-#     files = get_all_filenames(directory)
+def check_B03_freq_reconst_x():
+    outputdir = getoutputdir(script3)
+    directory = Path(
+        outputdir, "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B03_spectra/"
+    )
+    print("directory")
+    print(directory)
+    files = get_all_filenames(directory)
+    print("files")
+    print(files)
 
-#     # Check there are 5 pdf files
-#     return len([f for f in files if f.endswith("pdf")]) == 5
-
-
-# def test_step3():
-#     # Step 3: B03_plot_spectra_ov.py ~ 11 sec
-#     # This script has stochastic behavior, so the files produced don't always have the same names but the count of pdf files is constant for the test input data.
-#     t1 = run_test(script3, paths3)
-#     t2 = check_B03_freq_reconst_x()
-#     assert t1
-#     assert t2
+    # Check there are 5 pdf files
+    return len([f for f in files if f.endswith("pdf")]) == 5
 
 
-# def test_step4():
-#     # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
-#     t1 = run_test(script4, paths4)
-#     t2 = check_file_exists(dir4, prefix4)
-#     assert t1
-#     assert t2
+def test_step3():
+    # Step 3: B03_plot_spectra_ov.py ~ 11 sec
+    # This script has stochastic behavior, so the files produced don't always have the same names but the count of pdf files is constant for the test input data.
+    t1 = run_test(script3, paths3)
+    t2 = check_B03_freq_reconst_x()
+    assert t1
+    assert t2
 
 
-# def test_step5():
-#     # Step 5: B04_angle.py ~ 9 min
-#     assert run_test(script5, paths5)
+def test_step4():
+    # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
+    t1 = run_test(script4, paths4)
+    t2 = check_file_exists(dir4, prefix4)
+    assert t1
+    assert t2
+
+
+def test_step5():
+    # Step 5: B04_angle.py ~ 9 min
+    assert run_test(script5, paths5)
 
 if __name__ == "__main__":
     setup_module()
     test_step1()  # passing
-    # test_step2() # passing
-    # test_step3()  # passing
-    # test_step4()  # passing
-    # test_step5()
+    test_step2() # passing
+    test_step3()  # passing
+    test_step4()  # passing
+    test_step5()
     teardown_module()
