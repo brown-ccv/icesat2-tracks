@@ -1,31 +1,15 @@
 import os
 
-#execfile(os.environ['PYTHONSTARTUP'])
-#execfile(STARTUP_RIS_SeaIceThickness2016)
-
-#from __future__ import unicode_literals
-#from __future__ import print_function
-#from __future__ import division
-
-
-#import matplotlib
-#matplotlib.use('Agg')
-#import matplotlib.pyplot as plt
-
-#import numpy as np
-#from scipy.io import netcdf
 from scipy import signal
 
-#import os
-from matplotlib.dates import DateFormatter, MinuteLocator
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import dates
 import datetime as DT
-#from cdo import *   # python version
+
 from . import m_tools_ph3 as MT
 import numpy as np
 import matplotlib.pyplot as plt
-
+import re
 
 class color:
         def __init__(self):
@@ -56,10 +40,7 @@ class color:
         def show(self):
             for key in self.__dict__.keys():
                 print(key)
-            #print(self.__dict__)
 
-
-# funny massage
 
 class figure_axis_xy:
         """define standart  XY Plot with reduced grafics"""
@@ -85,73 +66,54 @@ class figure_axis_xy:
                     self.fig, self.ax=plt.subplots(num=None, figsize=(xsize*fig_scale, ysize*fig_scale), dpi=dpi*viewscale, facecolor='w', edgecolor='None')
 
         def make_clear_weak(self):
-                #turn off axis spine to the right
-                #self.fig.tight_layout()
                 self.ax.spines['right'].set_color("none")
-                self.ax.yaxis.tick_left() # only ticks on the left side
+                self.ax.yaxis.tick_left() 
                 self.ax.spines['top'].set_color("none")
-                self.ax.xaxis.tick_bottom() # only ticks on the left side
+                self.ax.xaxis.tick_bottom() 
         def make_clear(self):
                 self.make_clear_weak()
 
         def make_clear_strong(self):
-                #turn off axis spine to the right
-                #self.fig.tight_layout()
                 self.ax.spines['right'].set_color("none")
                 self.ax.spines['left'].set_color("none")
-                self.ax.yaxis.tick_left() # only ticks on the left side
+                self.ax.yaxis.tick_left()
                 self.ax.spines['top'].set_color("none")
                 self.ax.spines['bottom'].set_color("none")
-                self.ax.xaxis.tick_bottom() # only ticks on the left side
+                self.ax.xaxis.tick_bottom()
 
         def tight(self):
-                #turn off axis spine to the right
                 self.fig.tight_layout()
 
         def label(self, x='x',y='y',t=None):
-
                 self.ax.set_xlabel(x)
                 self.ax.set_ylabel(y)
                 self.ax.set_title(t, y=1.04)
 
         def save(self,name=None,path=None, verbose=True):
-                import datetime
-
                 savepath=path if path is not None else os.path.join(os.path.dirname(os.path.realpath('__file__')),'plot/')
                 if not os.path.exists(savepath):
                     os.makedirs(savepath)
-                #os.makedirs(savepath, exist_ok=True)
                 name=name if name is not None else datetime.date.today().strftime("%Y%m%d_%I%M%p")
-                #print(savepath)
-                #print(name)
                 extension='.pdf'
                 full_name= (os.path.join(savepath,name)) + extension
-                #print(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=180)
                 if verbose:
                     print('save at: '+name)
 
         def save_pup(self,name=None,path=None, verbose=True):
-                import datetime
-                import re
                 name=re.sub("\.", '_', name)
-
                 savepath=path if path is not None else os.path.join(os.path.dirname(os.path.realpath('__file__')),'plot/')
                 if not os.path.exists(savepath):
                     os.makedirs(savepath)
-                #os.makedirs(savepath, exist_ok=True)
                 name=name if name is not None else datetime.date.today().strftime("%Y%m%d_%I%M%p")
-                #print(savepath)
-                #print(name)
                 extension='.pdf'
                 full_name= (os.path.join(savepath,name)) + extension
-                #print(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=300)
                 if verbose:
                     print('save at: ',full_name)
 
         def save_light(self,name=None,path=None, verbose=True):
-                import datetime
+                
 
                 savepath=path if path is not None else os.path.join(os.path.dirname(os.path.realpath('__file__')),'plot/')
                 if not os.path.exists(savepath):
@@ -291,30 +253,26 @@ class plot_periodogram:
             def linear(self):
                 self.F=figure_axis_xy(10,4,fig_scale=2)
                 dd=10*np.log10(self.data[:-2,:]).T
-
                 self.clevs=self.clevs if self.clevs is not None else clevels(dd)
                 self.F.ax.set_yscale("log", nonposy='clip')
                 tt = self.time.astype(DT.datetime)
-
                 self.cs=plt.contourf(tt[:-2], self.fs[:],dd, self.clevs,cmap=self.cmap)
-                #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
                 print(self.clevs)
                 plt.ylabel(('Power db(' + self.data_unit + '^2/' + self.sample_unit+ ')'))
                 plt.xlabel(('f  (' + self.sample_unit+ ')'))
-                self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
+                self.cbar= plt.colorbar(self.cs,pad=0.01)
                 self.cbar.ax.aspect=100
                 self.cbar.outline.set_linewidth(0)
                 self.cbar.set_label('('+self.data_unit+')')
 
 
                 ax = plt.gca()
-                #Set y-lim
                 ax.set_ylim(self.ylim[0], self.ylim[1])
 
-                #format X-Axis
+                
                 ax.xaxis_date()
                 Month = dates.MonthLocator()
-                Day = dates.DayLocator(interval=5)#bymonthday=range(1,32)
+                Day = dates.DayLocator(interval=5)
                 dfmt = dates.DateFormatter('%y-%b')
 
                 ax.xaxis.set_major_locator(Month)
@@ -332,7 +290,7 @@ class plot_periodogram:
 
                 for line in gridlines:
                     line.set_color('white')
-                    #line.set_linestyle('-')
+                    
 
             def power(self,  anomalie=False):
                 self.F=figure_axis_xy(10,4,fig_scale=2)
@@ -350,11 +308,10 @@ class plot_periodogram:
                 print(tt[:-1].shape, self.fs[:].shape,dd.T.shape)
                 self.cs=plt.contourf(tt[:-1], self.fs[:],dd.T, self.clevs,cmap=self.cmap)
                 self.x=np.arange(0,tt[:-1].size)
-                #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
                 print(self.clevs)
                 plt.xlabel('Time')
                 plt.ylabel(('f  (' + self.sample_unit+ ')'))
-                self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
+                self.cbar= plt.colorbar(self.cs,pad=0.01)
                 self.cbar.ax.aspect=100
                 self.cbar.outline.set_linewidth(0)
                 self.cbar.set_label('Power db(' + self.data_unit + '^2/f ')
@@ -367,7 +324,7 @@ class plot_periodogram:
                 #format X-Axis
                 ax.xaxis_date()
                 Month = dates.MonthLocator()
-                Day = dates.DayLocator(interval=5)#bymonthday=range(1,32)
+                Day = dates.DayLocator(interval=5)
                 dfmt = dates.DateFormatter('%y-%b')
 
                 ax.xaxis.set_major_locator(Month)
@@ -424,7 +381,6 @@ class plot_periodogram:
 
                 tt = self.time
 
-                #tvec=np.arange(0,tt.size,1)
                 ax_local.set_yscale("log", nonposy='clip')
 
                 if downscale_fac is not None:
@@ -438,13 +394,12 @@ class plot_periodogram:
                         fsn_p=gen_log_space(self.fs.size,int(np.round(self.fs.size/downscale_fac)))
                         fsn_p_run=np.append(fsn_p,fsn_p[-1])
                         dd=dd.T
-                        #print(ddn.shape, fsn_p.shape)
+                        
                         for fr in np.arange(0,fsn_p.size,1):
-                            #print(np.mean(dd[fsn_p[fr]:fsn_p[fr+1], :],axis=0).shape)
-
                             ddn=np.vstack((ddn, np.mean(dd[fsn_p_run[fr]:fsn_p_run[fr+1], :],axis=0)))
+                        
                         ddn=np.delete(ddn, 0,0)
-                        #print(ddn.shape)
+                        
                         dd2=ddn
                         fn=self.fs[fsn_p]
 
@@ -452,7 +407,7 @@ class plot_periodogram:
                             tt=tt
                         else:
                             tt=tt[:-1]
-                        #print(dd2.shape, fn.shape, tt.shape)
+                        
 
                 else:
                     if nopower is True:
@@ -465,35 +420,25 @@ class plot_periodogram:
                 if isinstance(tt[0], np.datetime64):
                     print('time axis is numpy.datetime64, converted to number for plotting')
                     ttt=dates.date2num(tt.astype(DT.datetime))
-                    #print(ttt)
+                    
                 elif isinstance(tt[0], np.timedelta64):
                     print('time axis is numpy.timedelta64, converted to number for plotting')
-                    #print(tt)
                     ttt=tt
                 else:
-                    #print(type(tt[0]))
-                    #print(tt)
-
                     print('time axis is not converted')
                     ttt=tt
 
                 MT.stats_format(dd2)
                 self.cs=plt.pcolormesh(ttt,fn ,dd2,cmap=self.cmap , norm=norm,
-                shading=shading)#, origin='lower',aspect='auto',
-                    #interpolation='none',
-                    #extent=[tvec.min(),tvec.max(),self.fs.min(),self.fs.max()])
-
-                #self.F.ax.set_yscale("log", nonposy='clip')
-                #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                #print(self.clevs)
+                shading=shading)
                 plt.ylabel(('f  (' + self.sample_unit+ ')'))
                 if cbar is True:
-                    self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
+                    self.cbar= plt.colorbar(self.cs,pad=0.01)
                     self.cbar.ax.aspect=100
                     self.cbar.outline.set_linewidth(0)
                     self.cbar.set_label('Power db(' + self.data_unit + '^2/f ')
 
-                ax =ax_local#plt.gca()
+                ax =ax_local
                 if isinstance(tt[0], np.datetime64):
                     plt.xlabel('Time')
                     #Set y-lim
@@ -501,9 +446,8 @@ class plot_periodogram:
                     ax.set_xlim(ttt[0], ttt[-1])
 
                     #format X-Axis
-                    #ax.xaxis_date()
                     Month = dates.MonthLocator()
-                    Day = dates.DayLocator(interval=5)#bymonthday=range(1,32)
+                    Day = dates.DayLocator(interval=5)
                     dfmt = dates.DateFormatter('%b/%y')
 
                     ax.xaxis.set_major_locator(Month)
@@ -516,9 +460,8 @@ class plot_periodogram:
                     ax.set_xlim(ttt[0], ttt[-1])
 
                     #format X-Axis
-                    #ax.xaxis_date()
                     Month = dates.MonthLocator()
-                    Day = dates.DayLocator(interval=5)#bymonthday=range(1,32)
+                    Day = dates.DayLocator(interval=5)
                     dfmt = dates.DateFormatter('%b/%y')
 
                     ax.xaxis.set_major_locator(Month)
@@ -529,8 +472,6 @@ class plot_periodogram:
                     ax.set_ylim(self.ylim[0], self.ylim[1])
                     ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
                     ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-
-                    #ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 
                 # Set both ticks to be outside
                 ax.tick_params(which = 'both', direction = 'out')
@@ -544,7 +485,6 @@ class plot_periodogram:
 
                 for line in gridlines:
                     line.set_color('white')
-                    #line.set_linestyle('-')
 
                 self.x=ttt
 
@@ -581,7 +521,6 @@ class plot_periodogram:
 
                 tt = self.time
 
-                #tvec=np.arange(0,tt.size,1)
                 self.F.ax.set_yscale("log", nonposy='clip')
 
                 if downscale_fac is not None:
@@ -595,13 +534,12 @@ class plot_periodogram:
                         fsn_p=gen_log_space(self.fs.size,int(np.round(self.fs.size/downscale_fac)))
                         fsn_p_run=np.append(fsn_p,fsn_p[-1])
                         dd=dd.T
-                        #print(ddn.shape, fsn_p.shape)
+                       
                         for fr in np.arange(0,fsn_p.size,1):
-                            #print(np.mean(dd[fsn_p[fr]:fsn_p[fr+1], :],axis=0).shape)
-
                             ddn=np.vstack((ddn, np.mean(dd[fsn_p_run[fr]:fsn_p_run[fr+1], :],axis=0)))
+                        
                         ddn=np.delete(ddn, 0,0)
-                        #print(ddn.shape)
+                        
                         dd2=ddn
                         fn=self.fs[fsn_p]
 
@@ -609,7 +547,7 @@ class plot_periodogram:
                             tt=tt
                         else:
                             tt=tt[:-1]
-                        #print(dd2.shape, fn.shape, tt.shape)
+                        
 
                 else:
                     if nopower is True:
@@ -622,31 +560,20 @@ class plot_periodogram:
                 if isinstance(tt[0], np.datetime64):
                     print('numpy.datetime64')
                     ttt=dates.date2num(tt.astype(DT.datetime))
-                    #print(ttt)
+                   
                 elif isinstance(tt[0], np.timedelta64):
                     print('numpy.timedelta64')
-                    #print(tt)
                     ttt=tt
                 else:
-                    #print(type(tt[0]))
-                    #print(tt)
-
                     print('something else')
                     ttt=tt
 
 
-                self.cs=plt.pcolormesh(ttt,fn ,dd2,cmap=self.cmap , norm=norm,
-                shading=shading)#, origin='lower',aspect='auto',
-                    #interpolation='none',
-                    #extent=[tvec.min(),tvec.max(),self.fs.min(),self.fs.max()])
-
-                #self.F.ax.set_yscale("log", nonposy='clip')
-                #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                #print(self.clevs)
+                self.cs=plt.pcolormesh(ttt,fn ,dd2,cmap=self.cmap , norm=norm,shading=shading)
 
 
                 plt.ylabel(('f  (' + self.sample_unit+ ')'))
-                self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
+                self.cbar= plt.colorbar(self.cs,pad=0.01)
                 self.cbar.ax.aspect=100
                 self.cbar.outline.set_linewidth(0)
                 self.cbar.set_label('Power db(' + self.data_unit + '^2/f ')
@@ -659,9 +586,8 @@ class plot_periodogram:
                     ax.set_xlim(ttt[0], ttt[-1])
 
                     #format X-Axis
-                    #ax.xaxis_date()
                     Month = dates.MonthLocator()
-                    Day = dates.DayLocator(interval=5)#bymonthday=range(1,32)
+                    Day = dates.DayLocator(interval=5)
                     dfmt = dates.DateFormatter('%b/%y')
 
                     ax.xaxis.set_major_locator(Month)
@@ -672,8 +598,6 @@ class plot_periodogram:
                     ax.set_ylim(self.ylim[0], self.ylim[1])
                     ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
                     ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
-
-                    #ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 
                 # Set both ticks to be outside
                 ax.tick_params(which = 'both', direction = 'out')
@@ -687,7 +611,6 @@ class plot_periodogram:
 
                 for line in gridlines:
                     line.set_color('white')
-                    #line.set_linestyle('-')
 
                 self.x=np.arange(0,ttt.size+1)
 
@@ -703,7 +626,6 @@ class plot_polarspectra:
             self.data=data
             self.thetas=thetas
 
-            #self.sample_unit=sample_unit if sample_unit is not None else 'df'
             self.unit=unit if unit is not None else 'X'
 
             # decided on freq limit
@@ -712,7 +634,7 @@ class plot_polarspectra:
 
             freq_sel_bool=cut_nparray(self.f, lims[0], lims[1] )
 
-            self.min=np.nanmin(data[freq_sel_bool,:])#*0.5e-17
+            self.min=np.nanmin(data[freq_sel_bool,:])
             self.max=np.nanmax(data[freq_sel_bool,:])
             if verbose:
                 print(str(self.min), str(self.max) )
@@ -723,7 +645,6 @@ class plot_polarspectra:
                 self.clevs=np.linspace(0.01, self.max*.5, 21)
             elif data_type == 'energy':
                 self.ctrs_min=self.min+self.min*.05
-                #self.clevs=np.linspace(self.min, self.max, 21)
                 self.clevs=np.linspace(self.min+self.min*.05, self.max*.60, 21)
 
 
@@ -734,34 +655,26 @@ class plot_polarspectra:
                 self.title=plt.suptitle('  Polar Spectrum', y=0.95, x=0.5 , horizontalalignment='center')
             else:
                 ax=ax
-            ax.set_theta_direction(-1)  #left turned postive
+            
+            #left turned postive    
+            ax.set_theta_direction(-1) 
             ax.set_theta_zero_location("N")
 
-            #cm=plt.cm.get_cmap('Reds')
-            #=plt.cm.get_cmap('PuBu')
-
-            #ylabels=np.arange(10, 100, 20)
-            #ylabels = ([ 10, '', 20,'', 30,'', 40])
             ax.set_yticks(self.ylabels)
             ax.set_yticklabels(' '+str(y)+ ' s' for y in self.ylabels)
 
             ## Set titles and colorbar
-            #plt.title(STID+' | '+p + ' | '+start_date+' | '+end_date, y=1.11, horizontalalignment='left')
-
             grid=ax.grid(color='k', alpha=.5, linestyle='--', linewidth=.5)
 
             if self.data_type == 'fraction':
-                cm=plt.cm.RdYlBu_r #brewer2mpl.get_map( 'RdYlBu','Diverging', 4, reverse=True).mpl_colormap
-                colorax = ax.contourf(self.thetas, 1/self.f, self.data, self.clevs, cmap=cm, zorder=1)# ,cmap=cm)#, vmin=self.ctrs_min)
+                cm=plt.cm.RdYlBu_r 
+                colorax = ax.contourf(self.thetas, 1/self.f, self.data, self.clevs, cmap=cm, zorder=1)
             elif self.data_type == 'energy':
-                cm=plt.cm.Paired#brewer2mpl.get_map( 'Paired','Qualitative', 8).mpl_colormap
-
+                cm=plt.cm.Paired
                 cm.set_under='w'
                 cm.set_bad='w'
                 colorax = ax.contourf(self.thetas, 1/self.f, self.data, self.clevs,cmap=cm, zorder=1)#, vmin=self.ctrs_min)
-            #divider = make_axes_locatable(ax)
-            #cax = divider.append_axes("right", size="5%", pad=0.05)
-
+           
             if circles is not None:
                 theta = np.linspace(0, 2 * np.pi, 360)
                 r1 =theta*0+circles[0]
@@ -771,21 +684,19 @@ class plot_polarspectra:
 
             cbar = plt.colorbar(colorax, fraction=0.046, pad=0.06, orientation="horizontal")
             if self.data_type == 'fraction':
-                cbar.set_label('Fraction of Energy', rotation=0)#, fontsize=fontsize)
+                cbar.set_label('Fraction of Energy', rotation=0)
             elif self.data_type == 'energy':
-                cbar.set_label('Energy Density ('+self.unit+')', rotation=0)#, fontsize=fontsize)
+                cbar.set_label('Energy Density ('+self.unit+')', rotation=0)
             cbar.ax.get_yaxis().labelpad = 30
             cbar.outline.set_visible(False)
-            #cbar.ticks.
-            #cbar.outline.clipbox
+           
             degrange = range(0,360,30)
 
-            lines, labels = plt.thetagrids(degrange, labels=None)#, frac = 1.07)
+            lines, labels = plt.thetagrids(degrange, labels=None)
 
             for line in lines:
-                #L=line.get_xgridlines
-                line.set_linewidth(5)
-                #line.set_linestyle(':')
+               line.set_linewidth(5)
+                
 
             ax.set_ylim(self.lims)
             ax.spines['polar'].set_color("none")
@@ -818,14 +729,14 @@ def plot_scatter_2d(intersect_chain, slope_chain, xname='intersect', yname='slop
 
 def set_timeaxis_days(ax, int1=1, int2=2, bymonthday=None):
     # int1 interval of the major (labeld) days
-    # int2 intercal of the minar (only ticks) days
+    # int2 intercal of the minor (only ticks) days
 
     bymonthday=bymonthday if bymonthday is not None else range(1,32)
     Month = dates.MonthLocator()
     Month_dfmt = dates.DateFormatter('%b/%y')
-    Day = dates.DayLocator(interval=int2, bymonthday=bymonthday)#bymonthday=range(1,32)
+    Day = dates.DayLocator(interval=int2, bymonthday=bymonthday)
     Day_dfmt = dates.DateFormatter('%d')
-    Day2 = dates.DayLocator(interval=int1, bymonthday=bymonthday)#bymonthday=range(1,32)
+    Day2 = dates.DayLocator(interval=int1, bymonthday=bymonthday)
     Day2_dfmt = dates.DateFormatter('')
 
     ax.xaxis.set_major_locator(Day)
@@ -838,7 +749,6 @@ def log_power(data):
 
 def echo_dt(a, as_string=False):
     string=str(a.astype('timedelta64[s]'))+'/'+str(a.astype('timedelta64[m]'))+'/'+str(a.astype('timedelta64[h]'))+'/'+str(a.astype('timedelta64[D]'))
-    #print(string)
     if as_string:
         return string
     else:
@@ -880,33 +790,26 @@ def save_anyfig(fig,name=None,path=None):
                 if not os.path.exists(savepath):
                     os.makedirs(savepath)
                 name=name if name is not None else datetime.date.today().strftime("%Y%m%d_%I%M%p")
-                #print(savepath)
-                #print(name)
+                
                 extension='.png'
                 full_name= (os.path.join(savepath,name)) + extension
-                #print(full_name)
                 fig.savefig(full_name, bbox_inches='tight', format='png', dpi=180)
                 print('save at: ',full_name)
-#def downscale_2d(data,x,dx):
-#   s1,s2 =data.shape
-#   if s1 == x.size
-#       data[]
+
 def read_cdo(file):
     cdo = Cdo()
     G=cdo.readCdf(file).variables
     print(G.keys())
     return G
 
-def build_timestamp(time, unit, start, verbose=True): #G.time,'h','1900-01-01' ):
+def build_timestamp(time, unit, start, verbose=True): 
     timestamp=np.datetime64(start)+time[:].astype('m8['+unit+']')
-    #print('timespan:', timestamp[0], '-', timestamp[-1])
     if verbose is True:
         print(timestamp)
     return timestamp
 
-def build_timestamp_v2(time, unit, start, verbose=True): #G.time,'h','1900-01-01' ):
+def build_timestamp_v2(time, unit, start, verbose=True):
     timestamp=np.datetime64(start)+time[:].astype('datetime64[s]')
-    #print('timespan:', timestamp[0], '-', timestamp[-1])
     if verbose is True:
         print(timestamp)
     return timestamp
@@ -940,8 +843,7 @@ def cut_nparray(var, low, high, verbose=False):
         print('error')
         return
 
-def boxmean(data, lon , lat, xlim, ylim):#, data_index, G.lon[:], G.lat[:], [160, -140+360], [-50 , -70]):
-
+def boxmean(data, lon , lat, xlim, ylim):
     xs=lon.shape
     ys=lat.shape
 
@@ -958,32 +860,26 @@ def boxmean(data, lon , lat, xlim, ylim):#, data_index, G.lon[:], G.lat[:], [160
         ybool=(lat >=ylim[1]) & (lat <=ylim[0])
 
     if (xp == 0 and yp ==1):
-        #print('0,1')
         datan=data[xbool,:,:][:,ybool,:].mean()
 
     elif (xp == 0 and yp ==2):
-        #print('0,2')
         datan=data[xbool,:,:][:,:,ybool]
     elif (xp == 1 and yp ==0):
-        #print('1,0')
         datan=data[:,xbool,:][ybool,:,:]
 
     elif (xp == 1 and yp ==2):
-        #print('1,2')
         datan=data[:,xbool,:][:,:,ybool]
 
     elif (xp == 2 and yp ==0):
-        #print('2,0')
         datan=data[:,:, xbool][ybool,:,:]
     elif (xp == 2 and yp ==1):
-        #print('2,1')
         datan=data[:,:, xbool][:,ybool,:]
     else:
         print('arrays have not the same shape')
 
     print('new shape', datan.shape)
 
-    return np.nanmean(np.nanmean(datan, axis=xp), axis=yp).squeeze() #, xbool , ybool
+    return np.nanmean(np.nanmean(datan, axis=xp), axis=yp).squeeze()
 
 def detrend(data, od=None, x=None, plot=False, verbose=False):
     # data  data that should be detrended
@@ -1004,7 +900,6 @@ def detrend(data, od=None, x=None, plot=False, verbose=False):
         d_org=data-np.nanmean(data)
         x=np.arange(0,d_org.size,1) if x is None else x
 
-        #print(np.isnan(x).sum(), np.isnan(d_org).sum())
         idx = np.isfinite(x) & np.isfinite(d_org)
         px=np.polyfit(x[idx], d_org[idx], od)
         dline=np.polyval( px, x)
@@ -1045,15 +940,11 @@ def runningvar(var, m, tailcopy=False):
         return
     rr=np.asarray(var)*np.nan
     var_range=np.arange(m,int(s[0])-m-1,1)
-#    print(var_range)
-#    print(np.isfinite(var))
-#    print(var_range[np.isfinite(var[m:int(s[0])-m-1])])
+
     for i in var_range[np.isfinite(var[m:int(s[0])-m-1])]:
-        #rm.append(var[i-m:i+m].mean())
         rr[int(i)]=np.nanvar(var[i-m:i+m])
 
     if tailcopy:
-#        print('tailcopy')
         rr[0:m]=rr[m+1]
         rr[-m-1:-1]=rr[-m-2]
     return rr
@@ -1070,13 +961,8 @@ def runningmean_wrap_around(var, m):
 
     rr=np.asarray(var)*np.nan
     var_range=np.arange(var.size)
-    #print(var_range[0], var_range[-1])
 
     for i in var_range:
-        #print(i, i-m, i+m)
-        #print(i, var.take(range(i-m, i+m ), mode='wrap'))
-        #print(i, var[i-m:i+m])
-        #rm.append(var[i-m:i+m].mean())
         rr[int(i)]=np.nanmean(var.take(range(i-m, i+m ), mode='wrap'))
 
     return rr
@@ -1088,17 +974,12 @@ def runningmean(var, m, tailcopy=False):
         print('0 Dimension is smaller then averaging length')
         return
     rr=np.asarray(var)*np.nan
-    #print(type(rr))
     var_range=np.arange(m,int(s[0])-m-1,1)
-#    print(var_range)
-#    print(np.isfinite(var))
-#    print(var_range[np.isfinite(var[m:int(s[0])-m-1])])
+
     for i in var_range[np.isfinite(var[m:int(s[0])-m-1])]:
-        #rm.append(var[i-m:i+m].mean())
         rr[int(i)]=np.nanmean(var[i-m:i+m])
 
     if tailcopy:
-#        print('tailcopy')
         rr[0:m]=rr[m+1]
         rr[-m-1:-1]=rr[-m-2]
 
@@ -1143,14 +1024,11 @@ def find_max_ts(data_org, threshold=None, jump=None, smooth=True, spreed=None, p
 
     if smooth is True:
         data=runningmean(data,spreed)
-    #print(threshold is not None and threshold > np.nanmin(data))
-    #if threshold is not None and numpy.ndarray
 
     if threshold is not None and threshold > np.nanmin(data):
         data[np.isnan(data)]=0
-        data[data<threshold]=0#np.nan
+        data[data<threshold]=0
     else:
-        #print(type(data.astype('float64')))
         data[np.isnan(data)]=0
 
     index=np.where(np.diff(np.sign(np.gradient(data)))== -2)[0]+1
@@ -1163,7 +1041,6 @@ def find_max_ts(data_org, threshold=None, jump=None, smooth=True, spreed=None, p
 
         adjustment=data[i-1:i+2].argmax()-1
         if adjustment != 0:
-            #print(str(i) +' adjusted by ' + str(adjustment))
             index2.append(i+data[i-1:i+2].argmax()-1)
         else:
             index2.append(i)
@@ -1179,21 +1056,17 @@ def find_max_ts(data_org, threshold=None, jump=None, smooth=True, spreed=None, p
         b=[]
         i=0
         while i < index.size-1:
- #           print(i, index.size-2, c[i:])
             if c[i] < jump:
                 if i >= index.size-2:
                     nc=1
                 elif sum(c[i:] >= jump) == 0:
                     nc=c[i:].size
                 else:
-#                    print(np.nonzero(c[i:] >= jump))
                     nc=np.nonzero(c[i:] >= jump)[0][0]
                 b=np.append(b, np.round(np.mean(index[i:i+nc+1]))).astype(int)
- #               print(nc, index[i:i+nc+1], ' new', np.round(np.mean(index[i:i+nc+1])))
                 i=i+nc+1
             else:
                 b=np.append(b, index[i]).astype(int)
-  #              print(' ', index[i], ' new', index[i])
                 i=i+1
         if verbose:
             print('index, edited ts, edit ts (index), org_index')
@@ -1205,7 +1078,6 @@ def spickes_to_nan(ts, nloop=None, spreed=1):
     i=0
     while i <= nloop:
         ts.max()
-        #print(np.where(ts == ts.max()))
         pa=np.where(ts == np.nanmax(ts))[0][0]
         ts[pa-spreed:pa+spreed]=np.NaN
         i=i+1
@@ -1218,37 +1090,23 @@ def spickes_to_mean(ts, nloop=None, spreed=1, gaussian=True):
     b=2*spreed
     gaus=signal.gaussian(b, std=b/10)
     while i <= nloop:
-        #print(i)
-        #ts.max()
-        #print(np.where(ts == ts.max()))
         tsabs=np.abs(ts)
         tmax=np.nanmax(tsabs)
-        #print(tsabs, tmax)
         pa=np.where(tsabs == tmax)[0][0]
 
         if gaussian:
-            tsm=np.mean([ts[pa-spreed],ts[pa+spreed]]) #ts[pa-spreed:pa+spreed]
-            #print(ts[pa-spreed:pa+spreed].shape)
-            #print((gaus*(tmax-tsm)).shape)
-            #print(np.shape(gaus*(tmax-tsm)))
+            tsm=np.mean([ts[pa-spreed],ts[pa+spreed]]) 
             le=int(pa-spreed)
             ue=int(pa+spreed)
 
             ts[le:ue]=ts[le:ue]-gaus*(tmax-tsm)
         else:
-            #tsm=np.mean([ts[pa-spreed],ts[pa+spreed]]) #ts[pa-spreed:pa+spreed]
-            #print(ts[pa-spreed:pa+spreed].shape)
-            #print((gaus*(tmax-tsm)).shape)
-            #print(np.shape(gaus*(tmax-tsm)))
-            #print(len(ts))
-            #print(pa+spreed)
             if pa+spreed > len(ts):
                 le= int(pa-spreed)
                 ts[le:-1]=np.linspace(ts[le],ts[-1],len(ts[le:-1]))
             else:
                 le=int(pa-spreed)
                 ue=int(pa+spreed)
-                #print(le, ue)
                 ts[ le : ue ]=np.linspace(ts[le],ts[ue],len(ts[le:ue]))
 
         i=i+1
@@ -1258,7 +1116,6 @@ def spickes_to_mean(ts, nloop=None, spreed=1, gaussian=True):
 
 class composite_data:
         def __init__(self,var, index_weight=None):
-            #print(var.shape)
             self.composites=var
             self.comp_mean=np.nanmean(var, axis=0)
             self.comp_std=np.nanstd(var, axis=0)
@@ -1270,11 +1127,7 @@ class composite_data:
 
         def weight(self,index_weight):
             length=self.comp_mean.size
-            #print('composites ', self.composites.shape)
-            #print('index respeat',index_weight.shape,self.comp_mean.shape)
             weight_mat=np.repeat(index_weight,length).reshape((self.composites.shape))/index_weight.mean()
-            #print(weight_mat.shape)
-            #print(self.composites.shape)
             self.comp_weighted_mean=np.nanmean(self.composites*weight_mat, axis=0)
             self.comp_weighted_norm=self.comp_weighted_mean/np.nanstd(self.comp_weighted_mean, axis=0)
 
@@ -1302,8 +1155,7 @@ class comp_iter:
                 self.unit='h' if unit is None else unit
                 for p in self.loop_iter:
                     time_str=np.append(time_str,str(self.time_iter[p].astype('timedelta64['+unit+']')))
-                    #time_iter_axis=np.append(time_iter_axis,self.time_iter[p].astype('timedelta64['+dt_unit+']'))
-
+                   
                 self.time_iter_string=time_str
 
 class composite:
@@ -1335,13 +1187,11 @@ class composite:
 
         def corse_iter(self, dt, unit=None):
             '''build intereration aaxis and timestamps for corser resoltions'''
-            #np.array(C.span)*dt_old
-            #print(type(self.dt), type(dt)
+
 
             assert unit == self.iter.unit, "span units do not match! old unit=" + self.iter.unit +", new unit="+ unit
 
             span=[]
-            # convert iter.dt in right unit
             dt_format=np.timedelta64(self.iter.dt,self.iter.unit ).astype('timedelta64['+unit+']').astype('float')
             span_new=np.array(self.span)*dt_format/dt
             print('old span=',self.span )
@@ -1375,10 +1225,8 @@ class composite:
             """ find nearest time index of compostite time compared to index times"""
             index_composite=[]
             for i in self.index:
-                #print('old:',i, '   ',time_index[i])
                 t_diff=time_index[i]-time_composite
                 nindex=np.unravel_index(np.abs(t_diff).argmin(),t_diff.shape)
-                #print('new:',nindex,time_composite[nindex])#, t_diff[nindex[0]-5:nindex[0]+5])
                 index_composite=np.append(index_composite,nindex)
             return index_composite.astype(int)
 
@@ -1396,7 +1244,7 @@ class composite:
             span=self.iter_operate.span
             print(iindex)
             if self.span != [0, 0]:
-                comp=np.empty((-span[0]+span[1]))#*np.NaN
+                comp=np.empty((-span[0]+span[1]))
                 self.length=comp.size
 
                 for i in iindex:
@@ -1404,28 +1252,20 @@ class composite:
                         print('i', i, 'span:', span[0], span[1] )
                         print('left postion:', i+span[0])
                         raise ValueError("composite span exceeds ts limits")
-                        #print('right postion:',i+self.span[1])
+                        
                         return -1
                     elif i+span[1] > ts.size:
                         return -1
                         print(i, span[0], span[1] )
                         print('i', i, 'span:', span[0], span[1] )
-                        #print('left postion:', i+self.span[0])
                         print('right postion:',i+span[1])
                         raise ValueError("composite span exceeds ts limits")
-                        #print('right postion:',i+self.span[1])
                         return -1
 
-                    #self.comp[i]=ts[i]
                     print('comp', comp.shape)
                     print('ts', ts[i+span[0]:i+span[1]].shape)
-                    #print('ltjergij')
                     print(i, span[0], span[1] )
                     comp=np.vstack((comp,ts[i+span[0]:i+span[1]]))
-                    #comp[:,i]=((comp,ts[i+self.span[0]:i+self.span[1]]))
-                    #print(ts[i])
-                    #print(comp)
-                    #self.comp.append(ts[i])
 
                 comp=np.delete(comp,0,0)
                 comp1=composite_data(comp, self.weigthing)
@@ -1450,7 +1290,6 @@ class composite:
                 print(-span[0]+span[1],field.shape[1])
                 comp=np.empty((-span[0]+span[1],field.shape[1]))*np.NaN
                 self.length=-span[0]+span[1]
-               # print('comp shape',comp.shape)
                 for i in iindex:
                     if i+span[1] > field.shape[0]:
                         ff=field[i+span[0]:field.shape[0],:]
@@ -1464,16 +1303,10 @@ class composite:
                         comp=np.vstack((comp,cc))
                     else:
                         comp=np.vstack((comp,field[i+span[0]:i+span[1],:]))
-                    #print(comp.shape)
-
-                #print('comp shape',comp.shape)
-                #print(iindex.size*self.length ,iindex.size, self.length,field.shape[1])
+                    
                 comp=comp.reshape( iindex.size+1,self.length,field.shape[1])
-                #comp.shape
                 comp=np.delete(comp,0,0)
-
                 comp1=composite_data(comp, self.weigthing)
-                #b2_mean=b2.mean(axis=0)
                 self.comp[name]=comp1
             else:
                 print('no span defined')
@@ -1494,24 +1327,17 @@ class composite:
                 iindex=self.index
 
             span=self.iter_operate.span
-            #print(field.shape)
-            #print('iindex', iindex)
+            
             if span != [0, 0]:
                 comp=np.empty((-span[0]+span[1],field.shape[1],field.shape[2]))*np.NaN
                 self.length=-span[0]+span[1]
-                #print(comp.shape)
                 for i in iindex:
-
-                    #print(i+span[0],i+span[1])
                     comp=np.vstack((comp,field[i+span[0]:i+span[1],:,:]))
-                    #print(comp.shape)
-                #print(iindex)
+
                 comp=comp.reshape( iindex.size+1,self.length,field.shape[1], field.shape[2])
-                #comp.shape
                 comp=np.delete(comp,0,0)
 
                 comp1=composite_data(comp, self.weigthing)
-                #b2_mean=b2.mean(axis=0)
                 self.comp[name]=comp1
             else:
                 print('no span defined')
@@ -1524,7 +1350,6 @@ class composite:
 def time_overlap(time1, time2):
 
     if (time1[0]-time2[0]).astype(int) > 0:
-        #print('time1 is first')
         start=time1[0]
     else:
         start=time2[0]
@@ -1571,12 +1396,6 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None,  plot=False):
     if isinstance(time_lin[0], np.datetime64):
         print('type is numpy.datetime64', time_lin.shape)
         time_lin=time_lin.astype('m8[s]').astype(int)
-        #print(ttt)
-
-    #if isinstance(time_delta, np.timedelta64):
-    #        time_delta=time_delta.astype('m8[s]').astype(int)
-    #        #print(time_delta)
-
 
     if f.shape [0] != data.shape [0]:
         print('ERROR: shapes are not correct')
@@ -1588,14 +1407,13 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None,  plot=False):
     f1_approx=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))
     a=f-f2
     f2_approx=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))
-    #print(f2_approx)
 
     # find postion of maximum at freqeuency band
     dd=np.squeeze(data[f1_approx,:])
     fin1=np.where(dd==dd.max())[0][0]
     dd=np.squeeze(data[f2_approx,:])
     fin2=np.where(dd==dd.max())[0][0]
-    #print(fin1,time_lin, time_lin.size)
+    
 
     # define as point in time
     x1=time_lin[fin1]
@@ -1616,7 +1434,7 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None,  plot=False):
     #fit simple line.
     p1, p2=np.polyfit([y1 , y2], [x1, x2], 1)
     limit_mid=np.polyval([p1, p2], f)
-    #print(p2, time_delta)
+    
     limit_line1=np.polyval([p1, p2], f-f_delta)
     limit_line2=np.polyval([p1, p2], f+f_delta)
 
@@ -1660,7 +1478,7 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
         a=f-f1
         f_start=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]
 
-    #print(f_start)
+    
     if mode == 'free_limits' or mode == 'lower_limit':
         if line_right[-1] > time_lin[-1]:
             print(' right line > time window')
@@ -1675,8 +1493,7 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
         a=f-f2
         f_end=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]
 
-    #print(f_end)
-
+    
     if plot:
         plt.figure()
         plt.pcolor(time_lin, f, data)
@@ -1693,55 +1510,37 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
     STR=dict()
     STR['t_pos']=[]
     STR['index']=index
-    #STR['cut_pos']=[]
     STR['amp']=[]
     STR['freq']=[]
     STR['out']=[]
     STR['amp_shape']=list()
-
     STR['left_limit']=line_left
     STR['right_limit']=line_right
-    #print(flin[f_start:f_end].shape)
+
     for i in enumerate(flin[f_start:f_end]):
         ii=f_start+i[0]
-        #print(i[0])
-        #print('ii',ii , type(i[0]), type(i) )
-        #print(round(line_left[ii]), round(line_right[ii]))
         cut=cut_nparray(time_lin, line_left[ii], line_right[ii], verbose=False)
-        #print( cut[:data.shape[1]].shape, data.shape)
-        #plt.plot(data[i, cut], Color='grey', alpha=0.5)
-        #print(type(data[ii, cut]), type(cut[0]), type(ii))
-        #print(data[ii, cut[:data.shape[1]]])
         out=find_max_ts(data[ii, cut[:data.shape[1]]], smooth=True, spreed=spreed, plot=plot, verbose=False)
-        #STR['cut_pos'].append(np.where(np.diff(cut) == True)[0][0])
         STR['out'].append(out[0][0])
         STR['t_pos'].append(out[0][0]+np.where(np.diff(cut) == True)[0][0])
         STR['amp'].append(out[2][0])
         STR['amp_shape'].append(out[1])
         STR['freq'].append(i[1])
-        #plt.plot(out[1], Color='red', alpha=1)
 
     if plot:
         plt.figure()
         plt.pcolor(time_lin, f, data,cmap='Greys')
-        #plt.plot(limit_mid, f )
         plt.plot(line_left, f, Color='blue')
         plt.plot(line_right, f, Color='blue')
-        #plt.plot(time_lin, time_lin*0+y1, Color='black', alpha=1,  LineWidth=2)
-        #plt.plot(time_lin, time_lin*0+y2, Color='black', alpha=1,  LineWidth=2)
         plt.xlabel('time')
         plt.ylabel('f')
         plt.scatter(time_lin[STR['t_pos']], STR['freq'], s=20, c='blue', alpha=1)
-        #plt.scatter(time_lin[STR['cut_pos']], STR['freq'], s=20, c='orange', alpha=1)
         plt.xlim(time_lin[0], time_lin[-1])
         plt.ylim(flin[f_start] , flin[f_end])
-
         plt.figure()
         for s in STR['amp_shape']:
             plt.plot(s, Color='grey', alpha=0.6)
         plt.scatter(STR['out'],STR['amp'], s=20)
-        #plt.xlim([40 , 70])
-        #plt.ylim([20, 50])
     return STR
 
 def robust_regression(time, freq, plot=True):
@@ -1756,8 +1555,6 @@ def robust_regression(time, freq, plot=True):
 
     slope=model_ransac.estimator_.coef_[0]
     intercept=model_ransac.estimator_.intercept_
-    #inlier_mask = model_ransac.inlier_mask_
-    #outlier_mask = np.logical_not(inlier_mask)
 
     if plot:
         plt.figure()
@@ -1770,10 +1567,8 @@ def robust_regression(time, freq, plot=True):
 
 def simple_RAMSAC_regression_estimator(x, Y):
     from sklearn import linear_model
-    #return stats.linregress(x[i], y[i])[2]
-    model_ransac = linear_model.RANSACRegressor(linear_model.LinearRegression())#,min_samples=1,
-                                            #residual_threshold=1)
-                                            #stop_n_inliers=.2)
+    model_ransac = linear_model.RANSACRegressor(linear_model.LinearRegression())
+                                            
     x2=np.empty((x.size,1))
     x2[:,0]=x
     model_ransac.fit(x2, Y)
@@ -1783,7 +1578,7 @@ def simple_RAMSAC_regression_estimator(x, Y):
 
 
 def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False,  **kwargs):
-    ''' bootstraps linear regression model using the RAMSAC algorythm
+    ''' bootstraps linear regression model using the RAMSAC algorithm
     outout:
     slope low_ci high_ci
     intercept low_ci high_ci
@@ -1792,10 +1587,8 @@ def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False,  **kw
     '''
     import sklearn.bootstrap as boot # might not work in python 3
 
-
-    #statfunction=
     RAMS_slope, RAMS_intercept =simple_RAMSAC_regression_estimator(time, freq)
-    #self.clevs=self.clevs if self.clevs is not None else clevels(dd)
+    
     if time_lin_arg is not None:
         time_lin=time_lin_arg
         print('time lin is set')
@@ -1808,16 +1601,6 @@ def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False,  **kw
 
     print(RAMS_slope, RAMS_intercept)
     RAMS_out=boot.ci((time, freq), simple_RAMSAC_regression_estimator, method='bca' , **kwargs)
-
-    # Robustly fit linear model with RANSAC algorithm
-    #model_ransac = linear_model.RANSACRegressor(linear_model.LinearRegression())
-    #model_ransac.fit(time2, freq)
-    #predicted_line=model_ransac.predict(time[:, np.newaxis])
-
-    #slope=model_ransac.estimator_.coef_[0]
-    #intercept=model_ransac.estimator_.intercept_
-    #inlier_mask = model_ransac.inlier_mask_
-    #outlier_mask = np.logical_not(inlier_mask)
 
     slope=np.append(RAMS_slope, RAMS_out[:,0])
     intercept=np.append(RAMS_intercept, RAMS_out[:,1])
