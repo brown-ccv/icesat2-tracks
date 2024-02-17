@@ -26,13 +26,25 @@ jobs:
       - name: test icesat2waves app
         run: |
             icesat2waves --help
-            icesat2waves loadfile --help
-            icesat2waves makespectra --help
-            icesat2waves plotspectra --help
+            icesat2waves load-file --help
+            icesat2waves make-spectra --help
+            icesat2waves plot-spectra --help
+            icesat2waves make-iowaga-threads-prior --help
+            icesat2waves make-b04-angle --help # prelim name
+            icesat2waves define-angle --help
+            icesat2waves correct-separate --help # prelim name
+
       - name: first step B01_SL_load_single_file
-        run: loadfile --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
+        run: load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: second step make_spectra
         run: make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: third step plot_spectra
-        run: plotspectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
-        
+        run: plot-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: fouth step IOWAGA threads 
+        run:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: fifth step B04_angle
+        run: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: sixth step B04_define_angle
+        run: define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
+      - name: seventh step B06_correct_separate
+        run: correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work

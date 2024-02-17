@@ -3,6 +3,7 @@
 This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+from ast import comprehension
 from pathlib import Path
 import matplotlib
 import numpy as np
@@ -88,41 +89,42 @@ def run_B03_plot_spectra_ov(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """
     TODO: add docstring
     """
+
+    track_name, batch_key, _ = io.init_from_input(
+        [
+            None,
+            track_name,
+            batch_key,
+            ID_flag,
+        ]  # init_from_input expects sys.argv with 4 elements
+    )
+
+    kargs = {
+        "track_name": track_name,
+        "batch_key": batch_key,
+        "ID_flag": ID_flag,
+        "output_dir": output_dir,
+    }
+    report_input_parameters(**kargs)
+
     with suppress_stdout(verbose):
-        track_name, batch_key, _ = io.init_from_input(
-            [
-                None,
-                track_name,
-                batch_key,
-                ID_flag,
-            ]  # init_from_input expects sys.argv with 4 elements
-        )
-
-        kargs = {
-            "track_name": track_name,
-            "batch_key": batch_key,
-            "ID_flag": ID_flag,
-            "output_dir": output_dir,
-        }
-        report_input_parameters(**kargs)
-
-        hemis, batch = batch_key.split("_")
+        hemis, _ = batch_key.split("_")
 
         workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
 
         load_path = Path(workdir, batch_key, "B02_spectra")
         load_file = str(load_path / ("B02_" + track_name))
         plot_path = Path(plotsdir, hemis, batch_key, track_name)
-        MT.mkdirs_r(plot_path)
+        plot_path.mkdir(parents=True, exist_ok=True)
 
+        # TODO: use list comprehension to load all the files
         Gk = xr.open_dataset(load_file + "_gFT_k.nc")
         Gx = xr.open_dataset(load_file + "_gFT_x.nc")
-
         Gfft = xr.open_dataset(load_file + "_FFT.nc")
 
         all_beams = mconfig["beams"]["all_beams"]
@@ -138,7 +140,9 @@ def run_B03_plot_spectra_ov(
         for k in all_beams:
             I = Gk.sel(beam=k)
             I2 = Gx.sel(beam=k)
-            plt.plot(I["lon"], I["lat"], ".", c=col_dict[k], markersize=0.7, linewidth=0.3)
+            plt.plot(
+                I["lon"], I["lat"], ".", c=col_dict[k], markersize=0.7, linewidth=0.3
+            )
             plt.plot(I2["lon"], I2["lat"], "|", c=col_dict[k], markersize=0.7)
 
         plt.xlabel("lon")
@@ -180,8 +184,10 @@ def run_B03_plot_spectra_ov(
 
         F.save_light(path=plot_path, name="B03_specs_coord_check")
 
+        # TODO: refactor to make more readable. CP
         G_gFT_wmean = (
-            Gk["gFT_PSD_data"].where(~np.isnan(Gk["gFT_PSD_data"]), 0) * Gk["N_per_stancil"]
+            Gk["gFT_PSD_data"].where(~np.isnan(Gk["gFT_PSD_data"]), 0)
+            * Gk["N_per_stancil"]
         ).sum("beam") / Gk["N_per_stancil"].sum("beam")
         G_gFT_wmean["N_per_stancil"] = Gk["N_per_stancil"].sum("beam")
 
@@ -191,12 +197,13 @@ def run_B03_plot_spectra_ov(
         G_fft_wmean["N_per_stancil"] = Gfft["N_per_stancil"].sum("beam")
         Gmean = G_gFT_wmean.rolling(k=5, center=True).mean()
 
+        # TODO: make function to compute k_max. CP
         try:
             k_max = Gmean.k[Gmean.isel(x=slice(0, 5)).mean("x").argmax().data].data
         except Exception:
             k_max = Gmean.k[Gmean.isel(x=slice(0, 20)).mean("x").argmax().data].data
 
-        k_max_range = (k_max * 0.75, k_max * 1, k_max * 1.25)
+        k_max_range = (k_max * 0.75, k_max, k_max * 1.25)
         font_for_print()
         F = M.figure_axis_xy(6.5, 5.6, container=True, view_scale=1)
         Lmeters = Gk.L.data[0]
@@ -213,7 +220,9 @@ def run_B03_plot_spectra_ov(
         )
         dd = 10 * np.log10(Gplot)
         dd = dd.where(~np.isinf(dd), np.nan)
-        clev_log = M.clevels([dd.quantile(0.01).data, dd.quantile(0.98).data * 1.2], 31) * 1
+        clev_log = (
+            M.clevels([dd.quantile(0.01).data, dd.quantile(0.98).data * 1.2], 31) * 1
+        )
 
         xlims = Gmean.x[0] / 1e3, Gmean.x[-1] / 1e3
 
@@ -305,7 +314,9 @@ def run_B03_plot_spectra_ov(
             I = Gfft.sel(beam=k)
             plt.scatter(
                 (x0 + I.x.data) / 1e3,
-                I.power_spec.sel(k=slice(k_max_range[0], k_max_range[2])).integrate("k"),
+                I.power_spec.sel(k=slice(k_max_range[0], k_max_range[2])).integrate(
+                    "k"
+                ),
                 s=0.5,
                 marker=".",
                 c="blue",
@@ -354,7 +365,7 @@ def run_B03_plot_spectra_ov(
 
         font_for_print()
 
-        MT.mkdirs_r(plot_path / "B03_spectra/")
+        (plot_path / "B03_spectra").mkdir(parents=True, exist_ok=True)
 
         x_pos_sel = np.arange(Gk.x.size)[
             ~np.isnan(Gk.mean("beam").mean("k").gFT_PSD_data.data)
@@ -366,14 +377,19 @@ def run_B03_plot_spectra_ov(
             .argmax()
             .data
         )
-        xpp = x_pos_sel[[int(i) for i in np.round(np.linspace(0, x_pos_sel.size - 1, 4))]]
+        xpp = x_pos_sel[
+            [int(i) for i in np.round(np.linspace(0, x_pos_sel.size - 1, 4))]
+        ]
         xpp = np.insert(xpp, 0, x_pos_max)
 
         for i in xpp:
             F = M.figure_axis_xy(6, 8, container=True, view_scale=0.8)
 
             plt.suptitle(
-                "gFT Model and Spectrograms | x=" + str(Gk.x[i].data) + " \n" + track_name,
+                "gFT Model and Spectrograms | x="
+                + str(Gk.x[i].data)
+                + " \n"
+                + track_name,
                 y=0.95,
             )
             gs = GridSpec(5, 6, wspace=0.2, hspace=0.7)
@@ -440,8 +456,11 @@ def run_B03_plot_spectra_ov(
             plt.title("Model reconst.", loc="left")
 
             plt.ylabel("relative slope (m/m)")
+            # TODO: compute xlabel as fstring. CP
             plt.xlabel(
-                "segment distance $\eta$ (km) @ x=" + fltostr(Gx_1.x.data / 1e3, 2) + "km"
+                "segment distance $\eta$ (km) @ x="
+                + fltostr(Gx_1.x.data / 1e3, 2)
+                + "km"
             )
 
             # spectra
@@ -467,7 +486,9 @@ def run_B03_plot_spectra_ov(
                         dd = Gk_1.gFT_PSD_data
                         plt.plot(Gk_1.k, dd, color="gray", linewidth=0.5, alpha=0.5)
 
-                    dd = Gk_1.gFT_PSD_data.rolling(k=10, min_periods=1, center=True).mean()
+                    dd = Gk_1.gFT_PSD_data.rolling(
+                        k=10, min_periods=1, center=True
+                    ).mean()
                     plt.plot(Gk_1.k, dd, color=col_d[k], linewidth=0.8)
                     # handle the 'All-NaN slice encountered' warning
                     if np.all(np.isnan(dd.data)):
@@ -545,12 +566,15 @@ def run_B03_plot_spectra_ov(
             plt.title("Low-Wavenumber Model reconst.", loc="left")
 
             plt.ylabel("relative slope (m/m)")
+            # TODO: compute xlabel as fstring. CP
             plt.xlabel(
-                "segment distance $\eta$ (km) @ x=" + fltostr(Gx_1.x.data / 1e3, 2) + "km"
+                "segment distance $\eta$ (km) @ x="
+                + fltostr(Gx_1.x.data / 1e3, 2)
+                + "km"
             )
 
             F.save_pup(
-                path=str(plot_path) + "B03_spectra/", name="B03_freq_reconst_x" + str(i)
+                path=str(plot_path / "B03_spectra"), name=f"B03_freq_reconst_x{i}"
             )
 
         MT.json_save(
@@ -559,8 +583,10 @@ def run_B03_plot_spectra_ov(
             {"time": "time.asctime( time.localtime(time.time()) )"},
         )
 
+        echo("success", "green")
 
-step3app = makeapp(run_B03_plot_spectra_ov, name="plotspectra")
+
+plot_spectra = makeapp(run_B03_plot_spectra_ov, name="plotspectra")
 
 if __name__ == "__main__":
-    step3app()
+    plot_spectra()

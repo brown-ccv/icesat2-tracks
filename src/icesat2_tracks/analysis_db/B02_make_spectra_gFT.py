@@ -85,19 +85,16 @@ def run_B02_make_spectra_gFT(
         "output_dir": output_dir,
     }
     report_input_parameters(**kargs)
-    
-    with suppress_stdout(verbose):
-        hemis, batch = batch_key.split("_")
 
-        workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
+    with suppress_stdout(verbose):
+
+        workdir, _ = update_paths_mconfig(output_dir, mconfig)
 
         load_path = Path(workdir, batch_key, "B01_regrid")
 
         save_path = Path(workdir, batch_key, "B02_spectra")
         save_name = f"B02_{track_name}"
 
-        plot_path = Path(plotsdir, hemis, batch_key, track_name, "B_spectra")
-        plot_path.mkdir(parents=True, exist_ok=True)
         save_path.mkdir(parents=True, exist_ok=True)
 
         bad_track_path = Path(workdir, "bad_tracks", batch_key)
@@ -109,7 +106,7 @@ def run_B02_make_spectra_gFT(
 
         Gd = h5py.File(Path(load_path) / (track_name + "_B01_binned.h5"), "r")
 
-        # test amount of nans in the data
+        # test amount of nans in the data TODO: rewrite as a comprehension. CP
         nan_fraction = list()
         for k in all_beams:
             heights_c_std = io.get_beam_var_hdf_store(Gd[k], "x")
