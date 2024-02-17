@@ -120,7 +120,9 @@ dependencies = [ # Optional
   "emcee >=3.1.4, <4.0.0",
   "netCDF4 >=1.6.5, <2.0.0",
   "siphon >=0.9, <1.0.0",
-  "h5py >=3.5.0, < 4.0.0"
+  "h5py >=3.5.0, < 4.0.0",
+  "termcolor >=2.4.0, < 3.0.0",
+  "typer >=0.9.0, < 1.0.0",
 ]
 
 # List additional groups of dependencies   here (e.g. development
@@ -132,8 +134,16 @@ dependencies = [ # Optional
 # Similar to `dependencies` above, these must be valid existing
 # projects.
 [project.optional-dependencies] # Optional
-dev = ["check-manifest","black","icesat2-tracks[test]"]
-test = ["coverage"]
+dev = [
+  "check-manifest",
+  "black",
+  "icesat2-tracks[test]"
+]
+test = [
+  "coverage",
+  "pytest >=7.4.4, <8.0.0",
+  "pytest-xdist >=3.5.0, <4.0.0"
+]
 
 # List URLs that are relevant to your project
 #
@@ -155,6 +165,15 @@ test = ["coverage"]
 [project.scripts]  # Optional
 #TODO: ADD ANY SCRIPTS WE WANT TO HAVE
 download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
+load-file = "icesat2_tracks.analysis_db.B01_SL_load_single_file:load_file_app"
+make-spectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:make_spectra_app"
+plot-spectra = "icesat2_tracks.analysis_db.B03_plot_spectra_ov:plot_spectra"
+make-iowaga-threads-prior = "icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior:make_iowaga_threads_prior_app"
+make-b04-angle = "icesat2_tracks.analysis_db.B04_angle:make_b04_angle_app"
+define-angle = "icesat2_tracks.analysis_db.B05_define_angle:define_angle_app"
+correct-separate = "icesat2_tracks.analysis_db.B06_correct_separate_var:correct_separate_app"
+icesat2waves = "icesat2_tracks.app:app"
+
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.

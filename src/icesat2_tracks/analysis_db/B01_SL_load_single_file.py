@@ -1,14 +1,20 @@
+#!/usr/bin/env python
 """
-This file open a ICEsat2 tbeam_stats.pyrack applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
+This file open a ICEsat2 tbeam_stats.pyrack applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3.11
 """
-import sys
 import datetime
 import copy
 from pathlib import Path
+import warnings
 
 import xarray as xr
 from sliderule import icesat2
+import matplotlib
+import typer
+from pandas.errors import (
+    SettingWithCopyWarning,
+)  # TODO: remove when warnings are handled
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
@@ -16,95 +22,28 @@ from icesat2_tracks.config.IceSAT2_startup import (
     font_for_pres,
     plt,
 )
-from icesat2_tracks.ICEsat2_SI_tools import (
-    sliderule_converter_tools as sct,
-    iotools as io,
-    beam_stats,
+import icesat2_tracks.ICEsat2_SI_tools.sliderule_converter_tools as sct
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
+import icesat2_tracks.ICEsat2_SI_tools.beam_stats as beam_stats
+import icesat2_tracks.local_modules.m_tools_ph3 as MT
+from icesat2_tracks.local_modules import m_general_ph3 as M
+
+from icesat2_tracks.clitools import (
+    validate_track_name,
+    validate_batch_key,
+    validate_output_dir,
+    suppress_stdout,
+    report_input_parameters,
+    update_paths_mconfig,
+    echo,
+    echoparam,
+    makeapp,
 )
-from icesat2_tracks.local_modules import m_tools_ph3 as MT, m_general_ph3 as M
-
-xr.set_options(display_style="text")
-
-# Select region and retrive batch of tracks
-track_name, batch_key, ID_flag = io.init_from_input(
-    sys.argv
-)  # loads standard experiment
-
-plot_flag = True
-hemis = batch_key.split("_")[0]
-
-# Make target directories
-basedir = Path(mconfig["paths"]["work"], batch_key)
-save_path, save_path_json = Path(basedir, "B01_regrid"), Path(basedir, "A01b_ID")
-for p in [save_path, save_path_json]:
-    MT.mkdirs_r(p)
-
-ATL03_track_name = "ATL03_" + track_name + ".h5"
-
-# Configure SL Session
-icesat2.init("slideruleearth.io")
 
 
-# plot the ground tracks in geographic location
-# Generate ATL06-type segments using the ATL03-native photon classification
-# Use the ocean classification for photons with a confidence parmeter to 2 or higher (low confidence or better)
-
-params = {
-    "srt": 1,  # Ocean classification
-    "len": 25,  # 10-meter segments
-    "ats": 3,  # require that each segment contain photons separated by at least 5 m
-    "res": 10,  # return one photon every 10 m
-    "dist_in_seg": False,  # if False units of len and res are in meters
-    "track": 0,  # return all ground tracks
-    "pass_invalid": False,
-    "cnt": 20,
-    "sigma_r_max": 4,  # maximum standard deviation of photon in extend
-    "cnf": 2,  # require classification confidence of 2 or more
-    "atl03_geo_fields": ["dem_h"],
-}
-
-
-# YAPC alternatibe
-params_yapc = {
-    "srt": 1,
-    "len": 20,
-    "ats": 3,
-    "res": 10,
-    "dist_in_seg": False,  # if False units of len and res are in meters
-    "track": 0,
-    "pass_invalid": False,
-    "cnf": 2,
-    "cnt": 20,
-    "sigma_r_max": 4,  # maximum standard deviation of photon in extend
-    "maxi": 10,
-    "yapc": dict(
-        knn=0, win_h=6, win_x=11, min_ph=4, score=100
-    ),  # use the YAPC photon classifier; these are the recommended parameters, but the results might be more specific with a smaller win_h value, or a higher score cutoff
-    #   "yapc": dict(knn=0, win_h=3, win_x=11, min_ph=4, score=50),  # use the YAPC photon classifier; these are the recommended parameters, but the results might be more specific with a smaller win_h value, or a higher score cutoff
-    "atl03_geo_fields": ["dem_h"],
-}
-
-maximum_height = 30  # (meters) maximum height past dem_h correction
-
-gdf = io.get_atl06p(ATL03_track_name, params_yapc, maximum_height)
-
-
-cdict = dict()
-for s, b in zip(gdf["spot"].unique(), ["gt1l", "gt1r", "gt2l", "gt2r", "gt3l", "gt3r"]):
-    cdict[s] = color_schemes.rels[b]
-
-
-font_for_pres()
-F_atl06 = M.figure_axis_xy(6.5, 5, view_scale=0.6)
-F_atl06.fig.suptitle(track_name)
-
-beam_stats.plot_ATL06_track_data(gdf, cdict)
-
-
-# main routine for defining the x coordinate and sacing table data
 def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
     """
-    converts a GeoDataFrame from Sliderule to GeoDataFrames for each beam witht the correct columns and names
+    converts a GeoDataFrame from Sliderule to GeoDataFrames for each beam with the correct columns and names
     inputs:
         table_data: GeoDataFrame with the data
         split_by_beam: True/False. If True the data is split by beam
@@ -146,97 +85,198 @@ def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
         return table_data
 
 
-# define reference point and then define 'x'
-table_data = copy.copy(gdf)
+def run_B01_SL_load_single_file(
+    track_name: str = typer.Option(..., callback=validate_track_name),
+    batch_key: str = typer.Option(..., callback=validate_batch_key),
+    ID_flag: bool = True,
+    plot_flag: bool = True,
+    output_dir: str = typer.Option(..., callback=validate_output_dir),
+    verbose: bool = False,
+):
+    """
+    Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and output smoothed photon heights on a regular grid in an .nc file.
+    """
+    # report input parameters
+    kwargs = {
+        "track_name": track_name,
+        "batch_key": batch_key,
+        "ID_flag": ID_flag,
+        "output_dir": output_dir,
+    }
+    report_input_parameters(**kwargs)
 
-# the reference point is defined as the most equatorward point of the polygon.
-# It's distance from the equator is  subtracted from the distance of each photon.
-table_data = sct.define_x_coordinate_from_data(table_data)
-table_time = table_data["time"]
-table_data.drop(columns=["time"], inplace=True)
+    xr.set_options(display_style="text")
+    matplotlib.use("Agg")  # prevent plot windows from opening
 
-# renames columns and splits beams
-Ti = make_B01_dict(table_data, split_by_beam=True, to_hdf5=True)
+    # Select region and retrieve batch of tracks
+    with suppress_stdout(verbose):
+        track_name, batch_key, ID_flag = io.init_from_input(
+            [
+                None,
+                track_name,
+                batch_key,
+                ID_flag,
+            ]  # init_from_input expects sys.argv with 4 elements
+        )  # loads standard experiment
 
-for kk in Ti.keys():
-    Ti[kk]["dist"] = Ti[kk]["x"].copy()
-    Ti[kk]["heights_c_weighted_mean"] = Ti[kk]["h_mean"].copy()
-    Ti[kk]["heights_c_std"] = Ti[kk]["h_sigma"].copy()
+        hemis = batch_key.split("_")[0]
 
-segment = track_name.split("_")[1][-2:]
-ID_name = sct.create_ID_name(gdf.iloc[0], segment=segment)
-print(ID_name)
-io.write_track_to_HDF5(Ti, ID_name + "_B01_binned", save_path)  # regridding heights
+        workdir, plotsdir = update_paths_mconfig(output_dir, mconfig)
 
-#  plot the ground tracks in geographic location
+        save_path = Path(workdir, batch_key, "B01_regrid")
+        save_path.mkdir(parents=True, exist_ok=True)
 
-all_beams = mconfig["beams"]["all_beams"]
-high_beams = mconfig["beams"]["high_beams"]
-low_beams = mconfig["beams"]["low_beams"]
+        save_path_json = Path(workdir, batch_key, "A01b_ID")
+        save_path_json.mkdir(parents=True, exist_ok=True)
 
-D = beam_stats.derive_beam_statistics(Ti, all_beams, Lmeter=12.5e3, dx=10)
+        ATL03_track_name = "ATL03_" + track_name + ".h5"
 
-# save figure from above:
-plot_path = (
-    mconfig["paths"]["plot"] + "/" + hemis + "/" + batch_key + "/" + ID_name + "/"
-)
-MT.mkdirs_r(plot_path)
-F_atl06.save_light(path=plot_path, name="B01b_ATL06_corrected.png")
-plt.close()
+        # Configure SL Session
+        icesat2.init("slideruleearth.io")
 
-if plot_flag:
-    font_for_pres()
-    F = M.figure_axis_xy(8, 4.3, view_scale=0.6)
-    beam_stats.plot_beam_statistics(
-        D,
-        high_beams,
-        low_beams,
-        color_schemes.rels,
-        track_name=track_name
-        + "|  ascending ="
-        + str(sct.ascending_test_distance(gdf)),
-    )
+        # plot the ground tracks in geographic location
+        # Generate ATL06-type segments using the ATL03-native photon classification
+        # Use the ocean classification for photons with a confidence parameter to 2 or higher (low confidence or better)
 
-    F.save_light(path=plot_path, name="B01b_beam_statistics.png")
-    plt.close()
+        # YAPC alternative
+        params_yapc = {
+            "srt": 1,
+            "len": 20,
+            "ats": 3,
+            "res": 10,
+            "dist_in_seg": False,  # if False units of len and res are in meters
+            "track": 0,
+            "pass_invalid": False,
+            "cnf": 2,
+            "cnt": 20,
+            "sigma_r_max": 4,  # maximum standard deviation of photon in extend
+            "maxi": 10,
+            "yapc": dict(
+                knn=0, win_h=6, win_x=11, min_ph=4, score=100
+            ),  # use the YAPC photon classifier; these are the recommended parameters, but the results might be more specific with a smaller win_h value, or a higher score cutoff
+            #   "yapc": dict(knn=0, win_h=3, win_x=11, min_ph=4, score=50),  # use the YAPC photon classifier; these are the recommended parameters, but the results might be more specific with a smaller win_h value, or a higher score cutoff
+            "atl03_geo_fields": ["dem_h"],
+        }
 
-    # plot the ground tracks in geographic location
-    gdf[::100].plot(markersize=0.1, figsize=(4, 6))
-    plt.title(
-        track_name + "\nascending =" + str(sct.ascending_test_distance(gdf)), loc="left"
-    )
-    M.save_anyfig(plt.gcf(), path=plot_path, name="B01_track.png")
-    plt.close()
+        maximum_height = 30  # (meters) maximum height past dem_h correction
+        print("STARTS")
+        print("Fetching ATL03 data from sliderule")
+        gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
+        print("ENDS")
+        gdf = sct.correct_and_remove_height(gdf, maximum_height)
+
+        cdict = dict()
+        for s, b in zip(
+            gdf["spot"].unique(), ["gt1l", "gt1r", "gt2l", "gt2r", "gt3l", "gt3r"]
+        ):
+            cdict[s] = color_schemes.rels[b]
+
+        font_for_pres()
+        F_atl06 = M.figure_axis_xy(6.5, 5, view_scale=0.6)
+        F_atl06.fig.suptitle(track_name)
+
+        beam_stats.plot_ATL06_track_data(gdf, cdict)
+
+        # main routine for defining the x coordinate and sacing table data
+
+        # define reference point and then define 'x'
+        table_data = copy.copy(gdf)
+
+        # the reference point is defined as the most equatorward point of the polygon.
+        # It's distance from the equator is  subtracted from the distance of each photon.
+        table_data = sct.define_x_coordinate_from_data(table_data)
+        table_time = table_data["time"]
+        table_data.drop(columns=["time"], inplace=True)
+
+        # renames columns and splits beams
+        Ti = make_B01_dict(table_data, split_by_beam=True, to_hdf5=True)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter(
+                "ignore", category=SettingWithCopyWarning
+            )  # TODO: remove when warnings are handled
+            for kk in Ti.keys():
+                Ti[kk]["dist"] = Ti[kk]["x"].copy()
+                Ti[kk]["heights_c_weighted_mean"] = Ti[kk]["h_mean"].copy()
+                Ti[kk]["heights_c_std"] = Ti[kk]["h_sigma"].copy()
+
+        segment = track_name.split("_")[1][-2:]
+        ID_name = sct.create_ID_name(gdf.iloc[0], segment=segment)
+        echoparam("ID_name", ID_name)
+        io.write_track_to_HDF5(Ti, ID_name + "_B01_binned", save_path)  # regridding heights
+
+        #  plot the ground tracks in geographic location
+
+        all_beams = mconfig["beams"]["all_beams"]
+        high_beams = mconfig["beams"]["high_beams"]
+        low_beams = mconfig["beams"]["low_beams"]
+
+        D = beam_stats.derive_beam_statistics(Ti, all_beams, Lmeter=12.5e3, dx=10)
+
+        # save figure from above:
+        plot_path = Path(plotsdir, hemis, batch_key, ID_name)
+        plot_path.mkdir(parents=True, exist_ok=True)
+
+        F_atl06.save_light(path=plot_path, name="B01b_ATL06_corrected.png")
+        plt.close()
+
+        if plot_flag:
+            font_for_pres()
+            F = M.figure_axis_xy(8, 4.3, view_scale=0.6)
+            beam_stats.plot_beam_statistics(
+                D,
+                high_beams,
+                low_beams,
+                color_schemes.rels,
+                track_name=track_name
+                + "|  ascending ="
+                + str(sct.ascending_test_distance(gdf)),
+            )
+
+            F.save_light(path=plot_path, name="B01b_beam_statistics.png")
+            plt.close()
+
+            # plot the ground tracks in geographic location
+            gdf[::100].plot(markersize=0.1, figsize=(4, 6))
+            plt.title(
+                track_name + "\nascending =" + str(sct.ascending_test_distance(gdf)),
+                loc="left",
+            )
+            M.save_anyfig(plt.gcf(), path=plot_path, name="B01_track.png")
+            plt.close()
+
+        echo("write A01b .json")
+        DD = {"case_ID": ID_name, "tracks": {}}
+
+        DD["tracks"]["ATL03"] = "ATL10-" + track_name
+
+        start_pos = abs(table_data.lats).argmin()
+        end_pos = abs(table_data.lats).argmax()
+
+        # add other pars:
+        DD["pars"] = {
+            "poleward": sct.ascending_test(gdf),
+            "region": "0",
+            "start": {
+                "longitude": table_data.lons[start_pos],
+                "latitude": table_data.lats[start_pos],
+                "seg_dist_x": float(table_data.x[start_pos]),
+                "delta_time": datetime.datetime.timestamp(table_time[start_pos]),
+            },
+            "end": {
+                "longitude": table_data.lons[end_pos],
+                "latitude": table_data.lats[end_pos],
+                "seg_dist_x": float(table_data.x[end_pos]),
+                "delta_time": datetime.datetime.timestamp(table_time[end_pos]),
+            },
+        }
+
+        MT.json_save2(name="A01b_ID_" + ID_name, path=save_path_json, data=DD)
+
+        echo("done")
 
 
-print("write A01b .json")
-DD = {"case_ID": ID_name, "tracks": {}}
+load_file_app = makeapp(run_B01_SL_load_single_file, name="load-file")
 
-DD["tracks"]["ATL03"] = "ATL10-" + track_name
-
-
-start_pos = abs(table_data.lats).argmin()
-end_pos = abs(table_data.lats).argmax()
-
-
-# add other pars:
-DD["pars"] = {
-    "poleward": sct.ascending_test(gdf),
-    "region": "0",
-    "start": {
-        "longitude": table_data.lons[start_pos],
-        "latitude": table_data.lats[start_pos],
-        "seg_dist_x": float(table_data.x[start_pos]),
-        "delta_time": datetime.datetime.timestamp(table_time[start_pos]),
-    },
-    "end": {
-        "longitude": table_data.lons[end_pos],
-        "latitude": table_data.lats[end_pos],
-        "seg_dist_x": float(table_data.x[end_pos]),
-        "delta_time": datetime.datetime.timestamp(table_time[end_pos]),
-    },
-}
-
-MT.json_save2(name="A01b_ID_" + ID_name, path=save_path_json, data=DD)
-
-print("done")
+if __name__ == "__main__":
+    load_file_app()
