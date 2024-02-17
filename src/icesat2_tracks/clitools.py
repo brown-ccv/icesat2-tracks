@@ -1,7 +1,6 @@
 import os
 import re
-import sys
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
 
 import typer
@@ -14,12 +13,8 @@ def suppress_stdout(verbose=False):
         yield
     else:
         with open(os.devnull, "w") as devnull:
-            old_stdout = sys.stdout
-            sys.stdout = devnull
-            try:
+            with redirect_stdout(devnull):
                 yield
-            finally:
-                sys.stdout = old_stdout
 
 
 # Callbacks for typer
@@ -35,7 +30,9 @@ def validate_pattern_wrapper(
     return value
 
 
-def validate_track_name(ctx: typer.Context, param: typer.CallbackParam, value: str) -> str:
+def validate_track_name(
+    ctx: typer.Context, param: typer.CallbackParam, value: str
+) -> str:
     """
     Validate the track name `value` based on a specific pattern (see below).
 
@@ -65,7 +62,7 @@ def validate_track_name(ctx: typer.Context, param: typer.CallbackParam, value: s
         '20221231115959_87654321_321_21'
         >>> validate_track_name(None, None, '20220228235959_00000000_000_00')
         '20220228235959_00000000_000_00'
-    
+
     Doctest:
             >>> validate_track_name(None, None, 'invalid_track_name')
             Traceback (most recent call last):
@@ -83,7 +80,9 @@ def validate_track_name(ctx: typer.Context, param: typer.CallbackParam, value: s
     )
 
 
-def validate_batch_key(ctx: typer.Context, param: typer.CallbackParam, value: str) -> str:
+def validate_batch_key(
+    ctx: typer.Context, param: typer.CallbackParam, value: str
+) -> str:
     """
     Validate a batch key based on a specific pattern (see below).
 
