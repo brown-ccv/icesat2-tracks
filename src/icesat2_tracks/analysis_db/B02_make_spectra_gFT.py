@@ -14,6 +14,7 @@ import numpy as np
 import xarray as xr
 from pprint import pprint
 from scipy.ndimage import label
+from scipy.constants import g
 from threadpoolctl import threadpool_info, threadpool_limits
 import matplotlib
 from matplotlib import pyplot as plt
