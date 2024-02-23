@@ -12,6 +12,10 @@ Prerequisites:
 > Windows is not supported for development work – use [WSL](https://learn.microsoft.com/en-us/windows/wsl/) on Windows hosts
 
 Installation:
+> [!NOTE]
+> For testing purposes this repository uses Git Large File Storage (LFS) to handle large data files. If you want to clone the repository with the LFS files, make sure you have Git LFS installed on your system. You can download it from [here](https://git-lfs.github.com/). After installing, you can clone the repository as usual with `git clone`. Git LFS files will be downloaded automatically. If you've already cloned the repository, you can download the LFS files with `git lfs pull`.
+
+
 - Clone the repository:
   - Navigate to https://github.com/brown-ccv/icesat2-tracks
   - Click the "<> Code" button and select a method to clone the repository, then follow the prompts
@@ -87,7 +91,7 @@ conda env create --name "2021-icesat2-tracks" --file environment.yml
 ```
 ... but this has more steps and is thus more likely to fail. Since the installation step takes a long period of time, it is recommended to use the separate commands instead.)
 
-## Conda Configuration
+## Conda Configuration (Deprecated)
 
 Conda draws its configuration from multiple places, and will behave differently when the configuration is different, even when using the same `environment.yml` file.
 
@@ -200,4 +204,46 @@ unset CONDA_ENVS_PATH
 ```yaml
 envs_dirs:
   - /users/username/anaconda/envs
+```
+## Sample workflow
+1. **Load single file**
+```shell
+icesat2waves load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./output
+```
+
+
+2. **Make spectra from downloaded data**
+```shell
+icesat2waves make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./output
+```
+
+3. **Plot spectra**
+```shell
+icesat2waves plot-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./output
+```
+
+
+4. **Build IOWAGA priors**
+```shell
+icesat2waves make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./output
+```
+
+
+5. **Build angles**
+
+```shell
+icesat2waves make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./output
+```
+
+
+
+6. **Define and plot angles**
+```shell
+icesat2waves define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./output
+```
+
+
+7. **Make corrections and separations**
+```shell
+icesat2waves correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./output
 ```
