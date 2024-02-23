@@ -27,6 +27,9 @@ def get_all_filenames(directory):
 
 
 def check_file_exists(directory, prefix, stepnum: int = 4):
+    """
+    This is needed because step 4 produces files with different names even when using the same input data.
+    """
     # Get a list of all files in the directory
     files = get_all_filenames(targetdirs[str(stepnum)] / directory)
     # Check if there is a file with the specified prefix
@@ -61,6 +64,19 @@ def extract_tarball(outputdir, tarball_path):
     tar.close()
 
 
+def create_script(script_name):
+    head = ["python"]
+    tail = [
+        "--track-name",
+        "SH_20190502_05180312",
+        "--batch-key",
+        "SH_testSLsinglefile2",
+        "--output-dir",
+    ]
+    base_path = "src/icesat2_tracks/analysis_db/"
+    return head + [f"{base_path}{script_name}.py"] + tail
+
+
 def run_test(script, paths, delete_paths=True, suppress_output=True):
     # configuration
     outputdir = getoutputdir(script)
@@ -91,7 +107,7 @@ def makepathlist(dir, files):
 
 # The `scriptx` variables are the scripts to be tested. The `pathsx` variables are the paths to the files that should be produced by the scripts. The scripts are run and the paths are checked to see whether the expected files were produced. If the files were produced, the test passes. If not, the test fails.
 
-
+# Script 1 is different than the others because it doesn't have any input data and uses a different track name.
 script1 = [
     "python",
     "src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py",
@@ -109,34 +125,30 @@ paths1 = [
     "work/SH_testSLsinglefile2/B01_regrid/SH_20190502_05180312_B01_binned.h5",
 ]
 
-
-script2 = [
-    "python",
-    "src/icesat2_tracks/analysis_db/B02_make_spectra_gFT.py",
-    "--track-name",
-    "SH_20190502_05180312",
-    "--batch-key",
-    "SH_testSLsinglefile2",
-    "--output-dir",
-]
-paths2 = [
-    "work/SH_testSLsinglefile2/B02_spectra/B02_SH_20190502_05180312_params.h5",
-    "work/SH_testSLsinglefile2/B02_spectra/B02_SH_20190502_05180312_gFT_x.nc",
-    "work/SH_testSLsinglefile2/B02_spectra/B02_SH_20190502_05180312_gFT_k.nc",
-    "work/SH_testSLsinglefile2/B02_spectra/B02_SH_20190502_05180312_FFT.nc",
+script_names_2_to_7 = [
+    "B02_make_spectra_gFT",
+    "B03_plot_spectra_ov",
+    "A02c_IOWAGA_thredds_prior",
+    "B04_angle",
+    "B05_define_angle",
+    "B06_correct_separate_var",
 ]
 
-script3 = [
-    "python",
-    "src/icesat2_tracks/analysis_db/B03_plot_spectra_ov.py",
-    "--track-name",
-    "SH_20190502_05180312",
-    "--batch-key",
-    "SH_testSLsinglefile2",
-    "--id-flag",
-    "--output-dir",
+script2, script3, script4, script5, script6, script7 = [
+    create_script(name) for name in script_names_2_to_7
 ]
 
+# Define the paths for the second script
+_root = "work/SH_testSLsinglefile2/B02_spectra/"
+_paths2 = [
+    "B02_SH_20190502_05180312_params.h5",
+    "B02_SH_20190502_05180312_gFT_x.nc",
+    "B02_SH_20190502_05180312_gFT_k.nc",
+    "B02_SH_20190502_05180312_FFT.nc",
+]
+paths2 = makepathlist(_root, _paths2)
+
+# Define the paths for the third script
 _root = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312"
 _paths3 = [
     "B03_specs_L25000.0.png",
@@ -145,46 +157,75 @@ _paths3 = [
 ]
 paths3 = makepathlist(_root, _paths3)
 
-script4 = [
-    "python",
-    "src/icesat2_tracks/analysis_db/A02c_IOWAGA_thredds_prior.py",
-    "--track-name",
-    "SH_20190502_05180312",
-    "--batch-key",
-    "SH_testSLsinglefile2",
-    "--id-flag",
-    "--output-dir",
-]
+
 paths4 = [
     "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/A02_SH_2_hindcast_data.pdf",
     "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/A02_SH_2_hindcast_prior.pdf",
-]
+]  # deterministic paths
 dir4, prefix4 = (
     "work/SH_testSLsinglefile2/A02_prior/",
     "A02_SH_20190502_05180312_hindcast",
+)  # stochastic paths
+
+# Define the paths for the fifth script
+_plotroot = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312"
+_plotnames = [
+    "B04_success.json",
+    "B04_prior_angle.png",
+    "B04_marginal_distributions.pdf",
+    "B04_data_avail.pdf",
+]
+_workroot = "work/SH_testSLsinglefile2/B04_angle"
+_worknames = [
+    "B04_SH_20190502_05180312_res_table.h5",
+    "B04_SH_20190502_05180312_marginals.nc",
+]
+paths5 = makepathlist(_plotroot, _plotnames) + makepathlist(_workroot, _worknames)
+
+# Define the paths for the sixth script
+base_path = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312"
+paths6 = [
+    f"{base_path}/B05_angle/B05_weighted_marginals_x{i}.pdf"
+    for i in range(612, 788, 25)
+]
+other_files = [
+    f"{base_path}/B05_dir_ov.pdf",
+    f"{base_path}/B05_success.json",
+    "work/SH_testSLsinglefile2/B04_angle/B05_SH_20190502_05180312_angle_pdf.nc",
+]
+paths6.extend(other_files)
+
+
+# Paths for the seventh step
+root_plots = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/"
+root_work = "work/SH_testSLsinglefile2/"
+b06_correction = f"{root_plots}B06_correction/"
+b06_corrected_separated = f"{root_work}B06_corrected_separated/"
+
+b06_correction_files = [
+    "B06_angle_def.png",
+    "SH_20190502_05180312_B06_atten_ov.pdf",
+    "SH_20190502_05180312_B06_atten_ov.png",
+    "SH_20190502_05180312_B06_atten_ov_simple.pdf",
+    "SH_20190502_05180312_B06_atten_ov_simple.png",
+]
+
+b06_corrected_separated_files = [
+    "B06_SH_20190502_05180312_B06_corrected_resid.h5",
+    "B06_SH_20190502_05180312_binned_resid.h5",
+    "B06_SH_20190502_05180312_gFT_k_corrected.nc",
+    "B06_SH_20190502_05180312_gFT_x_corrected.nc",
+]
+
+paths7 = [f"{b06_correction}{file}" for file in b06_correction_files]
+paths7.extend(
+    f"{b06_corrected_separated}{file}" for file in b06_corrected_separated_files
 )
+paths7.append(f"{root_plots}B06_success.json")
 
-# TODO: step 5
-script5 = [
-    "python",
-    "src/icesat2_tracks/analysis_db/B04_angle.py",
-    "--track-name",
-    "SH_20190502_05180312",
-    "--batch-key",
-    "SH_testSLsinglefile2",
-    "--id-flag",
-    "--output-dir",
-]
-paths5 = [
-    "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B04_success.json",
-    "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B04_prior_angle.png",
-    "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B04_marginal_distributions.pdf",
-    "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B04_data_avail.pdf",
-    "work/SH_testSLsinglefile2/B04_angle/B04_SH_20190502_05180312_res_table.h5",
-    "work/SH_testSLsinglefile2/B04_angle/B04_SH_20190502_05180312_marginals.nc",
-]
+# These are the scripts to be tested and appended with the target directories for each step
+scripts = [script1, script2, script3, script4, script5, script6, script7]
 
-scripts = [script1, script2, script3, script4, script5]
 targetdirs = (
     dict()
 )  # to be populated in setup_module with the target dirs for each step
@@ -230,10 +271,6 @@ def setup_module():
         for_step_num = for_step_num.split(".")[0]
         target_output_dir = Path(_outdir) / f"step{for_step_num}"
         targetdirs[for_step_num] = target_output_dir
-        print("Target Dir")
-        print(target_output_dir)
-        print("TarBall")
-        print(tarball)
         extract_tarball(target_output_dir, tarball)
 
         # Extracted files are in targetdir/script_name. Move them to its parent targetdir. Delete the script_name dir.
@@ -268,7 +305,6 @@ def test_step1():
     assert run_test(script1, paths1, delete_paths=False)  # passing
 
 
-# TODO: for steps 2-5 after their respective prs are merged
 def test_step2():
     # Step 2: B02_make_spectra_gFT.py ~ 2 min
     assert run_test(script2, paths2)  # passing
@@ -279,11 +315,7 @@ def check_B03_freq_reconst_x():
     directory = Path(
         outputdir, "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B03_spectra/"
     )
-    print("directory")
-    print(directory)
     files = get_all_filenames(directory)
-    print("files")
-    print(files)
 
     # Check there are 5 pdf files
     return len([f for f in files if f.endswith("pdf")]) == 5
@@ -300,7 +332,9 @@ def test_step3():
 
 def test_step4():
     # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
+    # check deterministic paths
     t1 = run_test(script4, paths4)
+    # check stochastic paths
     t2 = check_file_exists(dir4, prefix4)
     assert t1
     assert t2
@@ -310,11 +344,24 @@ def test_step5():
     # Step 5: B04_angle.py ~ 9 min
     assert run_test(script5, paths5)
 
+
+def test_step6():
+    # Step 5: B05_define_angle.py ~
+    assert run_test(script6, paths6)
+
+
+def test_step7():
+    # Step 7: B06_correct_separate_var.py ~
+    assert run_test(script7, paths7)
+
+
 if __name__ == "__main__":
     setup_module()
-    test_step1()  # passing
-    test_step2() # passing
-    test_step3()  # passing
-    test_step4()  # passing
-    test_step5()
+    # test_step1()  # passing
+    # test_step2()  # passing
+    # test_step3()  # passing
+    # test_step4()  # passing
+    # test_step5()  # passing
+    # test_step6()  # passing
+    # test_step7()  # passing
     teardown_module()
