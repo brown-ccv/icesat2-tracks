@@ -734,7 +734,7 @@ if __name__ == "__main__":
     print(Jm)
 
 
-# %%
+# 
 def cost(value_dict, time, f, data=None, weight=None, prior=False, eps=None):
     """
     Wrapper around residual and regulizer.
@@ -755,7 +755,7 @@ def cost(value_dict, time, f, data=None, weight=None, prior=False, eps=None):
         return Jd
 
 
-# %% test cost
+#  test cost
 if __name__ == "__main__":
     cost1d_weight = cost(params, time, f, data=fake_data, weight=None, prior=False)
 
