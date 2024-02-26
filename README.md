@@ -205,7 +205,36 @@ unset CONDA_ENVS_PATH
 envs_dirs:
   - /users/username/anaconda/envs
 ```
+
+## Command line interface
+
+The `icesat2waves` package comes with a command-line interface (CLI) that facilitates interaction with the package directly from your terminal. This can be particularly useful for scripting and automation. You can access the help documentation for the CLI by running the following command:
+
+```shell
+icesat2waves --help
+```
+
+As suggested in the help, to run a specific command run `icesat2waves [OPTIONS] COMMAND [ARGS]...`.  To view help on running a command, run `icesat2waves COMMAND --help`. For example, to get help about the `load-file` command, you may issue `icesat2waves load-file --help` to get the following output:
+
+```shell
+(.venv) $ icesat2waves load-file --help
+Usage: icesat2waves load-file [OPTIONS]
+
+  Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and
+  output smoothed photon heights on a regular grid in an .nc file.
+
+Options:
+  --track-name TEXT         [required]
+  --batch-key TEXT          [required]
+  --id-flag / --no-id-flag  [default: id-flag]
+  --output-dir TEXT         [required]
+  --verbose / --no-verbose  [default: no-verbose]
+  --help                    Show this message and exit.
+
+```
+
 ## Sample workflow
+Below is a sample workflow that leverages the included CLI.
 1. **Load single file**
 ```shell
 icesat2waves load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./output
