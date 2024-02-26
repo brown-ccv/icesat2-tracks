@@ -1,12 +1,8 @@
 name: Publish Icesat2 to PyPI
 
-on:
-    pull_request: {}
-    push:
-        branches:
-          - feature-publish-pypi
-#  release:
-#    types: [published]
+on:    
+  release:
+    types: [published]
 
 jobs:
   build:
