@@ -29,6 +29,7 @@ from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
 
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
+from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
 
 import pandas as pd
 
