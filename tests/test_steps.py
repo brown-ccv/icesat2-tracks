@@ -1,4 +1,32 @@
 #!/usr/bin/env python
+"""
+This module contains a test suite for the following commands:
+      - name: Step 1 B01_SL_load_single_file
+        cmd: load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: second step make_spectra
+        cmd: make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: third step plot_spectra
+        cmd: plot-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: fourth step IOWAGA threads 
+        cmd:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: fifth step B04_angle
+        cmd: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: sixth step B04_define_angle
+        cmd: define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: seventh step B06_correct_separate
+        cmd: correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+
+To this end, it sets up a temporary directory within the tests/ directory with subdirectories containing the required input data for each step. The tests are run in parallel using the xdist plugin, with each worker having its own copy of the input data. This allows the tests to modify the input data without affecting other workers. The `setup_module` function (fixture) is responsible for creating the temporary directory and setting up the input data for each step. It also prepares the target directories for each step by extracting the necessary files from tarballs in the `tests/testdata` directory and organizing them in the appropriate directory structure.
+
+After the tests are completed, the `teardown_module` function is called to clean up the temporary directory.
+
+The metadata for each script is stored in the `scripts` list, and the paths to the files that should be produced by the scripts are stored in the `paths` list. The `run_test` function is used to run the scripts and check whether the expected files were produced. If the files were produced, the test passes. If not, the test fails.
+
+With the input data in place, pytest runs each of test_stepX functions, which call the `run_test(script, paths_to_check)` to run the scripts and check whether the expected files were produced. If the files were produced, the test passes. If not, the test fails.
+
+To create similar tests for other steps, you can use the `create_script` function to create the script and the `makepathlist` function to create the paths to the files that should be produced by the script. The `create_script` function takes the name of the script as an argument and returns a list containing the command to run the script using the `subprocess.run` function. The `makepathlist` function takes a directory and a list of file names as arguments and returns a list of paths to the files in the directory. If the test requires input data, you can use the `extract_tarball` function to extract the input data from a tarball and organize it in the appropriate directory structure within the `setup_module` fixture.
+"""
+
 from datetime import datetime
 from pathlib import Path
 import shutil
@@ -191,7 +219,7 @@ other_files = [
 paths6.extend(other_files)
 
 
-# Paths for the seventh step
+# Paths for the seventh script
 root_plots = "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/"
 root_work = "work/SH_testSLsinglefile2/"
 b06_correction = f"{root_plots}B06_correction/"
@@ -306,6 +334,22 @@ def test_step2():
 
 
 def check_B03_freq_reconst_x():
+    # The script3 produces plots in the `<output-dir>/plots/SH/<batch-key>/SH_<track-name>/B03_spectra` directory.
+
+    # ```shell
+    # (.venv) $ tree <output-dir>/plots/SH/<batch-key>/SH_<track-name>/B03_spectra
+    # <output-dir>/plots/SH/<batch-key>/SH_<track-name>/B03_spectra
+    # ├── B03_freq_reconst_x28.pdf
+    # ├── B03_freq_reconst_x47.pdf
+    # ├── B03_freq_reconst_x56.pdf
+    # ├── B03_freq_reconst_x66.pdf
+    # └── B03_freq_reconst_x75.pdf
+
+    # 0 directories, 5 files
+    # ```
+
+    # File names in this directory all have the `B03_freq_reconst_x` prefix but with different numbers at the end. The numbers are not deterministic, so we can't check for specific file names. Instead, we can check that there are 5 pdf files in the directory.
+
     outputdir = getoutputdir(script3)
     directory = Path(
         outputdir, "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B03_spectra/"
@@ -320,8 +364,8 @@ def test_step3():
     # Step 3: B03_plot_spectra_ov.py ~ 11 sec
     # This script has stochastic behavior, so the files produced don't always have the same names but the count of pdf files is constant for the test input data.
     t1 = run_test(script3, paths3)
-    t2 = check_B03_freq_reconst_x()
     assert t1
+    t2 = check_B03_freq_reconst_x()
     assert t2
 
 
@@ -329,9 +373,9 @@ def test_step4():
     # Step 4: A02c_IOWAGA_thredds_prior.py ~ 23 sec
     # check deterministic paths
     t1 = run_test(script4, paths4)
+    assert t1
     # check stochastic paths
     t2 = check_file_exists(dir4, prefix4)
-    assert t1
     assert t2
 
 
