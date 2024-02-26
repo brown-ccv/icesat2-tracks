@@ -64,13 +64,14 @@ def extract_tarball(outputdir, tarball_path):
     tar.close()
 
 
-def create_script(script_name):
+def create_script(script_name, track_name="SH_20190502_05180312"):
     head = ["python"]
     tail = [
         "--track-name",
-        "SH_20190502_05180312",
+        track_name,
         "--batch-key",
         "SH_testSLsinglefile2",
+        "--verbose",
         "--output-dir",
     ]
     base_path = "src/icesat2_tracks/analysis_db/"
@@ -107,16 +108,10 @@ def makepathlist(dir, files):
 
 # The `scriptx` variables are the scripts to be tested. The `pathsx` variables are the paths to the files that should be produced by the scripts. The scripts are run and the paths are checked to see whether the expected files were produced. If the files were produced, the test passes. If not, the test fails.
 
-# Script 1 is different than the others because it doesn't have any input data and uses a different track name.
-script1 = [
-    "python",
-    "src/icesat2_tracks/analysis_db/B01_SL_load_single_file.py",
-    "--track-name",
-    "20190502052058_05180312_005_01",
-    "--batch-key",
-    "SH_testSLsinglefile2",
-    "--output-dir",
-]
+# Script 1 is different from the others because it doesn't have any input data and uses a different track name.
+script1 = create_script(
+    script_name="B01_SL_load_single_file", track_name="20190502052058_05180312_005_01"
+)
 paths1 = [
     "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B01_track.png.png",
     "plots/SH/SH_testSLsinglefile2/SH_20190502_05180312/B01b_ATL06_corrected.png.png",
