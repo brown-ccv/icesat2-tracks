@@ -1,4 +1,4 @@
-name: Test Steps
+name: Smoke Tests
 on:
   pull_request: {}
   push:
@@ -14,8 +14,6 @@ jobs:
       - name: install mpi
         run: sudo apt update && sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev 
       - uses: actions/checkout@v3
-        with:
-          lfs: true
       - name: setup python
         uses: actions/setup-python@v4
         with:
@@ -36,8 +34,17 @@ jobs:
             icesat2waves define-angle --help
             icesat2waves correct-separate --help # prelim name
 
-      - name: install pytest
-        run: pip install pytest pytest-xdist pytest-sugar pytest-durations
-      - name: Run tests
-        run: pytest --capture=sys --verbose --showlocals --tb=long --numprocesses=auto tests/test_steps.py
-        
+      - name: first step B01_SL_load_single_file
+        run: load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: second step make_spectra
+        run: make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: third step plot_spectra
+        run: plot-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: fouth step IOWAGA threads 
+        run:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: fifth step B04_angle
+        run: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: sixth step B04_define_angle
+        run: define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+      - name: seventh step B06_correct_separate
+        run: correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
