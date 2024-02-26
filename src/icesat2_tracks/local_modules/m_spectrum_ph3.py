@@ -158,7 +158,7 @@ class Spectrum:
         print("variance of the Spectrum: ", self.var)
 
 
-class moments:
+class Moments:
     def __init__(
         self,
         data_org,
@@ -361,7 +361,7 @@ class moments:
         self.MEM = MEM
 
 
-class pwelch:
+class Pwelch:
     def __init__(
         self,
         data,
@@ -502,7 +502,7 @@ class pwelch:
         )  # do not consider zeroth frequency
 
 
-class Spectogram_subsample(pwelch):
+class Spectogram_subsample(Pwelch):
     def __init__(
         self,
         data,
@@ -590,7 +590,7 @@ class Spectogram_subsample(pwelch):
 
                 phi = signal.detrend(phi)
 
-                pwelch.__init__(
+                Pwelch.__init__(
                     self,
                     phi,
                     dt,
@@ -619,7 +619,7 @@ class Spectogram_subsample(pwelch):
 
                 phi = signal.detrend(phi)
 
-                pwelch.__init__(
+                Pwelch.__init__(
                     self,
                     phi,
                     dt,
@@ -714,7 +714,7 @@ class Spectogram_subsample(pwelch):
         self.data_ano = self.data - dd_tmp.reshape(self.f.size, self.time.size).T
 
 
-class Periodogram(pwelch):
+class Periodogram(Pwelch):
     def __init__(
         self,
         data,
@@ -728,7 +728,7 @@ class Periodogram(pwelch):
         plot_chunks=False,
     ):
 
-        pwelch.__init__(
+        Pwelch.__init__(
             self, data, dt, L, ov, window, save_chunks, plot_chunks, periodogram=True
         )
         self.data = self.specs

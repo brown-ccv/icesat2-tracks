@@ -1,10 +1,17 @@
-import matplotlib
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 import pickle
+from matplotlib import dates
+import datetime as DT
+import json
+import pandas as pd
+import h5py
+import warnings
+from pandas import HDFStore
+from pandas.io.pytables import PerformanceWarning
+import glob
 
 
 def dt_form_timestamp(timestamp, unit=None):
@@ -18,8 +25,7 @@ def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
     fact = 10 ** (O - 1)
     b = np.round(a / fact, rounder + 1) * fact
     ticklabels = [" " for i in range(len(b))]
-    N = int(np.ceil(len(b) / interval))
-
+    
     tt = np.arange(shift, len(b), interval)
 
     for t in tt:
@@ -48,8 +54,7 @@ def num_to_str(flt):
 
 
 def mkdirs_r(path):
-    import os
-
+    
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -84,16 +89,12 @@ def sec_to_dt64(pp):
 
 
 def sec_to_float_plot(pp):
-    from matplotlib import dates
-    import datetime as DT
+    
 
     return dates.date2num(pp.astype("M8[s]").astype(DT.datetime))
 
 
 def sec_to_float_plot_single(pp):
-    from matplotlib import dates
-    import datetime as DT
-
     return dates.date2num(
         np.datetime64(int(pp), "s").astype("M8[s]").astype(DT.datetime)
     )
@@ -149,7 +150,7 @@ def pickle_load(name, path, verbose=True):
 
 
 def json_save(name, path, data, verbose=False, return_name=False):
-    import json
+    
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -166,7 +167,6 @@ def json_save(name, path, data, verbose=False, return_name=False):
 
 
 def json_save2(name, path, data, verbose=False, return_name=False):
-    import json
 
     class CustomJSONizer(json.JSONEncoder):
         def default(self, obj):
@@ -187,8 +187,6 @@ def json_save2(name, path, data, verbose=False, return_name=False):
 
 
 def json_load(name, path, verbose=False):
-    import json
-
     full_name = os.path.join(path, name + ".json")
 
     with open(full_name, "r") as ifile:
@@ -199,7 +197,7 @@ def json_load(name, path, verbose=False):
 
 
 def h5_load(name, path, verbose=False):
-    import pandas as pd
+
 
     full_name = os.path.join(path, name + ".h5")
     data = pd.read_hdf(full_name)
@@ -207,7 +205,7 @@ def h5_load(name, path, verbose=False):
 
 
 def h5_load_v2(name, path, verbose=False):
-    import h5py
+   
 
     h5f = h5py.File(path + name + ".h5", "r")
     if verbose:
@@ -223,8 +221,6 @@ def h5_load_v2(name, path, verbose=False):
 
 
 def h5_save(name, path, data_dict, verbose=False, mode="w"):
-    import h5py
-
     mode = "w" if mode is None else mode
     if not os.path.exists(path):
         os.makedirs(path)
@@ -242,8 +238,6 @@ def h5_save(name, path, data_dict, verbose=False, mode="w"):
 
 
 def h5_save(name, path, data_dict, verbose=False, mode="w"):
-    import h5py
-
     mode = "w" if mode is None else mode
     if not os.path.exists(path):
         os.makedirs(path)
@@ -261,9 +255,7 @@ def h5_save(name, path, data_dict, verbose=False, mode="w"):
 
 
 def load_pandas_table_dict(name, save_path):
-    import warnings
-    from pandas import HDFStore
-    from pandas.io.pytables import PerformanceWarning
+
 
     warnings.filterwarnings("ignore", category=PerformanceWarning)
 
@@ -280,9 +272,7 @@ def save_pandas_table(table_dict, ID, save_path):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    import warnings
-    from pandas import HDFStore
-    from pandas.io.pytables import PerformanceWarning
+   
 
     warnings.filterwarnings("ignore", category=PerformanceWarning)
 
@@ -292,12 +282,12 @@ def save_pandas_table(table_dict, ID, save_path):
 
 
 def write_log(hist, string, verbose=False, short=True, date=True):
-    import datetime as datetime
+    
 
     if short:
-        now = datetime.datetime.now().strftime("%Y%m%d")
+        now = DT.datetime.now().strftime("%Y%m%d")
     else:
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        now = DT.datetime.now().strftime("%Y-%m-%d %H:%M")
     if date:
         message = "\n" + now + " " + string
     else:
@@ -315,9 +305,9 @@ def add_line_var(ss, name, var):
 
 
 def write_variables_log(hist, var_list, locals, verbose=False, date=False):
-    import datetime as datetime
+    
 
-    now = datetime.datetime.now().strftime("%Y%m%d")
+    now = DT.datetime.now().strftime("%Y%m%d")
 
     var_dict = dict((name, locals[name]) for name in var_list)
     stringg = ""
@@ -347,7 +337,7 @@ def save_log_txt(name, path, hist, verbose=False):
 
 
 def load_log_txt(name, path):
-    import glob
+    
 
     hist_file = name
     f = []
