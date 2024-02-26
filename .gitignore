@@ -34,10 +34,6 @@ analysis_db/makefile
 data_prehandling/
 track_lists/
 explorations/
-/tests/tests/inputdata
-/tests/input-data
-__explorations
-logs
 analysis_db/support_files/
 *.egg-info/
 .installed.cfg
