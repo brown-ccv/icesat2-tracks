@@ -145,9 +145,6 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
 
     plt.title("low beams N", loc="left")
     plt.xlabel("along track distance (km)")
-    # plt.ylabel('Point density (m)')
-
-    ax5 = plt.subplot(gs[0:2, 2])
 
     lat_shift = 0
     for k in low_beams:
@@ -184,8 +181,6 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
 
 
 ## plot track stats basics for sliderules ATL06 output
-
-
 def plot_ATL06_track_data(G2, cdict):
     """
     Plots the beam statistics in a 3 x 3 plot

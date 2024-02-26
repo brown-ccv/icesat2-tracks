@@ -37,9 +37,6 @@ def init_from_input(arguments):
     else:
         track_name = arguments[1]
         batch_key = arguments[2]
-        # $(hemisphere) $(coords) $(config)
-
-        # print("read vars from file: " + str(arguments[1]))
 
         if len(arguments) >= 4:
             if arguments[3] == "True":
@@ -49,15 +46,8 @@ def init_from_input(arguments):
             else:
                 test_flag = arguments[3]
 
-            # print("test_flag found, test_flag= " + str(test_flag))
         else:
             test_flag = False
-
-    # TODO: print statements to be handled with logger
-    # # print(track_name)
-
-    # print("----- batch =" + batch_key)
-    # print("----- test_flag: " + str(test_flag))
 
     return track_name, batch_key, test_flag
 
@@ -193,7 +183,7 @@ class case_ID:
     def set_ATL10_trackname(self):
         block1 = (self.YY, self.MM, self.DD)
         block1b = (self.HH, self.MN, self.SS)
-        block2 = (self.TRK, self.CYC, "01")  # granule is alwasy '01' for ATL10
+        block2 = (self.TRK, self.CYC, "01")
         if self.RL is "":
             raise ValueError("RL not set")
         if self.VRS is "":
@@ -499,7 +489,7 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
                 "signal_confidence": signal_confidence,
                 "mask_seaice": mask_seaice,
                 "delta_time": delta_time,
-                "along_track_distance": along_track_distance,  #'delta_time_granule':delta_time_granule,
+                "along_track_distance": along_track_distance,
                 "across_track_distance": across_track_distance,
                 "ph_id_count": ph_id_count,
             }
@@ -520,11 +510,6 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
         print("df shape ", dF.shape)
 
         dF = dF[mask_total]
-        # dF_seg = dF_seg[mask_total]
-        # print('df[mask] shape ',dF.shape)
-
-        # Reset row indexing
-        # dF=dF#.reset_index(drop=True)
         return dF, dF_seg
 
 
