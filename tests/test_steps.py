@@ -353,15 +353,3 @@ def test_step6():
 def test_step7():
     # Step 7: B06_correct_separate_var.py ~
     assert run_test(script7, paths7)
-
-
-if __name__ == "__main__":
-    setup_module()
-    # test_step1()  # passing
-    # test_step2()  # passing
-    # test_step3()  # passing
-    # test_step4()  # passing
-    # test_step5()  # passing
-    # test_step6()  # passing
-    # test_step7()  # passing
-    teardown_module()
