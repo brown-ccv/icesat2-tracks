@@ -406,7 +406,6 @@ def define_x_coordinate_in_polygon(table_data, polygon, round=True):
     if ascending_test(table_data):
         table_data["x"] = table_data["x_atc"] - min_eq_dist
     else:
-        # print('descending')
         table_data["x"] = ((np.pi * 6371 * 1e3) - min_eq_dist) - table_data["x_atc"]
 
     return table_data
