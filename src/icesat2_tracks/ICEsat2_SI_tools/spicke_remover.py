@@ -3,7 +3,7 @@ import numpy as np
 
 def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0, verbose=False):
     """
-    This function removes spickes from timeseries based on its std and maximum values
+    This function removes spikes from timeseries based on its std and maximum values
     inputs:
     data     timeseries as1d arrays
     nstd     number of standard deviations that have to be exceeded by the maximum data value

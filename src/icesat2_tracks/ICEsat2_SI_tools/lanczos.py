@@ -1,5 +1,5 @@
 import numpy as np
-
+import scipy.signal as signal
 
 def lanczos_1d(width, dx, a=2):
     """
@@ -53,12 +53,12 @@ def lanczos_filter_1d(x, data, width, a=2, mode="same", method="direct"):
     returns
     data_lp low-passed data, same size as before.
     """
-    import scipy.signal as signal
+    
 
     dx = np.diff(x).mean()
     x, L = lanczos_1d(width, dx, a=a)
 
-    data_lp = signal.convolve(data, L, mode=mode, method=method)  # *
+    data_lp = signal.convolve(data, L, mode=mode, method=method) 
 
     return data_lp
 
@@ -110,7 +110,7 @@ def lanczos_filter_2d(x, data, width, a=2, mode="same"):
     dx = abs(np.diff(x).mean())
     x, L2d = lanczos_2d(width, dx, a=a)
 
-    data_lp = signal.convolve(data, L2d, mode=mode)  # *
+    data_lp = signal.convolve(data, L2d, mode=mode) 
 
     return data_lp
 
@@ -147,6 +147,6 @@ def lanczos_filter_3d(x, data, width, a=2, mode="same"):
     dx = abs(np.diff(x).mean())
     x, L3d = lanczos_3d(width, dx, a=a)
 
-    data_lp = signal.convolve(data, L3d, mode=mode)  # *
+    data_lp = signal.convolve(data, L3d, mode=mode) 
 
     return data_lp

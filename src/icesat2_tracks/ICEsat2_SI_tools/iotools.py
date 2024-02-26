@@ -183,7 +183,7 @@ class case_ID:
     def set_ATL10_trackname(self):
         block1 = (self.YY, self.MM, self.DD)
         block1b = (self.HH, self.MN, self.SS)
-        block2 = (self.TRK, self.CYC, "01")
+        block2 = (self.TRK, self.CYC, "01") # granule is always '01' for ATL10
         if self.RL is "":
             raise ValueError("RL not set")
         if self.VRS is "":

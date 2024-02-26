@@ -19,7 +19,6 @@ def get_wavenumbers_polar(amp, angle_rad):
     returns:
     wavenumber k,l
     """
-    import numpy as np
 
     k0 = amp * np.cos(angle_rad)
     l0 = amp * np.sin(angle_rad)
@@ -105,7 +104,7 @@ def likelyhood_func(
     pars, x, y, z, z_error=None, test_flag=False, prior=None, prior_weight=2
 ):
     """
-    ---not well testet ---
+    ---not well tested ---
     likelyhood function using log(p)
 
     """
