@@ -86,9 +86,11 @@ def run_B02_make_spectra_gFT(
         "output_dir": output_dir,
     }
     report_input_parameters(**kargs)
+    
+    spinner = io.LoaderSpinner(verbose)
 
     with suppress_stdout(verbose):
-
+        spinner.start_spinner(_text="Working")
         workdir, _ = update_paths_mconfig(output_dir, mconfig)
 
         load_path = Path(workdir, batch_key, "B01_regrid")
@@ -570,6 +572,7 @@ def run_B02_make_spectra_gFT(
         G_fft_DS.attrs["name"] = "FFT_power_spectra"
         G_fft_DS.to_netcdf(savepathname + "_FFT.nc")
 
+        spinner.stop_spinner()
         echo("saved and done")
 
 

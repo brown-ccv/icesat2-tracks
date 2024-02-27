@@ -15,6 +15,8 @@ from sliderule import icesat2
 from icesat2_tracks.ICEsat2_SI_tools import sliderule_converter_tools as sct
 import icesat2_toolkit.utilities
 import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
+from halo import Halo
+
 
 
 def init_from_input(arguments):
@@ -772,3 +774,27 @@ def getATL07_height_corrections(fileT, beam="gt1r"):
     # Reset row indexing
     DF = DF.reset_index(drop=True)
     return DF
+
+
+
+class LoaderSpinner:
+    def __init__(self,verbose = False):
+        self.spinner = None 
+        self.verbose = verbose
+
+    def start_spinner(self,_text='Initializing'):
+        if  self.verbose == False :
+            self.spinner = Halo(text=_text, spinner='dots')
+            self.spinner.start()
+    
+    def set_text(self,_text):
+        if  self.verbose == False and self.spinner is not None:
+            self.spinner.text = _text
+
+    def stop_spinner(self,operation_result = True):
+        if not self.verbose and  self.spinner is not None:
+            if  operation_result == True:
+                self.spinner.succeed('Task completed successfully')
+            else:
+                self.spinner.fail('Task Failed. Please check logs')
+        

@@ -12,6 +12,7 @@ import xarray as xr
 from sliderule import icesat2
 import matplotlib
 import typer
+
 from pandas.errors import (
     SettingWithCopyWarning,
 )  # TODO: remove when warnings are handled
@@ -85,6 +86,7 @@ def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
         return table_data
 
 
+
 def run_B01_SL_load_single_file(
     track_name: str = typer.Option(..., callback=validate_track_name),
     batch_key: str = typer.Option(..., callback=validate_batch_key),
@@ -108,8 +110,11 @@ def run_B01_SL_load_single_file(
     xr.set_options(display_style="text")
     matplotlib.use("Agg")  # prevent plot windows from opening
 
+    spinner = io.LoaderSpinner(verbose)
+
     # Select region and retrieve batch of tracks
     with suppress_stdout(verbose):
+        spinner.start_spinner()
         track_name, batch_key, ID_flag = io.init_from_input(
             [
                 None,
@@ -159,12 +164,14 @@ def run_B01_SL_load_single_file(
         }
 
         maximum_height = 30  # (meters) maximum height past dem_h correction
-        print("STARTS")
-        print("Fetching ATL03 data from sliderule")
-        gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
-        print("ENDS")
-        gdf = sct.correct_and_remove_height(gdf, maximum_height)
+        
+        echo("Fetching ATL03 data from sliderule")
+        spinner.set_text("Fetching ATL03 data from sliderule")
 
+        gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
+        
+        gdf = sct.correct_and_remove_height(gdf, maximum_height)
+        
         cdict = dict()
         for s, b in zip(
             gdf["spot"].unique(), ["gt1l", "gt1r", "gt2l", "gt2r", "gt3l", "gt3r"]
@@ -175,8 +182,9 @@ def run_B01_SL_load_single_file(
         F_atl06 = M.figure_axis_xy(6.5, 5, view_scale=0.6)
         F_atl06.fig.suptitle(track_name)
 
+        spinner.set_text("Plotting ATL06 track data")
         beam_stats.plot_ATL06_track_data(gdf, cdict)
-
+        
         # main routine for defining the x coordinate and sacing table data
 
         # define reference point and then define 'x'
@@ -203,6 +211,8 @@ def run_B01_SL_load_single_file(
         segment = track_name.split("_")[1][-2:]
         ID_name = sct.create_ID_name(gdf.iloc[0], segment=segment)
         echoparam("ID_name", ID_name)
+
+        spinner.set_text("Write track to HDF5")
         io.write_track_to_HDF5(Ti, ID_name + "_B01_binned", save_path)  # regridding heights
 
         #  plot the ground tracks in geographic location
@@ -273,8 +283,8 @@ def run_B01_SL_load_single_file(
 
         MT.json_save2(name="A01b_ID_" + ID_name, path=save_path_json, data=DD)
 
+        spinner.stop_spinner(operation_result=True)
         echo("done")
-
 
 load_file_app = makeapp(run_B01_SL_load_single_file, name="load-file")
 
