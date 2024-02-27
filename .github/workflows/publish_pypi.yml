@@ -7,7 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    environment: release
+    permissions:
+        # IMPORTANT: this permission is mandatory for trusted publishing
+        id-token: write
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -15,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.11
       
     - name: Install dependencies
       run: |
@@ -27,8 +30,7 @@ jobs:
         python -m build
 
     - name: Publish to PyPI
-      env:
-        TWINE_USERNAME: "__token__"
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-      run: |
-        python -m twine upload --skip-existing --repository pypi dist/*
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages_dir: dist
+        repository-url: https://test.pypi.org/legacy/
