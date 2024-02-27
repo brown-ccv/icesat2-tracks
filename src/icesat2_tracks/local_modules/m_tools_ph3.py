@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 from matplotlib import dates
-import datetime as DT
+from datetime import datetime
 import json
 import pandas as pd
 import h5py
@@ -91,12 +91,12 @@ def sec_to_dt64(pp):
 def sec_to_float_plot(pp):
     
 
-    return dates.date2num(pp.astype("M8[s]").astype(DT.datetime))
+    return dates.date2num(pp.astype("M8[s]").astype(datetime))
 
 
 def sec_to_float_plot_single(pp):
     return dates.date2num(
-        np.datetime64(int(pp), "s").astype("M8[s]").astype(DT.datetime)
+        np.datetime64(int(pp), "s").astype("M8[s]").astype(datetime)
     )
 
 
@@ -285,9 +285,9 @@ def write_log(hist, string, verbose=False, short=True, date=True):
     
 
     if short:
-        now = DT.datetime.now().strftime("%Y%m%d")
+        now = datetime.now().strftime("%Y%m%d")
     else:
-        now = DT.datetime.now().strftime("%Y-%m-%d %H:%M")
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
     if date:
         message = "\n" + now + " " + string
     else:
@@ -307,7 +307,7 @@ def add_line_var(ss, name, var):
 def write_variables_log(hist, var_list, locals, verbose=False, date=False):
     
 
-    now = DT.datetime.now().strftime("%Y%m%d")
+    now = datetime.now().strftime("%Y%m%d")
 
     var_dict = dict((name, locals[name]) for name in var_list)
     stringg = ""
