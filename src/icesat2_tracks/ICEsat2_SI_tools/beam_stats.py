@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import h5py
 
-
 def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
     """
     this method returns a dict of dataframes with the beam statistics
@@ -16,6 +15,7 @@ def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
     Lemter      is the length of the segment in meters for the statistics
     dx          is the nominal resolution of the ATL06 data in meters
     """
+   
 
     D = dict()
     for k in all_beams:
@@ -85,6 +85,7 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
 
     if track_name is not None:
         plt.suptitle(track_name, fontsize=10)
+
 
     gs = gridspec.GridSpec(2, 3)
 
@@ -172,7 +173,7 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
         )
         lat_shift = lat_shift + 2
 
-    ax5.title("Density in space", loc="left")
+    ax5.set_title("Density in space", loc="left")
     ax5.ylabel("Latitude (deg)")
     ax5.xlabel("along track distance (km)")
     ax5.legend()
