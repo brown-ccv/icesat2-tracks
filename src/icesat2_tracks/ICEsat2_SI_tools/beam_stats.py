@@ -174,10 +174,10 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
         lat_shift = lat_shift + 2
 
     ax5.set_title("Density in space", loc="left")
-    ax5.ylabel("Latitude (deg)")
-    ax5.xlabel("along track distance (km)")
+    ax5.set_ylabel("Latitude (deg)")
+    ax5.set_xlabel("along track distance (km)")
     ax5.legend()
-    ax5.show()
+    plt.show()
 
 
 ## plot track stats basics for sliderules ATL06 output
