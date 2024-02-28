@@ -50,7 +50,8 @@ def read_ICESat2_groundtrack(input_file):
         gdf = geopandas.GeoDataFrame(rows)
         RGTS.append(gdf)
     # return the concatenated geodataframe
-    return geopandas.pd.concat(RGTS).set_index("date")
+    concatenated_df = geopandas.pd.concat(RGTS).set_index("date")
+    return concatenated_df
 
 
 # PURPOSE: read ICESat-2 ground tracks
@@ -100,7 +101,8 @@ def ICESat2_mission_groundtrack(input_file):
                 )
                 GTs.append(gdf)
     # return the concatenated geodataframe
-    return geopandas.pd.concat(GTs)
+    concatenated_df = geopandas.pd.concat(GTs)
+    return concatenated_df
 
 
 # PURPOSE: read ICESat-2 mission ground tracks as points

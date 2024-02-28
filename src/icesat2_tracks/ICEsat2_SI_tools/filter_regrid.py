@@ -1,5 +1,10 @@
 import numpy as np
 from numba import jit
+import pandas as pd
+
+
+def get_hemis(B, beams_list):
+    return "SH" if B[beams_list[0]]["lats"].iloc[0] < 0 else "NH"
 
 
 def correct_heights(T03, T03c, coord="delta_time"):
@@ -58,10 +63,7 @@ def lat_min_max_extended(B, beams_list, accent=None):
 
     accent = regrid.track_type(B[beams_list[0]]) if accent is None else accent
 
-    if B[beams_list[0]]["lats"].iloc[0] < 0:
-        hemis = "SH"
-    else:
-        hemis = "NH"
+    hemis = get_hemis(B, beams_list)
 
     track_pos_start, track_pos_end = list(), list()
     for k in beams_list:
@@ -82,9 +84,6 @@ def lat_min_max_extended(B, beams_list, accent=None):
     for ll in track_pos_end:
         track_lat_end.append(ll["lats"])
         track_lon_end.append(ll["lons"])
-
-    if accent:
-        track_lon_start
 
     if (hemis == "SH") & accent:
         return (
@@ -117,26 +116,22 @@ def lat_min_max_extended(B, beams_list, accent=None):
 def lat_min_max(B, beams_list, accent=None):
     """
     defines common boundaries for beams_list in B
-    iunputs:
-    beams_list list of concidered beams
+    inputs:
+    beams_list list of considered beams
     B is dict of Pandas tables with beams
-    accent if track is accending or decending. if None, this will try to use the track time to get this
+    accent if track is ascending or descending. if None, this will try to use the track time to get this
 
     returns:
-    min_lat, max_lat, accent   min and max latitudes of the beams, (True/False) True if the track is accending
+    min_lat, max_lat, accent   min and max latitudes of the beams, (True/False) True if the track is ascending
     """
 
     accent = track_type(B[beams_list[0]]) if accent is None else accent
 
-    if B[beams_list[0]]["lats"].iloc[0] < 0:
-        hemis = "SH"
-    else:
-        hemis = "NH"
+    hemis = get_hemis(B, beams_list)
 
-    track_lat_mins, track_lat_maxs = list(), list()
-    for k in beams_list:
-        track_lat_mins.append(B[k]["lats"].min())
-        track_lat_maxs.append(B[k]["lats"].max())
+    track_lat_mins, track_lat_maxs = zip(
+        *[(B[k]["lats"].min(), B[k]["lats"].max()) for k in beams_list]
+    )
 
     if hemis == "SH":
         return max(track_lat_maxs), min(track_lat_mins), accent
@@ -177,8 +172,6 @@ def derive_axis(TT, lat_lims=None):
     # set 1st dist to 0, not used if global limits are used
     if lat_lims is None:
         TT["dist"] = TT["dist"] - TT["dist"].min()
-    else:
-        TT["dist"] = TT["dist"]  # - lat_lims[0]
 
     TT = TT.sort_values(by="dist")
     return TT
@@ -194,12 +187,9 @@ def reduce_to_height_distance(TT, key, dx=1, lat_lims=None):
     returns:
     x1, y1     position, height
     """
-    from scipy.interpolate import interp1d
 
-    if type(dx) is np.ndarray:
-        x1 = dx
-    else:
-        x1 = np.arange(0, TT["dist"].max(), dx)
+    x1 = dx if isinstance(dx, np.ndarray) else np.arange(0, TT["dist"].max(), dx)
+
     y1 = np.interp(x1, TT["dist"], TT[key])
 
     return x1, y1
@@ -238,7 +228,6 @@ def poly_correct(x, y, poly_order=7, plot_flag=False):
 ### regridding
 
 
-# @jit(nopython=True)
 def get_mode(y, bins=np.arange(-5, 5, 0.1)):
     "returns modes of histogram of y defined by bins"
     hist, xbin = np.histogram(y, bins=bins)
@@ -249,7 +238,6 @@ def get_mode(y, bins=np.arange(-5, 5, 0.1)):
 def weighted_mean(x_rel, y):
     "returns the gaussian weighted mean for stencil"
 
-    # @jit(nopython=True, parallel= False)
     def weight_fnk(x):
         "returns gaussian weight given the distance to the center x"
         return np.exp(-((x / 0.5) ** 2))
@@ -287,7 +275,6 @@ def get_stencil_stats_shift(
     the column 'key' is rename to key+'_median'
 
     """
-    import pandas as pd
 
     stencil_1 = stencil_iter[:, ::2]
     stencil_1half = stencil_iter[:, 1::2]
@@ -320,7 +307,7 @@ def get_stencil_stats_shift(
         return Tweight.T
 
     T_sets = list()
-    stancil_set = stencil_1
+
     for stancil_set in [stencil_1, stencil_1half]:
 
         # select photons that are in bins
@@ -424,12 +411,12 @@ def get_stencil_stats(
         y = y_data[i_mask]
 
         Tmedian = T2[i_mask].median()
-        Tmedian[key + "_weighted_mean"] = weighted_mean(x_rel, y)
-        Tmedian[key + "_mode"] = get_mode(y)
+        Tmedian[f"{key}_weighted_mean"] = weighted_mean(x_rel, y)
+        Tmedian[f"{key}_mode"] = get_mode(y)
         Tmedian["N_photos"] = Nphoton
-        Tmedian[key + "_std"] = y.std()
+        Tmedian[f"{key}_std"] = y.std()
 
-        print(str(istencil[1]) + " s" + str(time.time() - tstart))
+        print(f"{istencil[1]} s{time.time() - tstart}")
         return istencil[1], Tmedian
 
     # apply func to all stancils
@@ -438,10 +425,10 @@ def get_stencil_stats(
 
     DF_filt = pd.DataFrame.from_dict(D_filt, orient="index")
     DF_filt = DF_filt.rename(
-        columns={key: key + "_median", key_x_coord: "median_" + key_x_coord}
+        columns={key: f"{key}_median", key_x_coord: f"median_{key_x_coord}"}
     )
-    DF_filt[key + "_median"][
-        np.isnan(DF_filt[key + "_std"])
+    DF_filt[f"{key}_median"][
+        np.isnan(DF_filt[f"{key}_std"])
     ] = np.nan  # replace median calculation with nans
     DF_filt[key_x_coord] = DF_filt.index
     DF_filt = DF_filt.reset_index()
@@ -452,10 +439,10 @@ def get_stencil_stats(
 # derive bin means
 def bin_means(T2, dist_grid):
     dF_mean = pd.DataFrame(index=T2.columns)
-    ilim = int(len(dist_grid))
+    ilim = len(dist_grid)
     N_i = list()
 
-    for i in np.arange(1, ilim - 1, 1):
+    for i in np.arange(1, ilim - 1):
         if i % 5000 == 0:
             print(i)
         i_mask = (T2["dist"] >= dist_grid[i - 1]) & (T2["dist"] < dist_grid[i + 1])

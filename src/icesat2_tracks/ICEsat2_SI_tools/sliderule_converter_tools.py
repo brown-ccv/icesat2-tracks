@@ -1,4 +1,15 @@
-from ipyleaflet import basemaps
+from ipyleaflet import (
+    Map,
+    basemaps,
+    Polygon,
+)
+import numpy as np
+from math import radians, cos, sin, asin, sqrt
+from shapely.geometry import Polygon
+import pandas as pd
+import geopandas as gpd
+
+import matplotlib.pyplot as plt
 
 
 # height correction tools
@@ -17,8 +28,6 @@ def correct_and_remove_height(Gi, height_limit):
 def make_plot_polygon(poly_test, color="green"):
     """create a plot polygon from the given coordinates"""
 
-    from ipyleaflet import Polygon
-
     bb = [
         poly_test[0]["lon"],
         poly_test[0]["lat"],
@@ -32,20 +41,7 @@ def make_plot_polygon(poly_test, color="green"):
 def plot_polygon(poly_test, basemap=basemaps.Esri.WorldImagery, zoom=3):
     """plots polygon in the map"""
 
-    from ipyleaflet import (
-        Map,
-        GeoData,
-        LayersControl,
-        Rectangle,
-        basemaps,
-        basemap_to_tiles,
-        TileLayer,
-        SplitMapControl,
-        Polygon,
-    )
-
     # icepx will want a bounding box with LL lon/lat, UR lon/lat
-    import numpy as np
 
     polygon_plot = make_plot_polygon(poly_test, color="green")
 
@@ -60,8 +56,6 @@ def plot_polygon(poly_test, basemap=basemaps.Esri.WorldImagery, zoom=3):
 
 # gemetric tools
 def haversine(lon1, lat1, lon2, lat2, arc=False):
-    from math import radians, cos, sin, asin, sqrt
-
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
@@ -98,7 +92,6 @@ def get_min_eq_dist(ppoly):
 
 
 def create_polygons(latR, lonR):
-    from shapely.geometry import Polygon, Point
 
     latR.sort()
     lonR.sort()
@@ -123,8 +116,6 @@ def find_highest_point_on_RGT(Gs, RGT):
 
 # find_lowest_point_on_RGT(Gs, 2).geometry
 def get_RGT_start_points(Gs, RGT="RGT"):
-    import pandas as pd
-    import geopandas as gpd
 
     G_lowest = pd.concat(
         [find_lowest_point_on_RGT(Gs, rgt).T for rgt in Gs[RGT].unique()], axis=1
@@ -134,8 +125,6 @@ def get_RGT_start_points(Gs, RGT="RGT"):
 
 
 def get_RGT_end_points(Gs, RGT="RGT"):
-    import pandas as pd
-    import geopandas as gpd
 
     G_lowest = pd.concat(
         [find_highest_point_on_RGT(Gs, rgt).T for rgt in Gs[RGT].unique()], axis=1
@@ -225,7 +214,6 @@ def plot_reference_point_coordinates(tmp, start_point_dist, start_point):
         start_point_dist: the distance from the equator to the reference point
         start_point: the reference point (GeoDataFrame)
     """
-    import matplotlib.pyplot as plt
 
     rgt = tmp["rgt"].unique()[0]
     spoint_color = "black"
@@ -273,7 +261,6 @@ def plot_data_in_domain(gdf2, polygon_list):
     inputs:
         gdf: GeoDataFrame with the down
     """
-    import matplotlib.pyplot as plt
 
     # make two panel figure, on the left plot the photon postions, on the the hoffmoeller diagram
     fig, axx = plt.subplots(1, 2, figsize=(8, 4))
@@ -368,7 +355,6 @@ def check_RGT_in_domain(Gtrack_lowest, gdf):
     returns:
         result: set of RGT that are in both Gtrack_lowest and gdf
     """
-    import collections
 
     gdf_list = list(gdf["rgt"].unique())
     result = set(gdf_list).intersection(set(Gtrack_lowest["RGT"]))

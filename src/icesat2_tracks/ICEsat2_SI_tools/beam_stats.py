@@ -5,6 +5,7 @@ import icesat2_tracks.ICEsat2_SI_tools.iotools as io_local
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import h5py
 
 
 def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
@@ -15,7 +16,6 @@ def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
     Lemter      is the length of the segment in meters for the statistics
     dx          is the nominal resolution of the ATL06 data in meters
     """
-    import h5py
 
     D = dict()
     for k in all_beams:
@@ -82,12 +82,9 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
     col_dict is a dict with the colors for the beams
     track_name is the name of the track
     """
-    import matplotlib.pyplot as plt
 
     if track_name is not None:
         plt.suptitle(track_name, fontsize=10)
-
-    import matplotlib.gridspec as gridspec
 
     gs = gridspec.GridSpec(2, 3)
 
@@ -146,10 +143,12 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
     plt.title("low beams N", loc="left")
     plt.xlabel("along track distance (km)")
 
+    ax5 = plt.subplot(gs[0:2, 2])
+
     lat_shift = 0
     for k in low_beams:
         Di = D[k]
-        plt.scatter(
+        ax5.scatter(
             Di["x"] / 1e3,
             Di["lat"] + lat_shift,
             s=np.exp(Di["N"] * 5),
@@ -162,7 +161,7 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
 
     for k in high_beams:
         Di = D[k]
-        plt.scatter(
+        ax5.scatter(
             Di["x"] / 1e3,
             Di["lat"] + lat_shift,
             s=np.exp(Di["N"] * 5),
@@ -173,11 +172,11 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
         )
         lat_shift = lat_shift + 2
 
-    plt.title("Density in space", loc="left")
-    plt.ylabel("Latitude (deg)")
-    plt.xlabel("along track distance (km)")
-    plt.legend()
-    plt.show()
+    ax5.title("Density in space", loc="left")
+    ax5.ylabel("Latitude (deg)")
+    ax5.xlabel("along track distance (km)")
+    ax5.legend()
+    ax5.show()
 
 
 ## plot track stats basics for sliderules ATL06 output

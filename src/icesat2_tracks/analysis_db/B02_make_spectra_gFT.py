@@ -459,7 +459,7 @@ def run_B02_make_spectra_gFT(
             print("FFT")
             dd[dd_nans] = 0
 
-            S = spec.wavenumber_spectrogram(x, dd, Lpoints)
+            S = spec.WavenumberSpectrogram(x, dd, Lpoints)
             G = S.cal_spectrogram()
             S.mean_spectral_error()  # add x-mean spectral error estimate to xarray
             S.parceval(add_attrs=True)

@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
 
 
 def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0, verbose=False):
@@ -45,7 +47,6 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0, verbose=False)
                 print("stoped by max#")
 
     if verbose:
-        import matplotlib.pyplot as plt
 
         plt.plot(data, "r")
         plt.plot(data2, "b")
@@ -54,8 +55,6 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0, verbose=False)
 
 
 def spickes_to_mean(ts, nloop=None, spreed=1, gaussian=True):
-
-    from scipy import signal
 
     nloop = 0 if nloop is None else nloop
     i = 0

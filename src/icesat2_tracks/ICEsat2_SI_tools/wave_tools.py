@@ -1,8 +1,9 @@
+import numpy as np
+
+
 def to_vec(amp, angle, deg=True):
 
     "from anlge deg to vect"
-    import numpy as np
-
     if deg:
         u, v = amp * np.cos(angle * np.pi / 180), amp * np.sin(angle * np.pi / 180)
     else:
@@ -17,7 +18,6 @@ def to_deg(u, v, deg=True):
     angle is -180 to 180
     this is a different definiton then WW3 [0, 360 ), but (-180, 180] is more convient for the problem
     """
-    import numpy as np
 
     amp = np.sqrt(u**2 + v**2)
     angle = np.arctan2(v, u)
@@ -28,7 +28,6 @@ def to_deg(u, v, deg=True):
 
 
 def get_ave_amp_angle(amp, angle, deg=True):
-    import numpy as np
 
     u, v = to_vec(amp, angle, deg=deg)
     # average angle in vector space

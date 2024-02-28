@@ -4,7 +4,8 @@ This library contains method, and classes used to search for the best angle give
 
 from numba import jit
 import numpy as np
-
+import lmfit as LM
+import matplotlib.pyplot as plt
 
 numba_parallel = False
 
@@ -27,8 +28,6 @@ def get_wavenumbers_polar(amp, angle_rad):
 
 
 def wavemodel(XX, YY, ks, ls, amps, group_phase=0):
-
-    import numpy as np
 
     G = np.vstack(
         [
@@ -174,8 +173,6 @@ class sample_with_mcmc:
 
     def __init__(self, params):
 
-        import lmfit as LM
-
         self.LM = LM
 
         self.set_parameters(params)
@@ -241,7 +238,6 @@ class sample_with_mcmc:
             print("results at self.fitter")
 
     def plot_sample(self, **kargs):
-        import matplotlib.pyplot as plt
 
         chain = self.chain()
         nwalkers = self.nwalkers
@@ -266,7 +262,6 @@ class sample_with_mcmc:
             print("results at self.fitter_optimize")
 
     def plot_optimze(self, **kargs):
-        import matplotlib.pyplot as plt
 
         plt.plot(
             self.fitter_optimize.params["phase"].value,
@@ -294,8 +289,6 @@ class sample_with_mcmc:
             print("results at self.fitter_brute")
 
     def plot_brute(self, clevel=np.linspace(-3.2, 3.2, 30), **kargs):
-
-        import matplotlib.pyplot as plt
 
         fitter_brute = self.fitter_brute
 
@@ -355,8 +348,6 @@ class sample_with_mcmc:
             y_hist = y_hist / var_dx / y_hist.sum()
 
         if plot_flag:
-            import matplotlib.pyplot as plt
-
             plt.stairs(y_hist, bins)
 
         return y_hist, bins, bins_pos
