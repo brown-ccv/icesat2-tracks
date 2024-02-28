@@ -16,7 +16,7 @@ This module contains a test suite for the following commands:
       - name: seventh step B06_correct_separate
         cmd: correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
 
-To this end, it sets up a temporary directory within the tests/ directory with subdirectories containing the required input data for each step. The tests are run in parallel using the xdist plugin, with each worker having its own copy of the input data. This allows the tests to modify the input data without affecting other workers. The `setup_module` function (fixture) is responsible for creating the temporary directory and setting up the input data for each step. It also prepares the target directories for each step by extracting the necessary files from tarballs in the `tests/testdata` directory and organizing them in the appropriate directory structure.
+To this end, it sets up a temporary directory within the `tests/` directory with subdirectories containing the required input data for each step. The tests are run in parallel using the `xdist` plugin, with each worker having its own copy of the input data. This allows the tests to modify the input data without affecting other workers. The `setup_module` function (fixture) is responsible for creating the temporary directory and setting up the input data for each step. It also prepares the target directories for each step by extracting the necessary files from tarballs in the `tests/testdata` directory and organizing them in the appropriate directory structure.
 
 After the tests are completed, the `teardown_module` function is called to clean up the temporary directory.
 
