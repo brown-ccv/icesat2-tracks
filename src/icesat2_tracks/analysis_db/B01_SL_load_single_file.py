@@ -22,9 +22,9 @@ from icesat2_tracks.config.config import (
     font_for_pres,
     plt,
 )
-import icesat2_tracks.ICEsat2_SI_tools.sliderule_converter_tools as sct
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
-import icesat2_tracks.ICEsat2_SI_tools.beam_stats as beam_stats
+import icesat2_tracks.tools.sliderule_converter_tools as sct
+import icesat2_tracks.tools.iotools as io
+import icesat2_tracks.tools.beam_stats as beam_stats
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
 

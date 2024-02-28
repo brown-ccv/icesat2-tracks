@@ -15,7 +15,7 @@ from icesat2_tracks.config.config import (
 
 
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
+import icesat2_tracks.tools.iotools as io
 import xarray as xr
 import numpy as np
 from scipy.constants import g
@@ -25,11 +25,11 @@ from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
 from numba import jit  # maybe for later optimizations?  # noqa: F401
 
-from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
+from icesat2_tracks.tools import angle_optimizer
 
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
-from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
+from icesat2_tracks.tools import angle_optimizer
 
 import pandas as pd
 

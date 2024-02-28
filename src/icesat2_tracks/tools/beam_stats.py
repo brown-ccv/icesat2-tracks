@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io_local
+import icesat2_tracks.tools.spectral_estimates as spec
+import icesat2_tracks.tools.iotools as io_local
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec

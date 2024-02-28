@@ -15,13 +15,13 @@ from icesat2_tracks.config.config import (
     font_for_print,
 )
 
-from icesat2_tracks.ICEsat2_SI_tools.iotools import init_from_input, ID_to_str
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+from icesat2_tracks.tools.iotools import init_from_input, ID_to_str
+import icesat2_tracks.tools.spectral_estimates as spec
 
 import xarray as xr
 import numpy as np
 import time
-import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
+import icesat2_tracks.tools.lanczos as lanczos
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
 

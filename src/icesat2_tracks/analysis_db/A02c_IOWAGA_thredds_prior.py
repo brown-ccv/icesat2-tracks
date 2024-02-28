@@ -4,22 +4,18 @@ import datetime
 from pathlib import Path
 
 import h5py
-import pandas as pd
-import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-import xarray as xr
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from siphon.catalog import TDSCatalog
 import typer
+import xarray as xr
 
-from icesat2_tracks.config.config import mconfig
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
-import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-import icesat2_tracks.local_modules.m_general_ph3 as M
-from icesat2_tracks.config.config import color_schemes
-from icesat2_tracks.config.config import font_for_print
+from icesat2_tracks.config.config import color_schemes, font_for_print, mconfig
+from icesat2_tracks.local_modules import m_general_ph3 as M, m_tools_ph3 as MT
+from icesat2_tracks.tools import iotools as io, wave_tools as waves
 
 from icesat2_tracks.clitools import (
     echo,

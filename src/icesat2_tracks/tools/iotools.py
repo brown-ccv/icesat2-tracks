@@ -12,9 +12,9 @@ from pandas.io.pytables import PerformanceWarning
 import pandas as pd
 import h5py
 from sliderule import icesat2
-from icesat2_tracks.ICEsat2_SI_tools import sliderule_converter_tools as sct
+from icesat2_tracks.tools import sliderule_converter_tools as sct
 import icesat2_toolkit.utilities
-import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
+import icesat2_tracks.tools.convert_GPS_time as cGPS
 
 
 def init_from_input(arguments):
