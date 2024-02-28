@@ -10,7 +10,7 @@ from scipy.constants import g
 from scipy.signal import detrend
 import lmfit as LM
 
-from icesat2_tracks.ICEsat2_SI_tools import lanczos, spectral_estimates as spec
+from icesat2_tracks.tools import lanczos, spectral_estimates as spec
 import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
 
 

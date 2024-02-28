@@ -8,12 +8,12 @@ import os
 
 import h5py
 from pathlib import Path
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
+import icesat2_tracks.tools.iotools as io
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
 import time
 import copy
-import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
+import icesat2_tracks.tools.generalized_FT as gFT
 import pandas as pd
 import xarray as xr
 import numpy as np

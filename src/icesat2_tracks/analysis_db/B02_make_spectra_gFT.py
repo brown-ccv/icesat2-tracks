@@ -20,9 +20,9 @@ import matplotlib
 from matplotlib import pyplot as plt
 import typer
 
-import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+import icesat2_tracks.tools.generalized_FT as gFT
+import icesat2_tracks.tools.iotools as io
+import icesat2_tracks.tools.spectral_estimates as spec
 import icesat2_tracks.local_modules.m_general_ph3 as M
 import icesat2_tracks.local_modules.m_spectrum_ph3 as spicke_remover
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
