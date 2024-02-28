@@ -6,7 +6,7 @@ This is python 3
 
 import itertools
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2_tracks.config.config import (
     mconfig,
     color_schemes,
     font_for_print,

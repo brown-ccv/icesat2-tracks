@@ -16,7 +16,7 @@ from pandas.errors import (
     SettingWithCopyWarning,
 )  # TODO: remove when warnings are handled
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2_tracks.config.config import (
     mconfig,
     color_schemes,
     font_for_pres,
@@ -203,7 +203,9 @@ def run_B01_SL_load_single_file(
         segment = track_name.split("_")[1][-2:]
         ID_name = sct.create_ID_name(gdf.iloc[0], segment=segment)
         echoparam("ID_name", ID_name)
-        io.write_track_to_HDF5(Ti, ID_name + "_B01_binned", save_path)  # regridding heights
+        io.write_track_to_HDF5(
+            Ti, ID_name + "_B01_binned", save_path
+        )  # regridding heights
 
         #  plot the ground tracks in geographic location
 

@@ -13,13 +13,13 @@ import xarray as xr
 from siphon.catalog import TDSCatalog
 import typer
 
-from icesat2_tracks.config.IceSAT2_startup import mconfig
+from icesat2_tracks.config.config import mconfig
 import icesat2_tracks.ICEsat2_SI_tools.iotools as io
 import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import icesat2_tracks.local_modules.m_general_ph3 as M
-from icesat2_tracks.config.IceSAT2_startup import color_schemes
-from icesat2_tracks.config.IceSAT2_startup import font_for_print
+from icesat2_tracks.config.config import color_schemes
+from icesat2_tracks.config.config import font_for_print
 
 from icesat2_tracks.clitools import (
     echo,
@@ -646,7 +646,9 @@ def run_A02c_IOWAGA_thredds_prior(
         echo("done")
 
 
-make_iowaga_threads_prior_app = makeapp(run_A02c_IOWAGA_thredds_prior, name="threads-prior")
+make_iowaga_threads_prior_app = makeapp(
+    run_A02c_IOWAGA_thredds_prior, name="threads-prior"
+)
 
 if __name__ == "__main__":
     make_iowaga_threads_prior_app()
