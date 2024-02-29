@@ -29,7 +29,7 @@ def define_chunk_boundaries_per_type(L_unit, ov, limits_size):
         ]
 
     # Handling when limits_size is a list
-    elif isinstance(limits_size, list) and len(limits_size) == 2:
+    elif isinstance(limits_size, tuple) and len(limits_size) == 2:
         start, end = limits_size
         boundaries = [
             (start, end - dl,dl),

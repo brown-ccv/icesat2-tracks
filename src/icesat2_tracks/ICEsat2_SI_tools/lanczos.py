@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.signal as signal
-import scipy.ndimage
-import scipy.ndimage.filters as signal
+from scipy.ndimage import  convolve
+import scipy.ndimage.filters as filters
 
 
 def lanczos_1d(width, dx, a=2):
@@ -59,8 +59,8 @@ def lanczos_filter_1d(x, data, width, a=2, mode="same", method="direct"):
 
     dx = np.diff(x).mean()
     x, L = lanczos_1d(width, dx, a=a)
-
-    data_lp = signal.convolve(data, L, mode=mode, method=method)
+    _method = method
+    data_lp = signal.convolve(data, L, mode=mode, method=_method)
 
     return data_lp
 
@@ -86,7 +86,7 @@ def lanczos_filter_1d_wrapping(x, data, width, a=2, mode="wrap"):
     dx = np.diff(x).mean()
     x, L = lanczos_1d(width, dx, a=a)
 
-    data_lp = scipy.ndimage.convolve(data, L, mode=mode)  # *
+    data_lp = convolve(data, L, mode=mode)  # *
 
     return data_lp
 
@@ -110,7 +110,7 @@ def lanczos_filter_2d(x, data, width, a=2, mode="same"):
     dx = abs(np.diff(x).mean())
     x, L2d = lanczos_2d(width, dx, a=a)
 
-    data_lp = signal.convolve(data, L2d, mode=mode)
+    data_lp = filters.convolve(data, L2d, mode=mode)
 
     return data_lp
 
@@ -146,6 +146,6 @@ def lanczos_filter_3d(x, data, width, a=2, mode="same"):
     dx = abs(np.diff(x).mean())
     x, L3d = lanczos_3d(width, dx, a=a)
 
-    data_lp = signal.convolve(data, L3d, mode=mode)
+    data_lp = filters.convolve(data, L3d, mode=mode)
 
     return data_lp
