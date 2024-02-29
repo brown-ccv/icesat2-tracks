@@ -25,7 +25,9 @@ import datetime as DT
 from . import m_tools_ph3 as MT
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class color:
         def __init__(self):
@@ -128,10 +130,9 @@ class figure_axis_xy:
                 full_name= (os.path.join(savepath,name)) + extension
                 #print(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=180)
-                if verbose:
-                    print('save at: '+name)
+                _logger.info('save at: '+name)
 
-        def save_pup(self,name=None,path=None, verbose=True):
+        def save_pup(self,name=None,path=None):
                 import datetime
                 import re
                 name=re.sub("\.", '_', name)
@@ -147,10 +148,9 @@ class figure_axis_xy:
                 full_name= (os.path.join(savepath,name)) + extension
                 #print(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=300)
-                if verbose:
-                    print('save at: ',full_name)
+                _logger.info('save at: ',full_name)
 
-        def save_light(self,name=None,path=None, verbose=True):
+        def save_light(self,name=None,path=None):
                 import datetime
 
                 savepath=path if path is not None else os.path.join(os.path.dirname(os.path.realpath('__file__')),'plot/')
@@ -164,8 +164,7 @@ class figure_axis_xy:
                 full_name= (os.path.join(savepath,name)) + extension
                 #print(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='png', dpi=180)
-                if verbose:
-                    print('save with: ',name)
+                _logger.info('save with: ',name)
 
 class subplot_routines(figure_axis_xy):
         def __init__(self, ax):
