@@ -9,40 +9,42 @@ import pandas as pd
 from scipy import signal
 import lmfit as LM
 import icesat2_tracks.local_modules.m_general_ph3 as M
-
+from functools import singledispatch
 
 def is_even(number):
     return not (number % 2)
 
-def define_chunk_boundaries_per_type(L_unit, ov, limits_size):
-    
-    ov = int(np.round(L_unit / 2)) if ov is None else ov
-    dl = L_unit - ov
-    boundaries = []
+@singledispatch
+def define_chunk_boundaries(L_unit,dl, limits_size):
+       raise ValueError("limits_size must be either an int or a list of two elements")
 
-    # Handling when limits_size is an integer
-    if isinstance(limits_size, int):
-        boundaries = [
-            (0, limits_size - dl,dl),
+@define_chunk_boundaries.register
+def _(limits_size:int,L_unit:int,dl:int):
+     L_unit = 0
+     boundaries = [
+            (L_unit, limits_size - dl,dl),
             (dl, limits_size - dl + 1,dl),
             (dl * 2, limits_size + 1,dl)
         ]
+     return boundaries
+      
+@define_chunk_boundaries.register
+def _( limits_size:tuple,L_unit:int,dl:int):
+    return define_chunk_boundaries(list(limits_size),L_unit,dl)
 
-    # Handling when limits_size is a list
-    elif isinstance(limits_size, tuple) and len(limits_size) == 2:
-        start, end = limits_size
-        boundaries = [
+@define_chunk_boundaries.register
+def _(limits_size:list, L_unit:int,dl:int ):
+    start, end = limits_size
+    boundaries = [
             (start, end - dl,dl),
             (start + L_unit / 2, end - dl + 1,dl),
             (start + L_unit, end + 1,dl)
-        ]
-    else:
-        raise ValueError("limits_size must be either an int or a list of two elements")
-
+    ]
     return boundaries
 
+
 # basic functions
-def create_chunk_boundaries(L, dsize, ov= None,  iter_flag=True):
+def create_chunk_boundaries(L_unit, dsize, ov= None,  iter_flag=True):
     """
     returns all need chunk boundaries and center position given L, and ov
     inputs:
@@ -53,8 +55,10 @@ def create_chunk_boundaries(L, dsize, ov= None,  iter_flag=True):
     if iter_flag True returns iter else it returns an ndarray
 
     """
-
-    boundaries = define_chunk_boundaries_per_type(L,ov,dsize)
+    ov = int(np.round(L_unit / 2)) if ov is None else ov
+    dl = int( L_unit - ov)
+    
+    boundaries = define_chunk_boundaries(dsize,int(L_unit),dl)
 
     xleft, xcenter_pos, xright =  [
        np.arange(*boundary)  for boundary in boundaries
