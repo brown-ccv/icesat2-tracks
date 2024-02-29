@@ -32,7 +32,7 @@ def json_save(name, path, data, return_name=False):
     full_name= (os.path.join(full_name_root+ '.json'))
     with open(full_name, 'w') as outfile:
         json.dump(data, outfile)
-    _logger.debug('save at: ',full_name)
+    _logger.debug(f'save at: {full_name}')
     if return_name:
         return full_name_root
     else:
@@ -45,7 +45,7 @@ def json_load(name, path):
 
     with open(full_name, 'r') as ifile:
         data=json.load(ifile)
-    _logger.debug('loaded from: ',full_name)
+    _logger.debug('loaded from: {full_name}')
     return data
 
 
