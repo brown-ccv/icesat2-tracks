@@ -40,7 +40,7 @@ jobs:
         run: make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
       - name: third step plot_spectra
         run: plot-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
-      - name: fouth step IOWAGA threads 
+      - name: fourth step IOWAGA threads 
         run:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
       - name: fifth step B04_angle
         run: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose

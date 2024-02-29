@@ -49,7 +49,7 @@ def checkpaths(paths):
 
 def get_all_filenames(directory):
     """
-    Get a list of all file names in a directory
+    Get a list of all file names in a directory.
     """
     return [p.name for p in Path(directory).rglob("*")]
 
