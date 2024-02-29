@@ -98,7 +98,6 @@ def run_B01_SL_load_single_file(
     """
     Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and output smoothed photon heights on a regular grid in an .nc file.
     """
-
     # report input parameters
     kwargs = {
         "track_name": track_name,
