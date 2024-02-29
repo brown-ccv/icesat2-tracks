@@ -273,7 +273,7 @@ def setup_module():
     5 directories, 0 files
     ```
 
-    When running in parallel using the xdist plugin, each worker will have its own copy of all the input data. This is necessary because the tests are run in parallel and the input data is modified by the tests. This way, the teardown function can delete the temporary directory for each worker without affecting the other workers.
+    When running in parallel using the `xdist` plugin, each worker will have its own copy of all the input data. This is necessary because the tests are run in parallel and the input data is modified by the tests. This way, the teardown function can delete the temporary directory for each worker without affecting the other workers.
     """
 
     homedir = Path(__file__).parent
