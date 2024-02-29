@@ -2,6 +2,7 @@
 """
 Main CLI for icesat2waves.
 """
+import logging
 from typer import Typer, Option
 from icesat2_tracks.analysis_db.B01_SL_load_single_file import (
     run_B01_SL_load_single_file as _loadfile,
@@ -33,12 +34,22 @@ from icesat2_tracks.clitools import (
     validate_output_dir,
     validate_track_name_steps_gt_1,
 )
+_logger = logging.getLogger(__name__)
+logging.basicConfig()
 
 app = Typer(add_completion=False)
 validate_track_name_gt_1_opt = Option(..., callback=validate_track_name_steps_gt_1)
 validate_batch_key_opt = Option(..., callback=validate_batch_key)
 validate_output_dir_opt = Option(..., callback=validate_output_dir)
+verbose_opt = Option(False, )
 
+
+def configure_logging(verbose: bool = False, debug: bool = False) -> None:
+    if debug:
+        _logger.setLevel(logging.DEBUG)
+    elif verbose:
+        _logger.setLevel(logging.INFO)
+    return
 
 def run_job(
     analysis_func,
@@ -47,7 +58,9 @@ def run_job(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     analysis_func(track_name, batch_key, ID_flag, output_dir, verbose)
 
 
@@ -58,7 +71,9 @@ def load_file(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_loadfile, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
@@ -69,7 +84,9 @@ def make_spectra(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_makespectra, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
@@ -80,7 +97,9 @@ def plot_spectra(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
@@ -90,7 +109,10 @@ def separate_var(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
+    verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
 
 @app.command(help=_threddsprior.__doc__)
@@ -100,7 +122,9 @@ def make_iowaga_threads_prior(  # TODO: revise naming @mochell
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_threddsprior, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
@@ -111,7 +135,9 @@ def make_b04_angle(  # TODO: revise naming @mochell
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_run_B04_angle, track_name, batch_key, ID_flag, output_dir, verbose)
 
 @app.command(help=_define_angle.__doc__)
@@ -121,7 +147,9 @@ def define_angle(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_define_angle, track_name, batch_key, ID_flag, output_dir, verbose)
     
 
@@ -132,7 +160,9 @@ def correct_separate(  # TODO: rename with a verb or something
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
     verbose: bool = False,
+    debug: bool = False,
 ):
+    configure_logging(verbose=verbose, debug=debug)
     run_job(_run_correct_separate_var, track_name, batch_key, ID_flag, output_dir)
 
 if __name__ == "__main__":
