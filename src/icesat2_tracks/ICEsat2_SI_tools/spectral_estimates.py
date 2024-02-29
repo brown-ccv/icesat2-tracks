@@ -55,10 +55,10 @@ def create_chunk_boundaries(L, dsize, ov= None,  iter_flag=True):
     """
 
     boundaries = define_chunk_boundaries_per_type(L,ov,dsize)
-   
-    xleft = np.arange(boundaries[0])
-    xcenter_pos = np.arange(boundaries[1])
-    xright = np.arange(boundaries[3])
+
+    xleft, xcenter_pos, xright =  [
+       np.arange(*boundary)  for boundary in boundaries
+    ]
     
     max_size = min([xleft.size , xcenter_pos.size, xright.size])
 
