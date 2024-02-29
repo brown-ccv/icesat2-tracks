@@ -20,8 +20,8 @@ import h5py
 from random import sample
 import imp
 import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
-import icesat2_tracks.ICEsat2_SI_tools.io as io
-from icesat2_tracks.ICEsat2_SI_tools.spectral_estimates import create_chunk_boundaries_unit_lengths, create_chunk_boundaries
+import icesat2_tracks.ICEsat2_SI_tools.iotools as io
+from icesat2_tracks.ICEsat2_SI_tools.spectral_estimates import  create_chunk_boundaries
 import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
 import icesat2_tracks.ICEsat2_SI_tools.filter_regrid as regrid
 
@@ -149,8 +149,8 @@ def cut_rear_data(xx0, dd0, N_seg= 20):
 def get_breakingpoints(xx, dd ,Lmeter= 3000):
 
     nsize = dd.size
-    stencil_iter = spec.create_chunk_boundaries_unit_lengths( Lmeter, [ xx.min(), xx.max()],ov =Lmeter*3/4, iter_flag= True)
-    iter_x = spec.create_chunk_boundaries_unit_lengths( Lmeter, [ xx.min(), xx.max()],ov =Lmeter*3/4, iter_flag= False)[1,:]
+    stencil_iter = spec.create_chunk_boundaries( Lmeter, [ xx.min(), xx.max()],ov =Lmeter*3/4, iter_flag= True)
+    iter_x = spec.create_chunk_boundaries( Lmeter, [ xx.min(), xx.max()],ov =Lmeter*3/4, iter_flag= False)[1,:]
 
     def get_var(sti):
         mask = (sti[0] < xx) & (xx <= sti[1])

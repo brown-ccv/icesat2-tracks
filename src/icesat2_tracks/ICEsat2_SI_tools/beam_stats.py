@@ -42,21 +42,21 @@ def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
             mask = (sti[0] < xx) & (xx <= sti[1])
             return np.nanmean(Gi["lats"][mask])
 
-        iter_x = spec.create_chunk_boundaries_unit_lengths(
+        iter_x = spec.create_chunk_boundaries(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=False
         )[1, :]
 
-        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
+        stencil_iter = spec.create_chunk_boundaries(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
         )
         var_list = np.array(list(map(get_var, stencil_iter)))
 
-        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
+        stencil_iter = spec.create_chunk_boundaries(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
         )
         N_list = np.array(list(map(get_N, stencil_iter)))
 
-        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
+        stencil_iter = spec.create_chunk_boundaries(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
         )
         lat_list = np.array(list(map(get_lat, stencil_iter)))
