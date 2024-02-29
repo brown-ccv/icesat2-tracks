@@ -94,10 +94,27 @@ def run_B01_SL_load_single_file(
     ID_flag: bool = True,
     plot_flag: bool = True,
     output_dir: str = typer.Option(..., callback=validate_output_dir),
+    verbose: bool = False,
+    debug: bool = False,
 ):
     """
     Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and output smoothed photon heights on a regular grid in an .nc file.
     """
+
+    logging.basicConfig()
+
+    if debug:
+        _logger.setLevel(logging.DEBUG)
+    elif verbose:
+        _logger.setLevel(logging.INFO)
+
+    _logger.critical("Here's a critical message")
+    _logger.warning("Here's warning")
+    _logger.debug("Here's a debug message")
+    _logger.info("Here's an info message")
+    import sys
+    sys.exit(1)
+
     # report input parameters
     kwargs = {
         "track_name": track_name,
