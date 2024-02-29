@@ -37,6 +37,16 @@ from icesat2_tracks.clitools import (
 _logger = logging.getLogger(__name__)
 
 app = Typer(add_completion=False)
+
+@app.callback()
+def main(verbose: bool = False, debug: bool = False):
+    """ Analyze data from the ICESAT2 satellite. """
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    elif verbose:
+        logging.basicConfig(level=logging.INFO)
+
+
 validate_track_name_gt_1_opt = Option(..., callback=validate_track_name_steps_gt_1)
 validate_batch_key_opt = Option(..., callback=validate_batch_key)
 validate_output_dir_opt = Option(..., callback=validate_output_dir)
@@ -128,17 +138,7 @@ def correct_separate(  # TODO: rename with a verb or something
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
 ):
-
-
-@app.callback()
-def main(verbose: bool = False, debug: bool = False):
-    """
-    Manage users in the awesome CLI app.
-    """
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
-    elif verbose:
-        logging.basicConfig(level=logging.INFO)
+    run_job(_run_correct_separate_var, track_name, batch_key, ID_flag, output_dir)
 
 if __name__ == "__main__":
     app()
