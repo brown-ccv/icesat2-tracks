@@ -7,6 +7,7 @@ import datetime
 import copy
 from pathlib import Path
 import warnings
+import logging
 
 import xarray as xr
 from sliderule import icesat2
@@ -39,6 +40,8 @@ from icesat2_tracks.clitools import (
     echoparam,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def make_B01_dict(table_data, split_by_beam=True, to_hdf5=False):
@@ -158,10 +161,10 @@ def run_B01_SL_load_single_file(
     }
 
     maximum_height = 30  # (meters) maximum height past dem_h correction
-    print("STARTS")
-    print("Fetching ATL03 data from sliderule")
+    _logger.info("STARTS")
+    _logger.info("Fetching ATL03 data from sliderule")
     gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
-    print("ENDS")
+    _logger.info("ENDS")
     gdf = sct.correct_and_remove_height(gdf, maximum_height)
 
     cdict = dict()
@@ -244,7 +247,7 @@ def run_B01_SL_load_single_file(
         M.save_anyfig(plt.gcf(), path=plot_path, name="B01_track.png")
         plt.close()
 
-    echo("write A01b .json")
+    _logger.info("write A01b .json")
     DD = {"case_ID": ID_name, "tracks": {}}
 
     DD["tracks"]["ATL03"] = "ATL10-" + track_name
@@ -272,7 +275,7 @@ def run_B01_SL_load_single_file(
 
     MT.json_save2(name="A01b_ID_" + ID_name, path=save_path_json, data=DD)
 
-    echo("done")
+    _logger.info("done")
 
 
 load_file_app = makeapp(run_B01_SL_load_single_file, name="load-file")
