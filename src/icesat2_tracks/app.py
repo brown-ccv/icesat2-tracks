@@ -58,8 +58,7 @@ def load_file(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
 ):
-    run_job(analysis_func=_loadfile, track_name=track_name, batch_key=batch_key, ID_flag=ID_flag,
-            output_dir=output_dir)
+    run_job(_loadfile, track_name, batch_key, ID_flag, output_dir)
 
 
 @app.command(help=_makespectra.__doc__)
@@ -69,11 +68,7 @@ def make_spectra(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
 ):
-    run_job(analysis_func=_makespectra,
-            track_name=track_name,
-            batch_key=batch_key,
-            ID_flag=ID_flag,
-            output_dir=output_dir)
+    run_job(_makespectra, track_name, batch_key, ID_flag, output_dir)
 
 
 @app.command(help=_plotspectra.__doc__)
@@ -83,13 +78,7 @@ def plot_spectra(
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
 ):
-
-    run_job(analysis_func=_plotspectra,
-            track_name=track_name,
-            batch_key=batch_key,
-            ID_flag=ID_flag,
-            output_dir=output_dir
-            )
+    run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
 
 
 @app.command(help=_plotspectra.__doc__)
@@ -98,14 +87,8 @@ def separate_var(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-
 ):
-
-    run_job(analysis_func=_plotspectra,
-            track_name=track_name,
-            batch_key=batch_key,
-            ID_flag=ID_flag,
-            output_dir=output_dir)
+    run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
 
 @app.command(help=_threddsprior.__doc__)
 def make_iowaga_threads_prior(  # TODO: revise naming @mochell
@@ -114,12 +97,7 @@ def make_iowaga_threads_prior(  # TODO: revise naming @mochell
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
 ):
-
-    run_job(analysis_func=_threddsprior,
-            track_name=track_name,
-            batch_key=batch_key,
-            ID_flag=ID_flag,
-            output_dir=output_dir)
+    run_job(_threddsprior, track_name, batch_key, ID_flag, output_dir)
 
 
 @app.command(help=_run_B04_angle.__doc__)
@@ -130,11 +108,7 @@ def make_b04_angle(  # TODO: revise naming @mochell
     output_dir: str = validate_output_dir_opt,
 ):
 
-    run_job(analysis_func=_run_B04_angle,
-            track_name=track_name,
-            batch_key=batch_key,
-            ID_flag=ID_flag,
-            output_dir=output_dir)
+    run_job(_run_B04_angle, track_name, batch_key, ID_flag, output_dir)
 
 @app.command(help=_define_angle.__doc__)
 def define_angle(
@@ -142,15 +116,9 @@ def define_angle(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-
 ):
 
-    run_job(analysis_func= _define_angle,
-            track_name=track_name,
-            batch_key=batch_key,
-            ID_flag=ID_flag,
-            output_dir=output_dir
-            )
+    run_job(_define_angle, track_name, batch_key, ID_flag, output_dir)
     
 
 @app.command(help=_run_correct_separate_var.__doc__)
@@ -159,15 +127,7 @@ def correct_separate(  # TODO: rename with a verb or something
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
-    debug: bool = False,
 ):
-
-    run_job(analysis_func=_run_correct_separate_var,
-            track_name=track_name,
-            batch_key=batch_key,
-            ID_flag=ID_flag,
-            output_dir=output_dir)
 
 
 @app.callback()
