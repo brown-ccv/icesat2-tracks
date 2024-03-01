@@ -84,15 +84,6 @@ def plot_spectra(
     run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir, verbose)
 
 
-@app.command(help=_plotspectra.__doc__)
-def separate_var(
-    track_name: str = validate_track_name_gt_1_opt,
-    batch_key: str = validate_batch_key_opt,
-    ID_flag: bool = True,
-    output_dir: str = validate_output_dir_opt,
-):
-    run_job(_plotspectra, track_name, batch_key, ID_flag, output_dir)
-
 @app.command(help=_threddsprior.__doc__)
 def make_iowaga_threads_prior(  # TODO: revise naming @mochell
     track_name: str = validate_track_name_gt_1_opt,
