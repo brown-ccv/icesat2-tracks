@@ -281,5 +281,5 @@ def run_B01_SL_load_single_file(
 load_file_app = makeapp(run_B01_SL_load_single_file, name="load-file")
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.NOTSET)
+    logging.basicConfig(level=logging.WARNING)
     load_file_app()
