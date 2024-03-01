@@ -1,6 +1,42 @@
 import numpy as np
 from numba import jit
 import pandas as pd
+import matplotlib as plt
+
+def process_single_stencil_set(
+    stancil_set, T2, key_var, key_x_coord, stancil_width, calc_stencil_stats
+):
+    # Select photons that are in bins
+    Ti_sel = T2[(stancil_set[0, 0] < T2["x"]) & (T2["x"] < stancil_set[2, -1])]
+
+    # Put each photon in a bin
+    bin_labels = np.searchsorted(stancil_set[0, :], Ti_sel["x"])
+    Ti_sel["x_bins"] = bin_labels
+
+    # Group data by this bin
+    Ti_g = Ti_sel.groupby("x_bins", dropna=False, as_index=True)
+
+    # Take median of the data
+    Ti_median = Ti_g.median()
+
+    # Apply weighted mean and count photons
+    Ti_weight = Ti_g.apply(
+        calc_stencil_stats, key_var, key_x_coord, stancil_width, stancil_set
+    )
+
+    # Merge both datasets
+    T_merged = pd.concat([Ti_median, Ti_weight], axis=1)
+
+    # Rename columns
+    T_merged = T_merged.rename(
+        columns={key_var: key_var + "_median", key_x_coord: key_x_coord + "_median"}
+    )
+    T_merged[key_var + "_median"][np.isnan(T_merged[key_var + "_std"])] = np.nan
+
+    # Set stencil center as new x-coordinate
+    T_merged["x"] = stancil_set[1, T_merged.index - 1]
+
+    return T_merged
 
 
 def get_hemis(B, beams_list):
@@ -61,7 +97,7 @@ def lat_min_max_extended(B, beams_list, accent=None):
     min_lat, max_lat, accent   min and max latitudes of the beams, (True/False) True if the track is accending
     """
 
-    accent = regrid.track_type(B[beams_list[0]]) if accent is None else accent
+    accent = track_type(B[beams_list[0]]) if accent is None else accent
 
     hemis = get_hemis(B, beams_list)
 
@@ -85,32 +121,36 @@ def lat_min_max_extended(B, beams_list, accent=None):
         track_lat_end.append(ll["lats"])
         track_lon_end.append(ll["lons"])
 
-    if (hemis == "SH") & accent:
-        return (
-            [max(track_lat_start), min(track_lat_end)],
-            [max(track_lon_start), min(track_lon_end)],
-            accent,
-        )  # accenting SH mean start is in the top right
-    elif (hemis == "SH") & ~accent:
-        return (
-            [max(track_lat_start), min(track_lat_end)],
-            [min(track_lon_start), max(track_lon_end)],
-            accent,
-        )  # decent SH mean start is in the top left
-    elif (hemis == "NH") & accent:
-        return (
-            [min(track_lat_start), max(track_lat_end)],
-            [min(track_lon_start), max(track_lon_end)],
-            accent,
-        )  # accent NH mean start is in the lower left
-    elif (hemis == "NH") & ~accent:
-        return (
-            [min(track_lat_start), max(track_lat_end)],
-            [max(track_lon_start), min(track_lon_end)],
-            accent,
-        )  # decent NH mean start is in the lower right
-    else:
-        raise ValueError("some defintions went wrong")
+    # Define a dictionary to map the conditions to the functions
+    func_map = {
+        ("SH", True): (
+            max,
+            min,
+            max,
+            min,
+        ),  # accenting SH mean start is in the top right
+        ("SH", False): (max, min, min, max),  # decent SH mean start is in the top left
+        ("NH", True): (min, max, min, max),  # accent NH mean start is in the lower left
+        ("NH", False): (
+            min,
+            max,
+            max,
+            min,
+        ),  # decent NH mean start is in the lower right
+    }
+    # Get the functions based on the conditions
+    funcs = func_map.get((hemis, accent))
+    # If the key is not found in the dictionary, raise an error
+    if funcs is None:
+        raise ValueError("some definitions went wrong")
+    lat_start_func, lat_end_func, lon_start_func, lon_end_func = funcs
+    # Use the functions to calculate the start and end of latitude and longitude
+    # Return these values along with accent
+    return (
+        [lat_start_func(track_lat_start), lat_end_func(track_lat_end)],
+        [lon_start_func(track_lon_start), lon_end_func(track_lon_end)],
+        accent,
+    )
 
 
 def lat_min_max(B, beams_list, accent=None):
@@ -306,42 +346,12 @@ def get_stencil_stats_shift(
 
         return Tweight.T
 
-    T_sets = list()
-
-    for stancil_set in [stencil_1, stencil_1half]:
-
-        # select photons that are in bins
-        Ti_sel = T2[(stancil_set[0, 0] < T2["x"]) & (T2["x"] < stancil_set[2, -1])]
-
-        # put each photon in a bin
-        bin_labels = np.searchsorted(stancil_set[0, :], Ti_sel["x"])
-
-        Ti_sel["x_bins"] = bin_labels
-        # group data by this bin
-        Ti_g = Ti_sel.groupby(Ti_sel["x_bins"], dropna=False, as_index=True)
-        # take median of the data
-        Ti_median = Ti_g.median()
-
-        # apply weighted mean and count photons
-        args = [key_var, key_x_coord, stancil_width, stancil_set]
-
-        Ti_weight = Ti_g.apply(calc_stencil_stats, *args)
-
-        # merge both datasets
-        T_merged = pd.concat([Ti_median, Ti_weight], axis=1)
-
-        # rename columns
-        T_merged = T_merged.rename(
-            columns={key_var: key_var + "_median", key_x_coord: key_x_coord + "_median"}
+    T_sets = [
+        process_single_stencil_set(
+            stancil_set, T2, key_var, key_x_coord, stancil_width, calc_stencil_stats
         )
-        T_merged[key_var + "_median"][
-            np.isnan(T_merged[key_var + "_std"])
-        ] = np.nan  # replace median calculation with nans
-
-        # set stancil center an new x-coodinate
-        T_merged["x"] = stancil_set[1, T_merged.index - 1]
-
-        T_sets.append(T_merged)
+        for stancil_set in [stencil_1, stencil_1half]
+    ]
 
     # mergeboth stancils
     T3 = pd.concat(T_sets).sort_values(by="x").reset_index()
@@ -443,8 +453,6 @@ def bin_means(T2, dist_grid):
     N_i = list()
 
     for i in np.arange(1, ilim - 1):
-        if i % 5000 == 0:
-            print(i)
         i_mask = (T2["dist"] >= dist_grid[i - 1]) & (T2["dist"] < dist_grid[i + 1])
         dF_mean[i] = T2[i_mask].mean()
         N_i.append(i_mask.sum())

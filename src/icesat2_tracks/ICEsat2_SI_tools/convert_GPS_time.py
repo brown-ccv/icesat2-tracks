@@ -31,7 +31,6 @@ UPDATE HISTORY:
 """
 import numpy as np
 from .convert_julian import convert_julian
-import pdb
 
 
 # -- PURPOSE: Define GPS leap seconds
