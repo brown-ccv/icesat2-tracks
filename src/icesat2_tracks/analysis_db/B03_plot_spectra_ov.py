@@ -3,6 +3,7 @@
 This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+import logging
 from ast import comprehension
 from pathlib import Path
 import matplotlib
@@ -32,6 +33,8 @@ from icesat2_tracks.clitools import (
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def plot_wavenumber_spectrogram(ax, Gi, clev, title=None, plot_photon_density=True):

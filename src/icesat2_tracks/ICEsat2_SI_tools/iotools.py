@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import json
@@ -15,6 +16,9 @@ from sliderule import icesat2
 from icesat2_tracks.ICEsat2_SI_tools import sliderule_converter_tools as sct
 import icesat2_toolkit.utilities
 import icesat2_tracks.ICEsat2_SI_tools.convert_GPS_time as cGPS
+
+
+_logger = logging.getLogger(__name__)
 
 
 def init_from_input(arguments):

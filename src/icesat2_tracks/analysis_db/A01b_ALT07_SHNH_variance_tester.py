@@ -1,3 +1,4 @@
+import logging
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
 from icesat2_tracks.config.IceSAT2_startup import mconfig
@@ -31,6 +32,8 @@ import icesat2_tracks.local_modules.m_tools_ph3 as MT
 import concurrent.futures as futures
 
 import piecewise_regression
+
+_logger = logging.getLogger(__name__)
 
 #import s3fs
 #processed_ATL03_20190605061807_10380310_004_01.h5

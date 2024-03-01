@@ -1,5 +1,9 @@
+import logging
 
 import numpy as np
+
+_logger = logging.getLogger(__name__)
+
 
 def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0 , verbose=False):
     """

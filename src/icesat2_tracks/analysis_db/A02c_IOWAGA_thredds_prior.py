@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import logging
 from pathlib import Path
 
 import h5py
@@ -31,6 +32,8 @@ from icesat2_tracks.clitools import (
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 color_schemes.colormaps2(21)
 matplotlib.use("Agg")  # prevent plot windows from opening

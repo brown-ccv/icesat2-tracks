@@ -2,7 +2,7 @@
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
-
+import logging
 import os
 
 
@@ -41,6 +41,9 @@ from icesat2_tracks.clitools import (
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+
+_logger = logging.getLogger(__name__)
 
 
 def get_correct_breakpoint(pw_results):

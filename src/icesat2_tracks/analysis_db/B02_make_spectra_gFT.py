@@ -6,6 +6,8 @@ This is python 3
 
 import copy
 import datetime
+import logging
+
 import h5py
 from pathlib import Path
 from functools import partial
@@ -41,7 +43,7 @@ from icesat2_tracks.clitools import (
 
 # import tracemalloc # removing this for now. CP
 
-
+_logger = logging.getLogger(__name__)
 matplotlib.use("Agg")  # prevent plot windows from opening
 
 

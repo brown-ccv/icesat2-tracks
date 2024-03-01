@@ -3,7 +3,7 @@
 This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
-
+import logging
 from pathlib import Path
 import matplotlib
 from matplotlib import pyplot as plt
@@ -36,6 +36,8 @@ from icesat2_tracks.clitools import (
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 matplotlib.use("Agg")
 color_schemes.colormaps2(21)

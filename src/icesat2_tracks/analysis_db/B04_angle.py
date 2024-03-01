@@ -5,6 +5,7 @@ This is python 3
 """
 
 import itertools
+import logging
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
@@ -47,6 +48,8 @@ from icesat2_tracks.clitools import (
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def run_B04_angle(

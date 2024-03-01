@@ -1,4 +1,8 @@
+import logging
+
 from ipyleaflet import basemaps
+
+_logger = logging.getLogger(__name__)
 
 
 # height correction tools

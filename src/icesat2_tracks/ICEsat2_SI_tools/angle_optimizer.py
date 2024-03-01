@@ -1,9 +1,13 @@
 """
 This library contains method, and classes used to search for the best angle given x,y data using single frequecy fits.
 """
+import logging
+
 from numba import jit
 import numpy as np
 
+
+_logger = logging.getLogger(__name__)
 
 numba_parallel = False
 
