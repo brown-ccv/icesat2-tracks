@@ -202,7 +202,7 @@ def run_B04_angle(
 
         font_for_pres()
 
-        F = M.figure_axis_xy(5, 4.5, view_scale=0.5)
+        F = M.FigureAxisXY(5, 4.5, view_scale=0.5)
         plt.subplot(2, 1, 1)
         plt.title("Prior angle smoothed\n" + track_name, loc="left")
 
@@ -422,7 +422,7 @@ def run_B04_angle(
         ):
             x_concat, y_concat, z_concat = fargs
 
-            F = M.figure_axis_xy(5, 6, view_scale=view_scale, container=True)
+            F = M.FigureAxisXY(5, 6, view_scale=view_scale, container=True)
             plt.suptitle(title_str)
             gs = GridSpec(4, 3, wspace=0.4, hspace=1.2)
             F.gs = gs
@@ -505,7 +505,7 @@ def run_B04_angle(
 
         # plot
         font_for_print()
-        F = M.figure_axis_xy(5.5, 3, view_scale=0.8)
+        F = M.FigureAxisXY(5.5, 3, view_scale=0.8)
         plt.suptitle(track_name)
         ax1 = plt.subplot(2, 1, 1)
         plt.title("Data in Beam", loc="left")
@@ -887,7 +887,7 @@ def run_B04_angle(
         else:
             # plotting with LL
             font_for_print()
-            F = M.figure_axis_xy(6, 5.5, view_scale=0.7, container=True)
+            F = M.FigureAxisXY(6, 5.5, view_scale=0.7, container=True)
 
             gs = GridSpec(4, 6, wspace=0.2, hspace=0.8)
 

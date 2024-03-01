@@ -371,7 +371,7 @@ def run_B06_correct_separate_var(
 
         k = G_gFT_smth.k
 
-        F = M.figure_axis_xy()
+        F = M.FigureAxisXY()
 
         plt.loglog(k, G_gFT_smth / k)
 
@@ -403,7 +403,7 @@ def run_B06_correct_separate_var(
         font_for_print()
 
         fn = copy.copy(lstrings)
-        F = M.figure_axis_xy(
+        F = M.FigureAxisXY(
             fig_sizes["two_column"][0],
             fig_sizes["two_column"][0] * 0.9,
             container=True,
@@ -722,7 +722,7 @@ def run_B06_correct_separate_var(
             theta_flag = True
 
             font_for_print()
-            F = M.figure_axis_xy(3, 5, view_scale=0.7)
+            F = M.FigureAxisXY(3, 5, view_scale=0.7)
 
             plt.subplot(2, 1, 1)
             plt.pcolor(Ga_abs)

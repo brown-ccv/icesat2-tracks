@@ -172,7 +172,7 @@ def run_B01_SL_load_single_file(
             cdict[s] = color_schemes.rels[b]
 
         font_for_pres()
-        F_atl06 = M.figure_axis_xy(6.5, 5, view_scale=0.6)
+        F_atl06 = M.FigureAxisXY(6.5, 5, view_scale=0.6)
         F_atl06.fig.suptitle(track_name)
 
         beam_stats.plot_ATL06_track_data(gdf, cdict)
@@ -222,7 +222,7 @@ def run_B01_SL_load_single_file(
 
         if plot_flag:
             font_for_pres()
-            F = M.figure_axis_xy(8, 4.3, view_scale=0.6)
+            F = M.FigureAxisXY(8, 4.3, view_scale=0.6)
             beam_stats.plot_beam_statistics(
                 D,
                 high_beams,
