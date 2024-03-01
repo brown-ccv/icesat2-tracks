@@ -144,7 +144,7 @@ def nsidc_icesat2_associated(file_list, PRODUCT, DIRECTORY=None,
             sort=True)
         #-- print if file was not found
         if not colnames:
-            print(colerror)
+            _logger.debug(colerror)
             continue
         #-- add to lists
         for colname,remote_mtime in zip(colnames,collastmod):
@@ -164,7 +164,7 @@ def nsidc_icesat2_associated(file_list, PRODUCT, DIRECTORY=None,
             kwds = dict(TIMEOUT=TIMEOUT,RETRY=RETRY,MODE=MODE)
             out = http_pull_file(*args,**kwds)
             #-- print the output string
-            print('{0}\n{1}'.format(input_file,out))
+            _logger.debug('{0}\n{1}'.format(input_file,out))
     else:
         #-- set multiprocessing start method
         ctx = mp.get_context("fork")
@@ -186,7 +186,7 @@ def nsidc_icesat2_associated(file_list, PRODUCT, DIRECTORY=None,
         pool.join()
         #-- print the output string
         for out in output:
-            print(out.get())
+            _logger.debug(out.get())
 
 #-- PURPOSE: wrapper for running the sync program in multiprocessing mode
 def multiprocess_sync(*args, **kwds):
@@ -196,7 +196,7 @@ def multiprocess_sync(*args, **kwds):
         #-- if there has been an error exception
         #-- print the type, value, and stack trace of the
         #-- current exception being handled
-        print('process id {0:d} failed'.format(os.getpid()))
+        _logger.debug('process id {0:d} failed'.format(os.getpid()))
         traceback.print_exc()
     else:
         return output

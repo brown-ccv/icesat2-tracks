@@ -65,7 +65,7 @@ def count_leaps(GPS_Time):
 		count = np.count_nonzero(GPS_Time >= leap)
 		if (count > 0):
 			indices, = np.nonzero(GPS_Time >= leap)
-			# print(indices)
+			# _logger.debug(indices)
 			# pdb.set_trace()
 			n_leaps[indices] += 1
 	return n_leaps

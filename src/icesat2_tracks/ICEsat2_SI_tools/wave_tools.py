@@ -35,7 +35,7 @@ def get_ave_amp_angle(amp, angle, deg = True):
     import numpy as np
     u,v =  to_vec(amp, angle , deg= deg)
     # average angle in vector space
-    #print(u, v)
+    #_logger.debug(u, v)
     _ , ave_deg = to_deg( np.nanmean(u) , np.nanmean(v), deg = deg)
     _ , std_deg = to_deg( np.nanstd(u) , np.nanstd(v) , deg = deg)
 

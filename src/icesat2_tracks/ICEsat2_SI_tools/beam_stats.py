@@ -28,7 +28,7 @@ def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
         elif isinstance(Gd, h5py.File):
             Gi = io_local.get_beam_hdf_store(Gd[k])
         else:
-            print("Gd is neither dict nor hdf5 file")
+            _logger.debug("Gd is neither dict nor hdf5 file")
             break
 
         dd = Gi["h_mean"]

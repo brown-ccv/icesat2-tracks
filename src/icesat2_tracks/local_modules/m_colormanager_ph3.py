@@ -183,7 +183,7 @@ class color:
             for key in self.rels.keys():
                 _logger.debug('  '+key)
 
-            #print(self.__dict__)
+            #_logger.debug(self.__dict__)
         def plot(self):
             dd=self.__dict__.copy()
             dd_colors=dd['rels']

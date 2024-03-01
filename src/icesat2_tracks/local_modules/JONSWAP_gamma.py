@@ -77,7 +77,7 @@ def gamma_time_normlized_amp_shifted(time, gammapar=2, loc=0.2, scale=0.1):
     """
     gamma_mod = gamma(gammapar, loc=loc[0, :], scale=scale).pdf(time[0, :])
     dloc = loc[0, :] - time[0, :][gamma_mod.argmax()]
-    # print(dloc)
+    # _logger.debug(dloc)
     gamma_mod = gamma(gammapar, loc=loc + dloc, scale=scale).pdf(time)
     return gamma_mod / gamma_mod.max()
 
@@ -140,7 +140,7 @@ def pierson_moskowitz_fetch_limit(f, X, U):
 
     alpha = 0.076 * (g * X / U**2) ** (-0.22)  # non-dimentional
     wp = 7.0 * np.pi * (g / U) * (g * X / U**2) ** (-0.33)
-    print("wp=" + str(wp))
+    _logger.debug("wp=" + str(wp))
 
     sigma_p = 0.07
     sigma_pp = 0.09
@@ -173,8 +173,8 @@ def JONSWAP_default(f, X, U, gamma=3.3):
 
     alpha = 0.076 * (g * X / U**2) ** (-0.22)  # non-dimentional
     wp = 7.0 * np.pi * (g / U) * (g * X / U**2) ** (-0.33)
-    # print('wp='+str(wp))
-    # print('nu='+str(wp*U/(g)))
+    # _logger.debug('wp='+str(wp))
+    # _logger.debug('nu='+str(wp*U/(g)))
 
     sigma_p = 0.07
     sigma_pp = 0.09
@@ -257,7 +257,7 @@ def gamma_time_JONSWAP_default(
     # intersectf=intersect-intersect/slopet
     intersectF = -intersectT * slope_t
     pfreq = time * slope_t + intersectF
-    # print('intersect F=' + str(intersectF))
+    # _logger.debug('intersect F=' + str(intersectF))
 
     # intersectf=intersect#-intersect/slope
     slopeF = 1 / slope_t
@@ -265,13 +265,13 @@ def gamma_time_JONSWAP_default(
 
     # rint(pfreq.shape)
     tt, line = np.meshgrid(time, pfreq_forgamma)
-    # print(line)
-    # print(tt)
+    # _logger.debug(line)
+    # _logger.debug(tt)
     func_t = gamma_time_normlized_amp_shifted(
         tt, gammapar=tgammapar, loc=line, scale=tscale
     )
     # func_t_temp= (tamp*np.exp(- (time-t_center )**4 / tsigma ))
-    # print(func_t.shape)
+    # _logger.debug(func_t.shape)
 
     """ Define X(f_max and U) here """
 
@@ -338,7 +338,7 @@ def gamma_time_JONSWAP_nondim(
     # intersectf=intersect-intersect/slopet
     intersectF = -intersectT * slope_t
     pfreq = time * slope_t + intersectF
-    # print('intersect F=' + str(intersectF))
+    # _logger.debug('intersect F=' + str(intersectF))
 
     # intersectf=intersect#-intersect/slope
     slopeF = 1 / slope_t
@@ -346,13 +346,13 @@ def gamma_time_JONSWAP_nondim(
 
     # rint(pfreq.shape)
     tt, line = np.meshgrid(time, pfreq_forgamma)
-    # print(line)
-    # print(tt)
+    # _logger.debug(line)
+    # _logger.debug(tt)
     func_t = gamma_time_normlized_amp_shifted(
         tt, gammapar=tgammapar, loc=line, scale=tscale
     )
     # func_t_temp= (tamp*np.exp(- (time-t_center )**4 / tsigma ))
-    # print(func_t.shape)
+    # _logger.debug(func_t.shape)
 
     def X(f_max, U10):
         return 3.5**3.0 * g**2.0 / (U10 * f_max**3.0)
@@ -445,7 +445,7 @@ def residual_JONSWAP_default_gamma(
     # tt, tt= np.meshgrid(time, ff)
     model1d = model.reshape(model.shape[0] * model.shape[1])
     model1d[np.isnan(model1d)] = 0
-    # print(model1d)
+    # _logger.debug(model1d)
 
     if data is not None:
         if np.size(data.shape) != 1:
@@ -475,7 +475,7 @@ def residual_JONSWAP_default_gamma(
     if data is None:
         return model1d
     if weight is not None:
-        # print('use weight')
+        # _logger.debug('use weight')
         d = (model1d - data1d) * weight1d
         d[nan_track] = np.nan
         return d
@@ -557,7 +557,7 @@ def residual_JONSWAP_nondim_gamma(
     if data is None:
         return model1d
     if weight is not None:
-        # print('use weight')
+        # _logger.debug('use weight')
         d = (model1d - data1d) * weight1d
         d[nan_track] = np.nan
         return d
@@ -719,7 +719,7 @@ def Jm_regulizer(value_dict, prior):
 
     Jm = list()
     for k, I in prior.items():
-        # print(I)
+        # _logger.debug(I)
         if type(I["m_err"]) is float:
             Jm.append((I["m0"] - vd[k]) / I["m_err"])
         else:
@@ -770,7 +770,7 @@ def Jm_dimensional_regulizer(value_dict, prior, prior_percentage=True):
             return (pi / p0 - 1) / ppercent
 
     for k, I in prior.items():
-        # print(I)
+        # _logger.debug(I)
         if type(I["m_err"]) is float:
             Jm.append(reg_func(I["m0"], vd[k], I["m_err"]))
             # Jm.append(    (I['m0']- vd[k] ) / I['m_err']    )
@@ -804,7 +804,7 @@ if __name__ == "__main__":
         vd[k] = I * np.random.rand()
 
     Jm = Jm_regulizer(vd, priors)
-    print(Jm)
+    _logger.debug(Jm)
 
 
 # %%
@@ -943,7 +943,7 @@ if __name__ == "__main__":
 #     if prior is not None:
 #         Jm=Jm_regulizer(vdict, prior, alpha=5.0)
 #
-#     #print(Jm)
+#     #_logger.debug(Jm)
 #
 #     if data is None:
 #         return model1d
@@ -955,7 +955,7 @@ if __name__ == "__main__":
 #     if (weight is not None) and (eps is None):
 #         d=(model1d - data1d)*weight
 #         d[nan_track]=np.nan
-#         #print(np.concatenate(( d,Jm )) )
+#         #_logger.debug(np.concatenate(( d,Jm )) )
 #         return np.concatenate(( d, Jm ))
 #
 #     if (eps is None) and (weight is None):

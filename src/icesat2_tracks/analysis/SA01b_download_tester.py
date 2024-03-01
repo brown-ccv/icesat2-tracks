@@ -101,7 +101,7 @@ def nsidc_icesat2_get_associated_file(file_list, product, build=True, username=N
     remote_names =[]
 
     for input_file in file_list:
-        #print(input_file)
+        #_logger.debug(input_file)
         #-- extract parameters from ICESat-2 ATLAS HDF5 file name
         SUB,PRD,HEM,YY,MM,DD,HH,MN,SS,TRK,CYC,GRN,RL,VRS = \
             rx.findall(input_file).pop()
@@ -127,10 +127,10 @@ def nsidc_icesat2_get_associated_file(file_list, product, build=True, username=N
             parser=parser,
             pattern=R1,
             sort=True)
-        print(colnames)
+        _logger.debug(colnames)
         #-- print if file was not found
         if not colnames:
-            print(colerror)
+            _logger.debug(colerror)
             continue
         #-- add to lists
         for colname,remote_mtime in zip(colnames,collastmod):
@@ -205,7 +205,7 @@ def nsidc_icesat2_get_associated_file(file_list, product, build=True, username=N
 #     remote_names =[]
 #
 #     for input_file in file_list:
-#         #print(input_file)
+#         #_logger.debug(input_file)
 #         #-- extract parameters from ICESat-2 ATLAS HDF5 file name
 #         SUB,PRD,HEM,YY,MM,DD,HH,MN,SS,TRK,CYC,GRN,RL,VRS = \
 #             rx.findall(input_file).pop()
@@ -234,10 +234,10 @@ def nsidc_icesat2_get_associated_file(file_list, product, build=True, username=N
 #             parser=parser,
 #             pattern=R1,
 #             sort=True)
-#         print(colnames)
+#         _logger.debug(colnames)
 #         #-- print if file was not found
 #         if not colnames:
-#             print(colerror)
+#             _logger.debug(colerror)
 #             continue
 #         #-- add to lists
 #         for colname,remote_mtime in zip(colnames,collastmod):

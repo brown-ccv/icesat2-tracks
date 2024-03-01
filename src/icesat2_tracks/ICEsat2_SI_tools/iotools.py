@@ -36,14 +36,14 @@ def init_from_input(arguments):
         track_name = "20190605061807_10380310_004_01"
         batch_key = "SH_batch01"
         test_flag = True
-        print("use standard values")
+        _logger.debug("use standard values")
 
     else:
         track_name = arguments[1]
         batch_key = arguments[2]
         # $(hemisphere) $(coords) $(config)
 
-        # print("read vars from file: " + str(arguments[1]))
+        # _logger.debug("read vars from file: " + str(arguments[1]))
 
         if len(arguments) >= 4:
             if arguments[3] == "True":
@@ -53,15 +53,15 @@ def init_from_input(arguments):
             else:
                 test_flag = arguments[3]
 
-            # print("test_flag found, test_flag= " + str(test_flag))
+            # _logger.debug("test_flag found, test_flag= " + str(test_flag))
         else:
             test_flag = False
 
     # TODO: print statements to be handled with logger
-    # # print(track_name)
+    # # _logger.debug(track_name)
 
-    # print("----- batch =" + batch_key)
-    # print("----- test_flag: " + str(test_flag))
+    # _logger.debug("----- batch =" + batch_key)
+    # _logger.debug("----- test_flag: " + str(test_flag))
 
     return track_name, batch_key, test_flag
 
@@ -79,7 +79,7 @@ def init_data(ID_name, batch_key, ID_flag, ID_root, prefix="A01b_ID"):
 
     """
 
-    print(ID_name, batch_key, ID_flag)
+    _logger.debug(ID_name, batch_key, ID_flag)
     hemis, batch = batch_key.split("_")
 
     if ID_flag:
@@ -112,13 +112,13 @@ def get_atl06p(ATL03_track_name, params_yapc, maximum_height):
     Returns:
     geopandas.GeoDataFrame: The geodataframe containing the ATL06 data.
     """
-    print("Retrieving data from sliderule ...")
+    _logger.debug("Retrieving data from sliderule ...")
     gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
 
     if gdf.empty:
         raise ValueError("Empty Geodataframe. No data could be retrieved.")
 
-    print("Initial data retrieved")
+    _logger.debug("Initial data retrieved")
     gdf = sct.correct_and_remove_height(gdf, maximum_height)
     return gdf
 
@@ -278,7 +278,7 @@ def nsidc_icesat2_get_associated_file(
     remote_names = []
 
     for input_file in file_list:
-        # print(input_file)
+        # _logger.debug(input_file)
         # -- extract parameters from ICESat-2 ATLAS HDF5 file name
         SUB, PRD, HEM, YY, MM, DD, HH, MN, SS, TRK, CYC, GRN, RL, VRS = rx.findall(
             input_file
@@ -302,10 +302,10 @@ def nsidc_icesat2_get_associated_file(
         colnames, collastmod, colerror = icesat2_toolkit.utilities.nsidc_list(
             PATH, build=False, timeout=TIMEOUT, parser=parser, pattern=R1, sort=True
         )
-        print(colnames)
+        _logger.debug(colnames)
         # -- print if file was not found
         if not colnames:
-            print(colerror)
+            _logger.debug(colerror)
             continue
         # -- add to lists
         for colname, remote_mtime in zip(colnames, collastmod):
@@ -326,7 +326,7 @@ def json_load(name, path, verbose=False):
     with open(full_name, "r") as ifile:
         data = json.load(ifile)
     if verbose:
-        print("loaded from: ", full_name)
+        _logger.debug("loaded from: ", full_name)
     return data
 
 
@@ -342,7 +342,7 @@ def ATL03_download(username, password, dpath, product_directory, sd, file_name):
     """
 
     HOST = ["https://n5eil01u.ecs.nsidc.org", "ATLAS", product_directory, sd, file_name]
-    print("download to:", dpath + "/" + HOST[-1])
+    _logger.debug("download to:", dpath + "/" + HOST[-1])
     buffer, error = icesat2_toolkit.utilities.from_nsidc(
         HOST,
         username=username,
@@ -403,7 +403,7 @@ def write_track_to_HDF5(data_dict, name, path, verbose=False, mode="w"):
                 store1[kk] = I
 
     if verbose:
-        print(f"saved at: {full_name}")
+        _logger.debug(f"saved at: {full_name}")
 
 
 def get_time_for_track(delta_time, atlas_epoch):
@@ -479,7 +479,7 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
     mask_total = mask_seaice | mask_ocean
 
     if sum(~mask_total) == beam_data[:, 1].size:
-        print("zero photons, lower photon quality to 2 or higher")
+        _logger.debug("zero photons, lower photon quality to 2 or higher")
         # lower quality threshold and recompute
         quality_threshold = 1
         mask_ocean = beam_data[:, 1] > quality_threshold
@@ -520,12 +520,12 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
             }
         )
         # Filter out high elevation values
-        print("seg_dist shape ", segment_dist_x.shape)
-        print("df shape ", dF.shape)
+        _logger.debug("seg_dist shape ", segment_dist_x.shape)
+        _logger.debug("df shape ", dF.shape)
 
         dF = dF[mask_total]
         # dF_seg = dF_seg[mask_total]
-        # print('df[mask] shape ',dF.shape)
+        # _logger.debug('df[mask] shape ',dF.shape)
 
         # Reset row indexing
         # dF=dF#.reset_index(drop=True)

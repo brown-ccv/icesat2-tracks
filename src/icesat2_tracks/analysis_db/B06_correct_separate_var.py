@@ -108,7 +108,7 @@ def get_breakingpoints(xx, dd):
     n_breakpoints = 3
     while convergence_flag:
         pw_fit = piecewise_regression.Fit(xx, dd, n_breakpoints=n_breakpoints)
-        print("n_breakpoints", n_breakpoints, pw_fit.get_results()["converged"])
+        _logger.debug("n_breakpoints", n_breakpoints, pw_fit.get_results()["converged"])
         convergence_flag = not pw_fit.get_results()["converged"]
         n_breakpoints += 1
         if n_breakpoints >= 4:
