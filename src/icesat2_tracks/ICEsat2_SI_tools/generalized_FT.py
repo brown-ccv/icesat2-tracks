@@ -384,7 +384,7 @@ class wavenumber_spectrogram_gFT:
             return return_dict
 
         # derive L2 stancil
-        self.stancil_iter_list = spec.create_chunk_boundaries(
+        self.stancil_iter_list = spec.create_chunk_boundaries_unit_lengths(
             Lmeters, self.xlims, ov=self.ov, iter_flag=False
         )
         self.stancil_iter = iter(self.stancil_iter_list.T.tolist())

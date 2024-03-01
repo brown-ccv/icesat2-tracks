@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import h5py
 
+
 def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
     """
     this method returns a dict of dataframes with the beam statistics
@@ -15,7 +16,6 @@ def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
     Lemter      is the length of the segment in meters for the statistics
     dx          is the nominal resolution of the ATL06 data in meters
     """
-   
 
     D = dict()
     for k in all_beams:
@@ -42,21 +42,21 @@ def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
             mask = (sti[0] < xx) & (xx <= sti[1])
             return np.nanmean(Gi["lats"][mask])
 
-        iter_x = spec.create_chunk_boundaries(
+        iter_x = spec.create_chunk_boundaries_unit_lengths(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=False
         )[1, :]
 
-        stencil_iter = spec.create_chunk_boundaries(
+        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
         )
         var_list = np.array(list(map(get_var, stencil_iter)))
 
-        stencil_iter = spec.create_chunk_boundaries(
+        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
         )
         N_list = np.array(list(map(get_N, stencil_iter)))
 
-        stencil_iter = spec.create_chunk_boundaries(
+        stencil_iter = spec.create_chunk_boundaries_unit_lengths(
             Lmeter, [xx.min(), xx.max()], ov=0, iter_flag=True
         )
         lat_list = np.array(list(map(get_lat, stencil_iter)))
@@ -85,7 +85,6 @@ def plot_beam_statistics(D, high_beams, low_beams, col_dict, track_name=None):
 
     if track_name is not None:
         plt.suptitle(track_name, fontsize=10)
-
 
     gs = gridspec.GridSpec(2, 3)
 
