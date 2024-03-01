@@ -15,7 +15,7 @@ import icesat2_tracks.tools.iotools as io
 import icesat2_tracks.tools.generalized_FT as gFT
 import icesat2_tracks.local_modules.m_tools_ph3 as MT
 from icesat2_tracks.local_modules import m_general_ph3 as M
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2_tracks.config.config import (
     mconfig,
     color_schemes,
     plt,

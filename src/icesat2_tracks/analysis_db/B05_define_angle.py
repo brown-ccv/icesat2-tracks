@@ -9,7 +9,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from typer import Option
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2_tracks.config.config import (
     mconfig,
     color_schemes,
     font_for_print,

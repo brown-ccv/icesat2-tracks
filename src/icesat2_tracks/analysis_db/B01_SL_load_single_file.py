@@ -16,7 +16,7 @@ from pandas.errors import (
     SettingWithCopyWarning,
 )  # TODO: remove when warnings are handled
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2_tracks.config.config import (
     mconfig,
     color_schemes,
     font_for_pres,

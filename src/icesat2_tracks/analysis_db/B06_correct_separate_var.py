@@ -22,7 +22,7 @@ from matplotlib.gridspec import GridSpec
 import piecewise_regression
 import typer
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2_tracks.config.config import (
     mconfig,
     color_schemes,
     font_for_pres,

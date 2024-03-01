@@ -1,6 +1,6 @@
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
-from icesat2_tracks.config.IceSAT2_startup import mconfig
+from icesat2_tracks.config.config import mconfig
 """
 This script opens an ATL07 track and tests if there is sufficient data and maybe waves:
 1) disects each beam such that they start in the MIZ and end at the pole.
