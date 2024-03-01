@@ -1,3 +1,4 @@
+import logging
 
 import numpy as np
 from numpy import pi
@@ -11,6 +12,9 @@ try:
     np.use_fastnumpy = True
 except ImportError:
     pass
+
+_logger = logging.getLogger(__name__)
+
 
 def calc_freq(self):
     """ calculate array of spectral variable (frequency or

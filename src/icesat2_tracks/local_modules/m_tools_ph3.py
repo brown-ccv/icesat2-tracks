@@ -1,3 +1,5 @@
+import logging
+
 import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -9,6 +11,8 @@ import pickle
 #from matplotlib.dates import DateFormatter, MinuteLocator
 #from matplotlib import dates
 #import datetime as DT
+
+_logger = logging.getLogger(__name__)
 
 
 def dt_form_timestamp(timestamp, unit=None):

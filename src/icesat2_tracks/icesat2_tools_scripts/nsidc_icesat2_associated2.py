@@ -73,6 +73,7 @@ UPDATE HISTORY:
 """
 from __future__ import print_function
 
+import logging
 import sys
 import os
 import re
@@ -86,6 +87,10 @@ import posixpath
 import lxml.etree
 import multiprocessing as mp
 import icesat2_toolkit.utilities
+
+_logger = logging.getLogger(__name__)
+
+
 
 #-- PURPOSE: download the ICESat-2 elevation data from NSIDC matching an file
 def nsidc_icesat2_associated(file_list, PRODUCT, DIRECTORY=None,
