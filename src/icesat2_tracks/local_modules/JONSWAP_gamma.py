@@ -1,15 +1,8 @@
-import os
+
 from scipy.constants import g
 
-if __name__ == "__main__":
-    exec(open(os.environ["PYTHONSTARTUP"]).read())
-    exec(open(STARTUP_2019_DP).read())
-
-    import sys, imp
-
-    from lmfit import minimize, Parameters
-    import copy
-
+from lmfit import minimize, Parameters
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 

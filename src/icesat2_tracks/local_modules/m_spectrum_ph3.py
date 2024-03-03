@@ -914,7 +914,6 @@ def GetMem(a1,b1,a2,b2, theta):
     # calculate MEM using 1 deg resolution
 
     a = theta.T
-    #a = np.arange(1,361).T
     a = a*np.pi/180.
     a = np.reshape(a,[1,len(a)])
 

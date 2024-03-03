@@ -1,4 +1,3 @@
-
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,7 +24,7 @@ def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
     fact = 10 ** (O - 1)
     b = np.round(a / fact, rounder + 1) * fact
     ticklabels = [" " for i in range(len(b))]
-    
+
     tt = np.arange(shift, len(b), interval)
 
     for t in tt:
@@ -54,7 +53,7 @@ def num_to_str(flt):
 
 
 def mkdirs_r(path):
-    
+
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -62,10 +61,7 @@ def mkdirs_r(path):
 def check_year(inputstr, yearstring):
     a = np.datetime64(inputstr).astype(object).year
     ref = np.datetime64(yearstring).astype(object).year
-    if a == ref:
-        return True
-    else:
-        return False
+    return a == ref
 
 
 def datetime64_to_sec(d):
@@ -89,15 +85,12 @@ def sec_to_dt64(pp):
 
 
 def sec_to_float_plot(pp):
-    
 
     return dates.date2num(pp.astype("M8[s]").astype(datetime))
 
 
 def sec_to_float_plot_single(pp):
-    return dates.date2num(
-        np.datetime64(int(pp), "s").astype("M8[s]").astype(datetime)
-    )
+    return dates.date2num(np.datetime64(int(pp), "s").astype("M8[s]").astype(datetime))
 
 
 def fake_2d_data(verbose=True, timeaxis=False):
@@ -150,7 +143,6 @@ def pickle_load(name, path, verbose=True):
 
 
 def json_save(name, path, data, verbose=False, return_name=False):
-    
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -198,14 +190,12 @@ def json_load(name, path, verbose=False):
 
 def h5_load(name, path, verbose=False):
 
-
     full_name = os.path.join(path, name + ".h5")
     data = pd.read_hdf(full_name)
     return data
 
 
 def h5_load_v2(name, path, verbose=False):
-   
 
     h5f = h5py.File(path + name + ".h5", "r")
     if verbose:
@@ -256,7 +246,6 @@ def h5_save(name, path, data_dict, verbose=False, mode="w"):
 
 def load_pandas_table_dict(name, save_path):
 
-
     warnings.filterwarnings("ignore", category=PerformanceWarning)
 
     return_dict = dict()
@@ -272,8 +261,6 @@ def save_pandas_table(table_dict, ID, save_path):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-   
-
     warnings.filterwarnings("ignore", category=PerformanceWarning)
 
     with HDFStore(save_path + "/" + ID + ".h5") as store:
@@ -282,7 +269,6 @@ def save_pandas_table(table_dict, ID, save_path):
 
 
 def write_log(hist, string, verbose=False, short=True, date=True):
-    
 
     if short:
         now = datetime.now().strftime("%Y%m%d")
@@ -305,7 +291,6 @@ def add_line_var(ss, name, var):
 
 
 def write_variables_log(hist, var_list, locals, verbose=False, date=False):
-    
 
     now = datetime.now().strftime("%Y%m%d")
 
@@ -336,10 +321,7 @@ def save_log_txt(name, path, hist, verbose=False):
         print("saved at: ", full_name)
 
 
-def load_log_txt(name, path):
-    
-
-    hist_file = name
+def load_log_txt(hist_file, path):
     f = []
     for h in glob.glob(os.path.join(path, hist_file)):
         f.append(open(h, "r").read())

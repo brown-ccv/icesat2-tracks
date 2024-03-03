@@ -124,7 +124,7 @@ class FigureAxisXY:
     def save(self, name=None, path=None, verbose=True):
         savepath = (
             path
-            if path is not None
+            if path
             else os.path.join(os.path.dirname(os.path.realpath("__file__")), "plot/")
         )
         if not os.path.exists(savepath):
@@ -140,7 +140,7 @@ class FigureAxisXY:
         name = re.sub("\.", "_", name)
         savepath = (
             path
-            if path is not None
+            if path
             else os.path.join(os.path.dirname(os.path.realpath("__file__")), "plot/")
         )
         if not os.path.exists(savepath):
@@ -215,12 +215,7 @@ class PlotSprecta:
 
         plt.ylabel(("Power db(" + self.data_unit + "^2/" + self.sample_unit + ")"))
         plt.xlabel(xlabelstr)
-        # plt.set_xlabel(fax)
-        # plt.xlim(np.log(fax[1]) ,np.log(fax[-1]))
         plt.xlim(xax[1], xax[-1])
-        # self.F.ax.set_xscale('log')
-        # self.F.ax.semilogx()
-        # ax1.set_xticks([20, 300, 500])
         self.F.make_clear()
         plt.grid()
 
@@ -267,22 +262,22 @@ class PlotPeriodogram:
         fs,
         data,
         clevs=None,
-        sample_unit=None,
-        data_unit=None,
+        sample_unit="df",
+        data_unit="X",
         ylim=None,
-        time_unit=None,
-        cmap=None,
+        time_unit="dt",
+        cmap=plt.cm.ocean_r,
     ):
         self.fs = fs[1:]
         self.time = time
         self.data = data[:, 1:]
         self.clevs = clevs
-        self.sample_unit = sample_unit if sample_unit is not None else "df"
+        self.sample_unit = sample_unit
 
-        self.data_unit = data_unit if data_unit is not None else "X"
-        self.time_unit = time_unit if time_unit is not None else "dt"
+        self.data_unit = data_unit
+        self.time_unit = time_unit
 
-        self.cmap = cmap if cmap is not None else plt.cm.ocean_r
+        self.cmap = cmap
         self.ylim = ylim if ylim is not None else [fs[0], fs[-1]]
 
     def loglog(self):
@@ -340,7 +335,7 @@ class PlotPeriodogram:
         self.F = FigureAxisXY(10, 4, fig_scale=2)
         dd = 10 * np.log10(self.data[:-1, :])
 
-        if anomalie is True:
+        if anomalie:
             dd_tmp = dd.mean(axis=0).repeat(self.time.size - 1)
             dd = dd - dd_tmp.reshape(self.fs.size, self.time.size - 1).T
             dd = dd
@@ -423,8 +418,8 @@ class PlotPeriodogram:
         cbar=True,
     ):
 
-        shading = "gouraud" if shading is True else "flat"
-        fig_size = [10, 4] if fig_size is None else fig_size
+        shading = "gouraud" if shading else "flat"
+        fig_size = [10, 4] if fig_size else fig_size
         if ax:
             assert type(ax) is tuple, "put ax as tuple ax=(ax,F)"
             self.F = ax[1]
@@ -433,12 +428,12 @@ class PlotPeriodogram:
             self.F = FigureAxisXY(fig_size[0], fig_size[1], fig_scale=2)
             ax_local = self.F.ax
 
-        if nopower is True:
+        if nopower:
             dd = self.data
         else:
             dd = 10 * np.log10(self.data[:-1, :])
 
-        if anomalie is True:
+        if anomalie:
             dd_tmp = dd.mean(axis=0).repeat(self.time.size - 1)
             dd = dd - dd_tmp.reshape(self.fs.size, self.time.size - 1).T
 
@@ -474,13 +469,13 @@ class PlotPeriodogram:
                 dd2 = ddn
                 fn = self.fs[fsn_p]
 
-                if nopower is True:
+                if nopower:
                     tt = tt
                 else:
                     tt = tt[:-1]
 
         else:
-            if nopower is True:
+            if nopower:
                 tt = tt
             else:
                 tt = tt[:-1]
@@ -503,7 +498,7 @@ class PlotPeriodogram:
             ttt, fn, dd2, cmap=self.cmap, norm=norm, shading=shading
         )
         plt.ylabel(("f  (" + self.sample_unit + ")"))
-        if cbar is True:
+        if cbar:
             self.cbar = plt.colorbar(self.cs, pad=0.01)
             self.cbar.ax.aspect = 100
             self.cbar.outline.set_linewidth(0)
@@ -570,8 +565,8 @@ class PlotPeriodogram:
         ax=None,
     ):
 
-        shading = "gouraud" if shading is True else "flat"
-        fig_size = [10, 4] if fig_size is None else fig_size
+        shading = "gouraud" if shading else "flat"
+        fig_size = [10, 4] if fig_size else fig_size
         if ax:
             assert type(ax) is tuple, "put ax as tuple ax=(ax,F)"
             self.F = ax[1]
@@ -580,12 +575,12 @@ class PlotPeriodogram:
             self.F = FigureAxisXY(fig_size[0], fig_size[1], fig_scale=2)
             ax_local = self.F.ax
 
-        if nopower is True:
+        if nopower:
             dd = self.data
         else:
             dd = 10 * np.log10(self.data[:-1, :])
 
-        if anomalie is True:
+        if anomalie:
             dd_tmp = dd.mean(axis=0).repeat(self.time.size - 1)
             dd = dd - dd_tmp.reshape(self.fs.size, self.time.size - 1).T
 
@@ -621,13 +616,13 @@ class PlotPeriodogram:
                 dd2 = ddn
                 fn = self.fs[fsn_p]
 
-                if nopower is True:
+                if nopower:
                     tt = tt
                 else:
                     tt = tt[:-1]
 
         else:
-            if nopower is True:
+            if nopower:
                 tt = tt
             else:
                 tt = tt[:-1]
@@ -697,14 +692,14 @@ class PlotPeriodogram:
 
 class PlotPolarspectra:
     def __init__(
-        self, f, thetas, data, unit=None, data_type="fraction", lims=None, verbose=False
+        self, f, thetas, data, unit="X", data_type="fraction", lims=None, verbose=False
     ):
 
         self.f = f
         self.data = data
         self.thetas = thetas
 
-        self.unit = unit if unit is not None else "X"
+        self.unit = unit
 
         # decided on freq limit
         lims = [self.f.min(), self.f.max()] if lims is None else lims
@@ -815,7 +810,7 @@ def plot_scatter_2d(intersect_chain, slope_chain, xname="intersect", yname="slop
     plt.xlabel(xname)
 
 
-def set_timeaxis_days(ax, int1=1, int2=2, bymonthday=None):
+def set_timeaxis_days(ax, int1=1, int2=2, bymonthday=range(1, 32)):
     # int1 interval of the major (labeld) days
     # int2 intercal of the minor (only ticks) days
 
@@ -868,9 +863,7 @@ def easy_dtstr(a):
         return str(a.astype("timedelta64[Y]"))
 
 
-def clevels(data, dstep=None, symmetric=False):
-    dstep = dstep if dstep is not None else 21
-
+def clevels(data, dstep=21, symmetric=False):
     mmax = np.ceil(np.nanmax(data))
     mmin = np.floor(np.nanmin(data))
 
@@ -909,14 +902,14 @@ def read_cdo(file):
 
 def build_timestamp(time, unit, start, verbose=True):
     timestamp = np.datetime64(start) + time[:].astype("m8[" + unit + "]")
-    if verbose is True:
+    if verbose:
         print(timestamp)
     return timestamp
 
 
 def build_timestamp_v2(time, unit, start, verbose=True):
     timestamp = np.datetime64(start) + time[:].astype("datetime64[s]")
-    if verbose is True:
+    if verbose:
         print(timestamp)
     return timestamp
 
@@ -1146,7 +1139,7 @@ def find_max_ts(
         data = np.copy(data_org)
     spreed = 2 if spreed is None else spreed
 
-    if smooth is True:
+    if smooth:
         data = runningmean(data, spreed)
 
     if threshold is not None and threshold > np.nanmin(data):
@@ -1285,7 +1278,7 @@ class CompIter:
         self.length = -self.span[0] + self.span[1]
         self.loop_iter = np.arange(0, self.length, 1)
         self.index_iter = np.arange(self.span[0], self.span[1], 1)
-        if dt is not None:
+        if dt:
             self.dt = dt
             self.time_iter = self.index_iter * dt
             time_str = []
@@ -1751,7 +1744,7 @@ def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False, **kwa
     """
 
     # NOTE: This function is not called in production. sklearn.bootstrap was depecrated and
-    # the implementation changed.
+    # the implementation needs to be changed.
     import sklearn.bootstrap as boot  # might not work in python 3
 
     RAMS_slope, RAMS_intercept = simple_RAMSAC_regression_estimator(time, freq)
