@@ -412,14 +412,13 @@ class PlotPeriodogram:
         downscale_fac=None,
         anomalie=False,
         downscale_type=None,
-        fig_size=None,
+        fig_size=[10, 4],
         nopower=False,
         ax=None,
         cbar=True,
     ):
 
         shading = "gouraud" if shading else "flat"
-        fig_size = [10, 4] if fig_size else fig_size
         if ax:
             assert type(ax) is tuple, "put ax as tuple ax=(ax,F)"
             self.F = ax[1]
@@ -445,11 +444,12 @@ class PlotPeriodogram:
 
         ax_local.set_yscale("log", nonposy="clip")
 
-        if downscale_fac is not None:
+        if downscale_fac:
             if downscale_type == "inter":
-                fn = []
-                for yr in np.arange(0, self.fs.size, downscale_fac):
-                    fn.append(np.mean(self.fs[yr : yr + downscale_fac]))
+                fn = [
+                    np.mean(self.fs[yr : yr + downscale_fac])
+                    for yr in np.arange(0, self.fs.size, downscale_fac)
+                ]
             else:
 
                 ddn = np.empty((self.time.size - 1))
@@ -469,16 +469,13 @@ class PlotPeriodogram:
                 dd2 = ddn
                 fn = self.fs[fsn_p]
 
-                if nopower:
-                    tt = tt
-                else:
+                if not nopower:
                     tt = tt[:-1]
 
         else:
-            if nopower:
-                tt = tt
-            else:
+            if not nopower:
                 tt = tt[:-1]
+
             dd2 = dd.T
             fn = self.fs
 
@@ -560,13 +557,12 @@ class PlotPeriodogram:
         downscale_fac=None,
         anomalie=False,
         downscale_type=None,
-        fig_size=None,
+        fig_size=[10, 4],
         nopower=False,
         ax=None,
     ):
 
         shading = "gouraud" if shading else "flat"
-        fig_size = [10, 4] if fig_size else fig_size
         if ax:
             assert type(ax) is tuple, "put ax as tuple ax=(ax,F)"
             self.F = ax[1]
@@ -622,10 +618,9 @@ class PlotPeriodogram:
                     tt = tt[:-1]
 
         else:
-            if nopower:
-                tt = tt
-            else:
+            if not nopower:
                 tt = tt[:-1]
+
             dd2 = dd.T
             fn = self.fs
 
@@ -814,7 +809,6 @@ def set_timeaxis_days(ax, int1=1, int2=2, bymonthday=range(1, 32)):
     # int1 interval of the major (labeld) days
     # int2 intercal of the minor (only ticks) days
 
-    bymonthday = bymonthday if bymonthday is not None else range(1, 32)
     Month = dates.MonthLocator()
     Month_dfmt = dates.DateFormatter("%b/%y")
     Day = dates.DayLocator(interval=int2, bymonthday=bymonthday)
