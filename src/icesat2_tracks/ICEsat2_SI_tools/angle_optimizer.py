@@ -202,7 +202,7 @@ class SampleWithMcmc:
         if len(var_seeds) > 2:
             raise ValueError("Dimensions larger than 2 not supported")
 
-        self.nwalkers = int(var_seeds[0].size * var_seeds[1].size)
+        self.nwalkers = var_seeds[0].size * var_seeds[1].size
 
         pxx, pyy = np.meshgrid(var_seeds[0], var_seeds[1])
         self.seeds = np.vstack([pxx.flatten(), pyy.flatten()]).T
@@ -223,7 +223,7 @@ class SampleWithMcmc:
     ):
 
         fitting_args, fitting_kargs = self.fitting_args, self.fitting_kargs
-        # TODO: this funciton throws an error in CI. The nan_policy='omit' policiy was added to avoid this issue
+        # TODO: this function  throws an error in CI. The nan_policy='omit' policy  was added to avoid this issue
         # according to the guidelines in  https://lmfit.github.io/lmfit-py/faq.html#i-get-errors-from-nan-in-my-fit-what-can-i-do
         self.fitter = self.LM.minimize(
             self.objective_func,
