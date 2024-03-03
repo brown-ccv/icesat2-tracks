@@ -2,7 +2,7 @@ name: Publish Icesat2 to PyPI
 
 on:    
   release:
-    types: [published]
+    types: [prereleased]
 
 jobs:
   build:
@@ -33,4 +33,4 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages_dir: dist
-        repository-url: https://test.pypi.org/legacy/
+        repository-url: https://upload.pypi.org/legacy/        
