@@ -71,7 +71,10 @@ def track_pole_ward_file(hdf5_file, product="ALT03"):
         "1st lat =" + str(abs(T_lat[T_time.argmin()])),
         ";last lat =" + str(abs(T_lat[T_time.argmax()])),
     )
-    return abs(T_lat[T_time.argmax()]) > abs(T_lat[T_time.argmin()])
+
+    _lhs = abs(T_lat[T_time.argmax()]) 
+    _rhs = abs(T_lat[T_time.argmin()])
+    return  _lhs > _rhs
 
 
 def track_type(T):
@@ -79,10 +82,11 @@ def track_type(T):
     Returns if track acending or desending
     T is a pandas table
     """
-    return (
-        T["lats"].iloc[T["delta_time"].argmax()]
-        - T["lats"].iloc[T["delta_time"].argmin()]
-    ) < 0
+
+    max_lat =  T["lats"].iloc[T["delta_time"].argmax()]
+    min_lat = T["lats"].iloc[T["delta_time"].argmin()]
+    delta_lat = max_lat - min_lat
+    return delta_lat < 0
 
 
 def lat_min_max_extended(B, beams_list, accent=None):

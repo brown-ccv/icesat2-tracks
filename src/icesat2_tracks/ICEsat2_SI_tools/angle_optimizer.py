@@ -55,9 +55,10 @@ def get_z_model(x_positions, y_position, K_prime, K_amp, alpha_rad, group_phase)
     k = K_abs * np.cos(alpha_rad)
     l = K_abs * np.sin(alpha_rad)
 
-    return wavemodel(
+    _wavemodel = wavemodel(
         x_positions, y_position, k, l, np.array(K_amp), group_phase=group_phase
     )
+    return _wavemodel
 
 
 @jit(nopython=True, parallel=False)
@@ -70,9 +71,11 @@ def get_z_model_single_wave(
     k = K_abs * np.cos(alpha_rad)
     l = K_abs * np.sin(alpha_rad)
 
-    return wavemodel_single_wave(
+    _wavemodel_single_wave = wavemodel_single_wave(
         x_positions, y_position, k, l, K_amp, group_phase=group_phase
     )
+
+    return _wavemodel_single_wave
 
 
 def objective_func(pars, x, y, z, test_flag=False, prior=None, prior_weight=2):
@@ -88,15 +91,16 @@ def objective_func(pars, x, y, z, test_flag=False, prior=None, prior_weight=2):
     )
     if prior is not None:
         a_0, a_std = prior["alpha"]
-        penalties = np.array([(abs(a_0 - pars["alpha"]) ** 2 / a_std**2)])
+        penalties = np.array([((a_0 - pars["alpha"]) / a_std) ** 2])
     else:
         penalties = np.array([0])
 
-    cost = (abs(z - z_model)) ** 2 / z.std() ** 2
+    cost = ((z - z_model) / z.std()) ** 2
     if test_flag:
         return z_model
     else:
-        return np.concatenate([cost, prior_weight * penalties])
+        residual = np.concatenate([cost, prior_weight * penalties])
+        return residual
 
 
 def likelyhood_func(
@@ -112,7 +116,7 @@ def likelyhood_func(
         x, y, pars["K_prime"], pars["K_amp"], pars["alpha"], pars["phase"]
     )
     # define cost
-    cost_sqrt = (abs(z - z_model)) ** 2
+    cost_sqrt = (z - z_model) ** 2
 
     # estimate total variance
     if z_error is None:
@@ -140,7 +144,7 @@ def likelyhood_func(
         )
 
 
-class sample_with_mcmc:
+class SampleWithMcmc:
     """
     sample a 2nd surface using mcmc and other methods. its made for getting a quick estimate!
 
@@ -190,14 +194,13 @@ class sample_with_mcmc:
 
         params = self.LM.Parameters()
 
-        var_seeds = list()
         for k, I in par_dict.items():
             params.add(k, (I[0] + I[1]) / 2, vary=True, min=I[0], max=I[1])
 
-            var_seeds.append(np.linspace(I[0], I[1], I[2]))
+        var_seeds = [np.linspace(I[0], I[1], I[2]) for _, I in par_dict.items()]
 
         if len(var_seeds) > 2:
-            raise ValueError("nor proframmed for 3d")
+            raise ValueError("Dimensions larger than 2 not supported")
 
         self.nwalkers = int(var_seeds[0].size * var_seeds[1].size)
 
@@ -210,12 +213,13 @@ class sample_with_mcmc:
             print(self.params)
 
     def test_objective_func(self):
-        return self.objective_func(
+        obj_func = self.objective_func(
             self.params, *self.fitting_args, **self.fitting_kargs
         )
+        return obj_func
 
     def sample(
-        self, fitting_args=None, method="emcee", steps=100, verbose=True, **kargs
+        self, fitting_args=None, method="emcee", steps=100, verbose=True, **kwargs
     ):
 
         fitting_args, fitting_kargs = self.fitting_args, self.fitting_kargs
@@ -231,19 +235,19 @@ class sample_with_mcmc:
             steps=steps,
             pos=self.seeds,
             nan_policy="omit",
-            **kargs,
+            **kwargs,
         )
         if verbose:
             print(self.LM.report_fit(self.fitter))
             print("results at self.fitter")
 
-    def plot_sample(self, **kargs):
+    def plot_sample(self, **kwargs):
 
         chain = self.chain()
         nwalkers = self.nwalkers
         for n in np.arange(nwalkers):
-            plt.plot(chain[:, n, 1], chain[:, n, 0], "-", **kargs)
-            plt.plot(chain[:, n, 1], chain[:, n, 0], ".", **kargs)
+            plt.plot(chain[:, n, 1], chain[:, n, 0], "-", **kwargs)
+            plt.plot(chain[:, n, 1], chain[:, n, 0], ".", **kwargs)
 
     def optimize(self, fitting_args=None, method="dual_annealing", verbose=True):
 
