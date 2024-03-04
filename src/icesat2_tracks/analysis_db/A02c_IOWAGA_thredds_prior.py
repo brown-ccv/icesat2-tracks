@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import logging
 from pathlib import Path
 
 import h5py
@@ -22,15 +23,15 @@ from icesat2_tracks.config.IceSAT2_startup import color_schemes
 from icesat2_tracks.config.IceSAT2_startup import font_for_print
 
 from icesat2_tracks.clitools import (
-    echo,
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     update_paths_mconfig,
     report_input_parameters,
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def get_iowaga(data_url, dataset_key):
@@ -447,7 +448,7 @@ def run_A02c_IOWAGA_thredds_prior(
             return ((~imask).sum() / imask.size).data < 0.3
 
         while test_nan_frac(ice_mask_prior):
-            print(lat_range_prior)
+            _logger.debug("%s", lat_range_prior)
             lat_range_prior = lat_range_prior[0] + 0.5, lat_range_prior[1] + 0.5
             G_prior = sel_data(G_beam, lon_range, lat_range_prior)
             ice_mask_prior = ice_mask.sel(latitude=G_prior.latitude)
@@ -629,8 +630,8 @@ def run_A02c_IOWAGA_thredds_prior(
 
         F.save_pup(path=plot_path, name=plot_name + "_hindcast_prior")
     except Exception as e:
-        print(e)
-        echo("print 2nd figure failed", "red")
+        _logger.debug("%s", e)
+        _logger.warning("print 2nd figure failed")
 
     MT.json_save(
         target_name,
@@ -638,7 +639,7 @@ def run_A02c_IOWAGA_thredds_prior(
         str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")),
     )
 
-    echo("done")
+    _logger.info("done")
 
 
 make_iowaga_threads_prior_app = makeapp(
@@ -646,4 +647,5 @@ make_iowaga_threads_prior_app = makeapp(
 )
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     make_iowaga_threads_prior_app()
