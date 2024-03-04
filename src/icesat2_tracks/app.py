@@ -50,7 +50,12 @@ class _LogLevel(str, Enum):
 
 
 @app.callback()
-def main(log: _LogLevel = "warning"):
+def main(
+    log: Annotated[
+        _LogLevel,
+        Option(help="Set the log level"),
+    ] = "warning"
+):
     """Analyze data from the ICESAT2 satellite."""
     level = {
         _LogLevel.QUIET: logging.CRITICAL,
