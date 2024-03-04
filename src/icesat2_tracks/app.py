@@ -83,7 +83,6 @@ def make_spectra(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_makespectra,
@@ -91,7 +90,6 @@ def make_spectra(
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -101,7 +99,6 @@ def plot_spectra(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_plotspectra,
@@ -109,7 +106,6 @@ def plot_spectra(
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -119,7 +115,6 @@ def make_iowaga_threads_prior(  # TODO: revise naming @mochell
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_threddsprior,
@@ -127,7 +122,6 @@ def make_iowaga_threads_prior(  # TODO: revise naming @mochell
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -145,7 +139,6 @@ def make_b04_angle(  # TODO: revise naming @mochell
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -155,7 +148,6 @@ def define_angle(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_define_angle,
@@ -163,7 +155,6 @@ def define_angle(
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -173,7 +164,6 @@ def correct_separate(  # TODO: rename with a verb or something
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_run_correct_separate_var,
@@ -181,7 +171,6 @@ def correct_separate(  # TODO: rename with a verb or something
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
