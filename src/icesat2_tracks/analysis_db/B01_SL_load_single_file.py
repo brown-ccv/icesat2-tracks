@@ -33,6 +33,7 @@ from icesat2_tracks.clitools import (
     validate_batch_key,
     validate_output_dir,
     suppress_stdout,
+    report_input_parameters,
     update_paths_mconfig,
     echo,
     echoparam,
@@ -90,18 +91,19 @@ def run_B01_SL_load_single_file(
     ID_flag: bool = True,
     plot_flag: bool = True,
     output_dir: str = typer.Option(..., callback=validate_output_dir),
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """
     Open an ICEsat2 tbeam_stats.pyrack, apply filters and corrections, and output smoothed photon heights on a regular grid in an .nc file.
     """
     # report input parameters
-    echo("** Input parameters:")
-    echoparam("track_name", track_name)
-    echoparam("batch_key", batch_key)
-    echoparam("ID_flag", ID_flag)
-    echoparam("plot_flag", plot_flag)
-    echoparam("output_dir", output_dir)
+    kwargs = {
+        "track_name": track_name,
+        "batch_key": batch_key,
+        "ID_flag": ID_flag,
+        "output_dir": output_dir,
+    }
+    report_input_parameters(**kwargs)
 
     xr.set_options(display_style="text")
     matplotlib.use("Agg")  # prevent plot windows from opening
@@ -274,7 +276,7 @@ def run_B01_SL_load_single_file(
         echo("done")
 
 
-step1app = makeapp(run_B01_SL_load_single_file, name="load-file")
+load_file_app = makeapp(run_B01_SL_load_single_file, name="load-file")
 
 if __name__ == "__main__":
-    step1app()
+    load_file_app()

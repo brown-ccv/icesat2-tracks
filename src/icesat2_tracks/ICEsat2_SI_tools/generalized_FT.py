@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
+from scipy.constants import g
 from scipy.signal import detrend
 import lmfit as LM
 
@@ -67,15 +68,15 @@ def get_weights_from_data(
 
     # take FFT to get peaj parameters
     k_fft = np.fft.rfftfreq(x_model.size, d=dx) * 2 * np.pi
-    f_weight = np.sqrt(9.81 * k_fft) / (2 * np.pi)
+    f_weight = np.sqrt(g * k_fft) / (2 * np.pi)
     data_weight = spec.Z_to_power(
         np.fft.rfft(y_gridded), np.diff(f_weight).mean(), x_pos.size
     )
 
     Spec_fft = get_prior_spec(f_weight, data_weight)
 
-    pars = Spec_fft.set_parameters(flim=np.sqrt(9.81 * k[-1]) / 2 / np.pi)
-    k_max = (pars["f_max"].value * 2 * np.pi) ** 2 / 9.81
+    pars = Spec_fft.set_parameters(flim=np.sqrt(g * k[-1]) / 2 / np.pi)
+    k_max = (pars["f_max"].value * 2 * np.pi) ** 2 / g
 
     if method == "gaussian":
         # simple gaussian weight
@@ -87,7 +88,7 @@ def get_weights_from_data(
 
     elif method == "parametric":
         # JONSWAP weight
-        f = np.sqrt(9.81 * k) / (2 * np.pi)
+        f = np.sqrt(g * k) / (2 * np.pi)
         weight = Spec_fft.create_weight(freq=f, plot_flag=False, max_nfev=max_nfev)
 
         if plot_flag:
@@ -226,11 +227,11 @@ class wavenumber_spectrogram_gFT:
         creates:
         all kinds of self. variables:
         self.G is an xr.DataArray with the best guess spectral power.
-        self.GG is a xr.Dataset with the best guess conmplex conjugate and the rar spectral power
+        self.GG is a xr.Dataset with the best guess complex conjugate and the rar spectral power
 
         returns:
         self.GG, params_dataframe
-            params_dataframe is a pd.DataFrame that containes all the parameters of the fitting process (and may contain uncertainties too once they are calculated)
+            params_dataframe is a pd.DataFrame that contains all the parameters of the fitting process (and may contain uncertainties too once they are calculated)
         """
 
         X = self.x if x is None else x  # all x positions
