@@ -1,5 +1,5 @@
 # Use the official Python 3.11 image from the Docker Hub
-FROM python:3.9
+FROM python:3.11
 
 # Update the system and install the packages
 RUN apt-get update && apt-get install -y \
