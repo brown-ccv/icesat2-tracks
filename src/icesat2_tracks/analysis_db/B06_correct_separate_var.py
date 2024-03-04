@@ -266,7 +266,6 @@ def run_B06_correct_separate_var(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(..., callback=validate_output_dir),
-    verbose: bool = False,
 ):
     """
     TODO: Add docstring.

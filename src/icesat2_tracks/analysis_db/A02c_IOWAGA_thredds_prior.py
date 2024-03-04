@@ -183,7 +183,6 @@ def run_A02c_IOWAGA_thredds_prior(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(..., callback=validate_output_dir),
-    verbose: bool = False,
 ):
     """
     TODO: add docstring
