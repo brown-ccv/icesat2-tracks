@@ -35,17 +35,8 @@ from icesat2_tracks.clitools import (
 
 _logger = logging.getLogger(__name__)
 
-color_schemes.colormaps2(21)
-matplotlib.use("Agg")  # prevent plot windows from opening
 
-dtime = 4  # in hours
-
-# IOWAGA constants
-data_url = "https://tds3.ifremer.fr/thredds/IOWAGA-WW3-FORECAST/IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M.xml"
-dataset_key = "IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M_FIELD_NC_MARC_WW3-GLOB-30M"
-
-
-def get_iowaga(data_url=data_url, dataset_key=dataset_key):
+def get_iowaga(data_url, dataset_key):
     ## load WW3 data
     # ECMWF hindcast
     # data_url = 'https://tds3.ifremer.fr/thredds/IOWAGA-WW3-HINDCAST/IOWAGA-GLOBAL_ECMWF-WW3-HINDCAST_FULL_TIME_SERIE.xml'
@@ -194,14 +185,20 @@ def run_A02c_IOWAGA_thredds_prior(
     track_name: str = typer.Option(..., callback=validate_track_name_steps_gt_1),
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
-    data_url: str = typer.Option(data_url),
-    dataset_key: str = typer.Option(dataset_key),
     output_dir: str = typer.Option(..., callback=validate_output_dir),
     verbose: bool = False,
 ):
     """
     TODO: add docstring
     """
+    color_schemes.colormaps2(21)
+    matplotlib.use("Agg")  # prevent plot windows from opening
+
+    dtime = 4  # in hours
+
+    # IOWAGA constants
+    data_url = "https://tds3.ifremer.fr/thredds/IOWAGA-WW3-FORECAST/IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M.xml"
+    dataset_key = "IOWAGA-WW3-FORECAST_GLOBMULTI_GLOB-30M_FIELD_NC_MARC_WW3-GLOB-30M"
 
     track_name, batch_key, _ = io.init_from_input(
         [
@@ -649,7 +646,9 @@ def run_A02c_IOWAGA_thredds_prior(
         echo("done")
 
 
-make_iowaga_threads_prior_app = makeapp(run_A02c_IOWAGA_thredds_prior, name="threads-prior")
+make_iowaga_threads_prior_app = makeapp(
+    run_A02c_IOWAGA_thredds_prior, name="threads-prior"
+)
 
 if __name__ == "__main__":
     make_iowaga_threads_prior_app()
