@@ -3,7 +3,7 @@
 This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
-
+import logging
 from pathlib import Path
 import matplotlib
 from matplotlib import pyplot as plt
@@ -31,7 +31,6 @@ from scipy.ndimage import label
 from icesat2_tracks.clitools import (
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     report_input_parameters,
     validate_track_name_steps_gt_1,
     makeapp,
@@ -39,6 +38,8 @@ from icesat2_tracks.clitools import (
 
 matplotlib.use("Agg")
 color_schemes.colormaps2(21)
+
+_logger = logging.getLogger(__name__)
 
 
 def derive_weights(weights):
@@ -119,8 +120,8 @@ class PlotPolarSpectra:
 
         self.min = np.round(np.nanmin(data[freq_sel_bool, :]), 2)
         self.max = np.round(np.nanmax(data[freq_sel_bool, :]), 2)
-        if verbose:
-            print(str(self.min), str(self.max))
+
+        _logger.info("%s %s", str(self.min), str(self.max))
 
         self.klabels = np.linspace(self.min, self.max, 5)
 
@@ -370,7 +371,7 @@ def define_angle(
                     ax_list[key].tick_params(labelbottom=True)
                     ax_list[key].set_xlabel("Angle (rad)")
             else:
-                print(f"Key {key} not found in ax_list")
+                _logger.debug("Key %s not found in ax_list", key)
 
         ax_final = F.fig.add_subplot(gs[-1, :])
         plt.title("Final angle PDF", loc="left")
@@ -418,7 +419,7 @@ def define_angle(
     Gpdf = xr.merge([M_final, M_final_smth])
 
     if len(Gpdf.x) < 2:
-        print("not enough x data, exit")
+        _logger.critical("not enough x data, exit")
         MT.json_save(
             "B05_fail",
             plot_path.parent,
@@ -427,7 +428,7 @@ def define_angle(
                 "reason": "not enough x segments",
             },
         )
-        print("exit()")
+        _logger.critical("exit()")
         exit()
 
     font_for_print()
@@ -570,4 +571,5 @@ def define_angle(
 define_angle_app = makeapp(define_angle, name="B04_angle")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     define_angle_app()
