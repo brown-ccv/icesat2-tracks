@@ -53,7 +53,7 @@ class _LogLevel(str, Enum):
     DEBUG = "debug"  # logging.DEBUG
 
 
-@app.callback(invoke_without_command=True)
+@app.callback()
 def main(
     log: Annotated[
         _LogLevel,
