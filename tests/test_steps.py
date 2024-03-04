@@ -99,7 +99,6 @@ def create_script(script_name, track_name="SH_20190502_05180312"):
         track_name,
         "--batch-key",
         "SH_testSLsinglefile2",
-        "--verbose",
         "--output-dir",
     ]
     base_path = "src/icesat2_tracks/analysis_db/"
