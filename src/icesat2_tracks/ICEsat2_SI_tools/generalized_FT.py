@@ -408,8 +408,8 @@ class wavenumber_spectrogram_gFT:
             if prior[0] is False:
                 _logger.debug("1st GFD failed (priors[0]=false), skip 2nd step")
             else:
-                _logger.debug("2nd step: use set priors:", type(prior[0]), type(prior[1]))
-                _logger.debug(prior[0][0:3], prior[1][0:3])
+                _logger.debug("2nd step: use set priors: %s %s", type(prior[0]), type(prior[1]))
+                _logger.debug("%s %s", prior[0][0:3], prior[1][0:3])
                 I_return = calc_gFT_apply(ss, prior=prior)
                 prior = I_return["PSD"], I_return["weight"]
 
@@ -472,7 +472,7 @@ class wavenumber_spectrogram_gFT:
             N_per_stancil.append(I["x_size"])
             Spec_adjust_per_stancil.append(spec_adjust)
 
-        _logger.debug("# of x-coordinates" + str(len(Spec_returns)))
+        _logger.debug("# of x-coordinates %s" + len(Spec_returns))
 
         self.N_per_stancil = N_per_stancil
         chunk_positions = np.array(list(D_specs.keys()))
@@ -659,9 +659,9 @@ class wavenumber_spectrogram_gFT:
         stancil_weighted_variance = np.nansum(np.array(stancil_vars)) / Nphotons
 
         _logger.debug("Parcevals Theorem:")
-        _logger.debug("variance of timeseries: ", DATA.var())
-        _logger.debug("mean variance of stancils: ", stancil_weighted_variance)
-        _logger.debug("variance of the optimzed windowed LS Spectrum: ", self.calc_var())
+        _logger.debug("variance of timeseries: %s", DATA.var())
+        _logger.debug("mean variance of stancils: %s", stancil_weighted_variance)
+        _logger.debug("variance of the optimzed windowed LS Spectrum: %s", self.calc_var())
 
         if add_attrs:
             self.G.attrs["variance_unweighted_data"] = DATA.var()
