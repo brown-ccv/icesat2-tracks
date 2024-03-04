@@ -55,7 +55,6 @@ def run_B04_angle(
     batch_key: str = Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = Option(..., callback=validate_output_dir),
-    verbose: bool = False,
 ):
     """
     TODO: add docstring

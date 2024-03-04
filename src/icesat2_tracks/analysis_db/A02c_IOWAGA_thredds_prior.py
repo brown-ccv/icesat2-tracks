@@ -195,7 +195,6 @@ def run_A02c_IOWAGA_thredds_prior(
     data_url: str = typer.Option(data_url),
     dataset_key: str = typer.Option(dataset_key),
     output_dir: str = typer.Option(..., callback=validate_output_dir),
-    verbose: bool = False,
 ):
     """
     TODO: add docstring

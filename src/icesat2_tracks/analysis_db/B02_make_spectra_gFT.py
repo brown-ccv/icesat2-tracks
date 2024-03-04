@@ -66,7 +66,6 @@ def run_B02_make_spectra_gFT(
     batch_key: str = typer.Option(..., callback=validate_batch_key),
     ID_flag: bool = True,
     output_dir: str = typer.Option(None, callback=validate_output_dir),
-    verbose: bool = False,
 ):
     """
     TODO: add docstring
