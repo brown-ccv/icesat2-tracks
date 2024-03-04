@@ -135,6 +135,7 @@ def pierson_moskowitz_fetch_limit(f, X, U):
     delta = np.exp(-((w - wp) ** 2) / (2.0 * sigma**2.0 * wp**2.0))
     peak_factor = gamma**delta
 
+    # Hz**-5 m**2 /s**4 = m**2 sec
     return alpha * g**2.0 * w ** (-5.0) * np.exp(-5.0 / 4.0 * (w / wp) ** -4)
 
 
