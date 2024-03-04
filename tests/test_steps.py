@@ -2,19 +2,19 @@
 """
 This module contains a test suite for the following commands:
       - name: Step 1 B01_SL_load_single_file
-        cmd: load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+        cmd: load-file --track-name 20190502052058_05180312_005_01 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: second step make_spectra
-        cmd: make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+        cmd: make-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: third step plot_spectra
-        cmd: plot-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+        cmd: plot-spectra --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: fourth step IOWAGA threads 
-        cmd:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+        cmd:  make-iowaga-threads-prior --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: fifth step B04_angle
-        cmd: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+        cmd: make-b04-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: sixth step B04_define_angle
-        cmd: define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+        cmd: define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: seventh step B06_correct_separate
-        cmd: correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work --verbose
+        cmd: correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
 
 To this end, it sets up a temporary directory within the `tests/` directory with subdirectories containing the required input data for each step. The tests are run in parallel using the `xdist` plugin, with each worker having its own copy of the input data. This allows the tests to modify the input data without affecting other workers. The `setup_module` function (fixture) is responsible for creating the temporary directory and setting up the input data for each step. It also prepares the target directories for each step by extracting the necessary files from tarballs in the `tests/testdata` directory and organizing them in the appropriate directory structure.
 
