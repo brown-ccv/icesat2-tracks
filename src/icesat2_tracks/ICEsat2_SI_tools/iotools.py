@@ -326,7 +326,7 @@ def json_load(name, path, verbose=False):
     with open(full_name, "r") as ifile:
         data = json.load(ifile)
     if verbose:
-        _logger.debug("loaded from: ", full_name)
+        _logger.debug("loaded from: %s", full_name)
     return data
 
 
@@ -342,7 +342,7 @@ def ATL03_download(username, password, dpath, product_directory, sd, file_name):
     """
 
     HOST = ["https://n5eil01u.ecs.nsidc.org", "ATLAS", product_directory, sd, file_name]
-    _logger.debug("download to:", dpath + "/" + HOST[-1])
+    _logger.debug("download to: %s", dpath + "/" + HOST[-1])
     buffer, error = icesat2_toolkit.utilities.from_nsidc(
         HOST,
         username=username,
@@ -403,7 +403,7 @@ def write_track_to_HDF5(data_dict, name, path, verbose=False, mode="w"):
                 store1[kk] = I
 
     if verbose:
-        _logger.debug(f"saved at: {full_name}")
+        _logger.debug("saved at: %s", full_name)
 
 
 def get_time_for_track(delta_time, atlas_epoch):
@@ -520,8 +520,8 @@ def getATL03_beam(fileT, numpy=False, beam="gt1l", maxElev=1e6):
             }
         )
         # Filter out high elevation values
-        _logger.debug("seg_dist shape ", segment_dist_x.shape)
-        _logger.debug("df shape ", dF.shape)
+        _logger.debug("seg_dist shape %s", segment_dist_x.shape)
+        _logger.debug("df shape %s", dF.shape)
 
         dF = dF[mask_total]
         # dF_seg = dF_seg[mask_total]
