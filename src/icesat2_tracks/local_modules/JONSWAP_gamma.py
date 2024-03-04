@@ -1,3 +1,4 @@
+import logging
 import os
 from scipy.constants import g
 
@@ -16,6 +17,7 @@ if __name__ == "__main__":
 import matplotlib.pyplot as plt
 import numpy as np
 
+_logger = logging.getLogger(__name__)
 
 # %%
 def normalize_time(time):
@@ -140,7 +142,7 @@ def pierson_moskowitz_fetch_limit(f, X, U):
 
     alpha = 0.076 * (g * X / U**2) ** (-0.22)  # non-dimentional
     wp = 7.0 * np.pi * (g / U) * (g * X / U**2) ** (-0.33)
-    _logger.debug("wp=" + str(wp))
+    _logger.debug("wp=%s", wp)
 
     sigma_p = 0.07
     sigma_pp = 0.09
