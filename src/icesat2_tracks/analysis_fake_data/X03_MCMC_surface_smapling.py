@@ -82,23 +82,23 @@ class sample_with_mcmc:
         self.seeds = np.vstack([pxx.flatten(), pyy.flatten() ]).T
         self.params = params
         if verbose:
-            print('Nwalker: ', self.nwalkers)
-            print('Seeds: ', self.seeds.shape)
-            print(self.params)
+            _logger.debug('Nwalker: ', self.nwalkers)
+            _logger.debug('Seeds: ', self.seeds.shape)
+            _logger.debug(self.params)
 
     def sample(self, fitting_args= None , method='emcee', steps=100, verbose= True):
 
         self.fitter = self.LM.minimize(self.objective_func, self.params,  method=method,
                         nwalkers=self.nwalkers, steps=steps, pos= self.seeds)
         if verbose:
-            print(self.LM.report_fit(self.fitter))
+            _logger.debug(self.LM.report_fit(self.fitter))
 
     def optimize(self, fitting_args= None , method='dual_annealing', verbose= True):
 
         self.fitter_optimize = self.LM.minimize(self.objective_func, self.params,  method=method,
                         nwalkers=self.nwalkers, steps=steps, pos= self.seeds)
         if verbose:
-            print(self.LM.report_fit(self.fitter))
+            _logger.debug(self.LM.report_fit(self.fitter))
 
     def chain(self, burn=None):
         "return results as nparray contains walk of each walker"
@@ -185,14 +185,14 @@ pos0= np.vstack([pxx.flatten(), pyy.flatten() ])
 %timeit fitter = LM.minimize(objective_func, params, method='emcee', nwalkers=nwalkers, steps=100, pos= pos0.T)
 fitter = LM.minimize(objective_func, params, method='emcee', nwalkers=nwalkers, steps=100, pos= pos0.T)
 
-print(LM.report_fit(fitter))
-#print(fitter.pretty_print())
+_logger.debug(LM.report_fit(fitter))
+#_logger.debug(fitter.pretty_print())
 #%timeit
 #fitter = LM.minimize(objective_func, params, method='brute', workers=1 , Ns=120)
 
 cost_2d= cost(xx, yy)
 
-print( 'print final diff:' ,  cost_2d.min()- cost(fitter.params['x'].value, fitter.params['y'].value) )
+_logger.debug( 'print final diff:' ,  cost_2d.min()- cost(fitter.params['x'].value, fitter.params['y'].value) )
 
 # %%
 plt.contourf(x, y, cost(xx, yy) )
@@ -207,7 +207,7 @@ for n in np.arange(nwalkers):
 # plt.plot(p0[0], p0[1], '.b', markersize=20)
 # plt.plot(pos0[0,:], pos0[1,:], '*', color='orange')
 
-# print(LM.report_fit(fitter))
+# _logger.debug(LM.report_fit(fitter))
 # plt.colorbar()
 
 

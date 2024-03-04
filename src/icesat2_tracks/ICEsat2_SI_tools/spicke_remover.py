@@ -1,5 +1,9 @@
+import logging
 
 import numpy as np
+
+_logger = logging.getLogger(__name__)
+
 
 def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0 , verbose=False):
     """
@@ -21,18 +25,18 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0 , verbose=False
         if  nstd* datastd < np.nanmax(np.abs(data2)):
             act_flag=True
             if verbose:
-                print('true: '+ str(nstd* datastd) +' < '+str( np.nanmax(np.abs(data)) ) )
+                _logger.debug('true: '+ str(nstd* datastd) +' < '+str( np.nanmax(np.abs(data)) ) )
             data2=spickes_to_mean(data2, nloop=0, spreed=spreed, gaussian=False)
             looper_count+=1
         else:
             if verbose:
-                print('False: '+ str(nstd* datastd) +' > '+str( np.nanmax(np.abs(data)) ) )
+                _logger.debug('False: '+ str(nstd* datastd) +' > '+str( np.nanmax(np.abs(data)) ) )
             peak_remove=False
 
         if looper_count > max_loops:
             peak_remove=False
             if verbose:
-                print('stoped by max#')
+                _logger.debug('stoped by max#')
 
 
     if verbose:
@@ -53,37 +57,37 @@ def spickes_to_mean(ts, nloop=None, spreed=1, gaussian=True):
     b=2*spreed
     gaus=signal.gaussian(b, std=b/10)
     while i <= nloop:
-        #print(i)
+        #_logger.debug(i)
         #ts.max()
-        #print(np.where(ts == ts.max()))
+        #_logger.debug(np.where(ts == ts.max()))
         tsabs=np.abs(ts)
         tmax=np.nanmax(tsabs)
-        #print(tsabs, tmax)
+        #_logger.debug(tsabs, tmax)
         pa=np.where(tsabs == tmax)[0][0]
 
         if gaussian:
             tsm=np.mean([ts[pa-spreed],ts[pa+spreed]]) #ts[pa-spreed:pa+spreed]
-            #print(ts[pa-spreed:pa+spreed].shape)
+            #_logger.debug(ts[pa-spreed:pa+spreed].shape)
             #print((gaus*(tmax-tsm)).shape)
-            #print(np.shape(gaus*(tmax-tsm)))
+            #_logger.debug(np.shape(gaus*(tmax-tsm)))
             le=int(pa-spreed)
             ue=int(pa+spreed)
 
             ts[le:ue]=ts[le:ue]-gaus*(tmax-tsm)
         else:
             #tsm=np.mean([ts[pa-spreed],ts[pa+spreed]]) #ts[pa-spreed:pa+spreed]
-            #print(ts[pa-spreed:pa+spreed].shape)
+            #_logger.debug(ts[pa-spreed:pa+spreed].shape)
             #print((gaus*(tmax-tsm)).shape)
-            #print(np.shape(gaus*(tmax-tsm)))
-            #print(len(ts))
-            #print(pa+spreed)
+            #_logger.debug(np.shape(gaus*(tmax-tsm)))
+            #_logger.debug(len(ts))
+            #_logger.debug(pa+spreed)
             if pa+spreed > len(ts):
                 le= int(pa-spreed)
                 ts[le:-1]=np.linspace(ts[le],ts[-1],len(ts[le:-1]))
             else:
                 le=int(pa-spreed)
                 ue=int(pa+spreed)
-                #print(le, ue)
+                #_logger.debug(le, ue)
                 ts[ le : ue ]=np.linspace(ts[le],ts[ue],len(ts[le:ue]))
 
         i=i+1

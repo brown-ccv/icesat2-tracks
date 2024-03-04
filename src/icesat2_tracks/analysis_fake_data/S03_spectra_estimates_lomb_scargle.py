@@ -37,9 +37,9 @@ xx = np.arange(0, Lx, 0.1)
 
 lam = 10
 k = 1 / lam
-print(k)
+_logger.debug(k)
 k2 = 1  / 0.21
-print(k2)
+_logger.debug(k2)
 #yy = np.sin( k * xx  * 2 * np.pi ) + np.sin(  k2 * xx  * 2 * np.pi ) + 0.1 *np.random.randn(len(xx))
 
 decay = np.exp( -  0.2 *(np.arange(len(xx))/Lx))
@@ -117,7 +117,7 @@ dff/ f[0]
 spec_power = JONSWAP_gamma.JONSWAP_default(f, 1e6, 10)
 #plt.plot(f, spec_power)
 # variance
-print( 'JONSWAP variance' ,(spec_power * dff).sum() )
+_logger.debug( 'JONSWAP variance' ,(spec_power * dff).sum() )
 
 omega= 2 *np.pi * f
 
@@ -134,7 +134,7 @@ phi = np.random.random(len(amps))*2*np.pi
 instance = amps* np.sin( ww * tt + phi )
 y = instance.sum(1)# + 0.05* np.random.random(len(t))
 
-print( 'data variance' , y.var()  )#
+_logger.debug( 'data variance' , y.var()  )#
 
 #
 
@@ -162,11 +162,11 @@ plt.xlim(0, 500)
 min_datapoint=  1/f[0]/dt
 
 # % standard FFT
-print(t.size)
+_logger.debug(t.size)
 
-print(min_datapoint)
+_logger.debug(min_datapoint)
 L= int(min_datapoint * 10)
-print(L)
+_logger.debug(L)
 
 S = spec.wavenumber_pwelch( y, t, L)
 
@@ -191,10 +191,10 @@ M.figure_axis_xy(5, 4, view_scale=0.8)
 plt.plot(f, spec_power, 'k' , linewidth = 6, alpha=0.3,  label = 'original')
 #
 plt.plot(S.k, S.spec_est , label ='Pwelch FFT')
-print('pwelch FFT variance', (S.spec_est *  S.df ).sum() )
+_logger.debug('pwelch FFT variance', (S.spec_est *  S.df ).sum() )
 
 # plt.plot(f_fft2[1:], spec_fft2[1:], '-',alpha = 0.4,  label = 'FFT')
-# print('pure FFT', (spec_fft2  * np.gradient(f_fft2)[0] ).sum() )
+# _logger.debug('pure FFT', (spec_fft2  * np.gradient(f_fft2)[0] ).sum() )
 df = np.gradient(S.k)[0]
 
 plt.plot(f_fft, 2 * ls_power/ t.size /dff,  '-+' , label= 'LS')
@@ -229,19 +229,19 @@ len(ls_auto_f_noise)
 #np.diff(ls_auto_f_noise)[0]
 
 plt.plot(f, spec_power, 'k' , linewidth = 2, label = 'orginal')
-print( 'JONSWAP variance' ,(spec_power * np.diff(f).mean()).sum() )
+_logger.debug( 'JONSWAP variance' ,(spec_power * np.diff(f).mean()).sum() )
 
 
 plt.plot(ls_f_noise, 2 * ls_power_noise/ t.size /dff,  '-+' , label= 'LS noise')
 ls_power_noise_P = (2 * ls_power_noise/ t.size /dff * np.diff(ls_f_noise).mean())
-print( 'LS noise variance' ,ls_power_noise_P.sum() )
+_logger.debug( 'LS noise variance' ,ls_power_noise_P.sum() )
 
 
 plt.plot(ls_auto_f_noise,  2 * ls_auto_power_noise / t.size /dff,  '-+' , label= 'LS auto noise')
 
 
-print( 'data variance' ,y_noise.var() , 'noise variance ' , y_noise_instance.var() )
-print( 'diff variance' , y_noise.var() -  y_noise_instance.var() )
+_logger.debug( 'data variance' ,y_noise.var() , 'noise variance ' , y_noise_instance.var() )
+_logger.debug( 'diff variance' , y_noise.var() -  y_noise_instance.var() )
 
 plt.legend()
 plt.ylim(0, 21)
@@ -384,8 +384,8 @@ dx = np.diff(t_noise).mean()
 
 %time G = S2.cal_spectrogram()
 
-print(' L / k legnth  ', L/ len(S2.k) )
-print('dk  / dx ', S2.dk / dx)
+_logger.debug(' L / k legnth  ', L/ len(S2.k) )
+_logger.debug('dk  / dx ', S2.dk / dx)
 #
 # S2.dk
 # dx
@@ -421,6 +421,6 @@ plt.xlim(0, 0.20)
 
 
 
-#print( 'JONSWAP variance' ,(spec_power * dff).sum() )
+#_logger.debug( 'JONSWAP variance' ,(spec_power * dff).sum() )
 # %%
 np.log(G).sel(k=slice(0, 0.5)).plot()

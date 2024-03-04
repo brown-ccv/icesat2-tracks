@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from contextlib import contextmanager, redirect_stdout
@@ -5,6 +6,8 @@ from pathlib import Path
 
 import typer
 from termcolor import colored
+
+_logger = logging.getLogger(__name__)
 
 
 @contextmanager

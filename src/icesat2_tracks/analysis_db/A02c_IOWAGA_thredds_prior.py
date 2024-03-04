@@ -31,6 +31,8 @@ from icesat2_tracks.clitools import (
     makeapp,
 )
 
+_logger = logging.getLogger(__name__)
+
 
 _logger = logging.getLogger(__name__)
 
@@ -632,8 +634,8 @@ def run_A02c_IOWAGA_thredds_prior(
 
         F.save_pup(path=plot_path, name=plot_name + "_hindcast_prior")
     except Exception as e:
-        _logger.warning("%s", e)
-        _logger.warning("2nd figure failed")
+        _logger.debug("%s", e)
+        _logger.warning("print 2nd figure failed")
 
     MT.json_save(
         target_name,

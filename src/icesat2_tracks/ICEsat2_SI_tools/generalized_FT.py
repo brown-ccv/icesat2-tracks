@@ -1,4 +1,5 @@
 import copy
+import logging
 import time
 
 from numpy import linalg
@@ -12,6 +13,8 @@ import lmfit as LM
 
 from icesat2_tracks.ICEsat2_SI_tools import lanczos, spectral_estimates as spec
 import icesat2_tracks.local_modules.JONSWAP_gamma as spectal_models
+
+_logger = logging.getLogger(__name__)
 
 
 def rebin(data, dk):
@@ -256,7 +259,7 @@ class wavenumber_spectrogram_gFT:
             if (
                 x.size / Lpoints < 0.40
             ):  # if there are not enough photos set results to nan
-                print(" -- data density to low, skip stancil")
+                _logger.debug(" -- data density to low, skip stancil")
                 return {
                     "stancil_center": stancil[1],
                     "p_hat": np.concatenate([self.k * np.nan, self.k * np.nan]),
@@ -288,7 +291,7 @@ class wavenumber_spectrogram_gFT:
             # define error
             err = ERR[x_mask] if ERR is not None else 1
 
-            print("compute time weights : ", time.perf_counter() - ta)
+            _logger.debug("compute time weights : ", time.perf_counter() - ta)
 
             ta = time.perf_counter()
             FT.define_problem(weight, err)
@@ -297,9 +300,9 @@ class wavenumber_spectrogram_gFT:
             p_hat = FT.solve()
 
             if np.isnan(np.mean(p_hat)):
-                print(" -- inversion nan!")
-                print(" -- data fraction", x.size / Lpoints)
-                print(
+                _logger.debug(" -- inversion nan!")
+                _logger.debug(" -- data fraction", x.size / Lpoints)
+                _logger.debug(
                     " -- weights:",
                     np.mean(weight),
                     "err:",
@@ -307,7 +310,7 @@ class wavenumber_spectrogram_gFT:
                     "y:",
                     np.mean(y),
                 )
-                print(" -- skip stancil")
+                _logger.debug(" -- skip stancil")
                 return {
                     "stancil_center": stancil[1],
                     "p_hat": np.concatenate([self.k * np.nan, self.k * np.nan]),
@@ -320,7 +323,7 @@ class wavenumber_spectrogram_gFT:
                     "spec_adjust": np.nan,
                 }
 
-            print("compute time solve : ", time.perf_counter() - ta)
+            _logger.debug("compute time solve : ", time.perf_counter() - ta)
             ta = time.perf_counter()
 
             x_pos = (np.round((x - stancil[0]) / self.dx, 0)).astype("int")
@@ -337,7 +340,7 @@ class wavenumber_spectrogram_gFT:
             for k, I in prior_pars.items():
                 inverse_stats[k] = I.value if hasattr(I, "value") else np.nan
 
-            print("compute time stats : ", time.perf_counter() - ta)
+            _logger.debug("compute time stats : ", time.perf_counter() - ta)
 
             # multiply with the standard deviation of the data to get dimensions right
             PSD = power_from_model(p_hat, dk, self.k.size, x.size, Lpoints)
@@ -366,7 +369,7 @@ class wavenumber_spectrogram_gFT:
                 plt.legend()
                 plt.show()
 
-                print("---------------------------------")
+                _logger.debug("---------------------------------")
 
             # return dict with all relevant data
             return_dict = {
@@ -397,18 +400,18 @@ class wavenumber_spectrogram_gFT:
         N_stencil = len(self.stancil_iter_list.T)
         Ni = 1
         for ss in copy.copy(self.stancil_iter):
-            print(Ni, "/", N_stencil, "Stancils")
+            _logger.debug(Ni, "/", N_stencil, "Stancils")
             # prior step
             if prior[0] is False:  # make NL fit of piors do not exist
-                print("1st step: with NL-fit")
+                _logger.debug("1st step: with NL-fit")
                 I_return = calc_gFT_apply(ss, prior=prior)
                 prior = I_return["PSD"], I_return["weight"]
             # 2nd step
             if prior[0] is False:
-                print("1st GFD failed (priors[0]=false), skip 2nd step")
+                _logger.debug("1st GFD failed (priors[0]=false), skip 2nd step")
             else:
-                print("2nd step: use set priors:", type(prior[0]), type(prior[1]))
-                print(prior[0][0:3], prior[1][0:3])
+                _logger.debug("2nd step: use set priors:", type(prior[0]), type(prior[1]))
+                _logger.debug(prior[0][0:3], prior[1][0:3])
                 I_return = calc_gFT_apply(ss, prior=prior)
                 prior = I_return["PSD"], I_return["weight"]
 
@@ -471,7 +474,7 @@ class wavenumber_spectrogram_gFT:
             N_per_stancil.append(I["x_size"])
             Spec_adjust_per_stancil.append(spec_adjust)
 
-        print("# of x-coordinates" + str(len(Spec_returns)))
+        _logger.debug("# of x-coordinates" + str(len(Spec_returns)))
 
         self.N_per_stancil = N_per_stancil
         chunk_positions = np.array(list(D_specs.keys()))
@@ -578,10 +581,10 @@ class wavenumber_spectrogram_gFT:
                 # check sizes and adjust if necessary.
                 if x_pos.size > I["model_error_x"].size:
                     x_pos = x_pos[0 : I["model_error_x"].size]
-                    print("adjust x")
+                    _logger.debug("adjust x")
                 elif x_pos.size < I["model_error_x"].size:
                     I["model_error_x"] = I["model_error_x"][0:-1]
-                    print("adjust y")
+                    _logger.debug("adjust y")
 
                 x_err[x_pos] = I["model_error_x"]
                 model_error_x[xi] = xr.DataArray(
@@ -657,10 +660,10 @@ class wavenumber_spectrogram_gFT:
 
         stancil_weighted_variance = np.nansum(np.array(stancil_vars)) / Nphotons
 
-        print("Parcevals Theorem:")
-        print("variance of timeseries: ", DATA.var())
-        print("mean variance of stancils: ", stancil_weighted_variance)
-        print("variance of the optimzed windowed LS Spectrum: ", self.calc_var())
+        _logger.debug("Parcevals Theorem:")
+        _logger.debug("variance of timeseries: ", DATA.var())
+        _logger.debug("mean variance of stancils: ", stancil_weighted_variance)
+        _logger.debug("variance of the optimzed windowed LS Spectrum: ", self.calc_var())
 
         if add_attrs:
             self.G.attrs["variance_unweighted_data"] = DATA.var()
@@ -874,7 +877,7 @@ class generalized_Fourier:
                 "var_spec_complete",
                 "spec_adjust",
             ]:
-                print(ki.ljust(20) + str(pars[ki]))
+                _logger.debug(ki.ljust(20) + str(pars[ki]))
 
         return pars
 
@@ -972,7 +975,7 @@ class get_prior_spec:
         m = int(m)
         s = var.shape
         if s[0] <= 2 * m:
-            print("0 Dimension is smaller then averaging length")
+            _logger.debug("0 Dimension is smaller then averaging length")
             return
         rr = np.asarray(var) * np.nan
 

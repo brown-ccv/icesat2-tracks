@@ -57,8 +57,8 @@ class color:
 
         def show(self):
             for key in self.__dict__.keys():
-                print(key)
-            #print(self.__dict__)
+                _logger.debug(key)
+            #_logger.debug(self.__dict__)
 
 
 # funny massage
@@ -124,13 +124,13 @@ class figure_axis_xy:
                     os.makedirs(savepath)
                 #os.makedirs(savepath, exist_ok=True)
                 name=name if name is not None else datetime.date.today().strftime("%Y%m%d_%I%M%p")
-                #print(savepath)
-                #print(name)
+                #_logger.debug(savepath)
+                #_logger.debug(name)
                 extension='.pdf'
                 full_name= (os.path.join(savepath,name)) + extension
-                #print(full_name)
+                #_logger.debug(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=180)
-                _logger.info('save at: '+name)
+                _logger.info('save at: %s', name)
 
         def save_pup(self,name=None,path=None):
                 import datetime
@@ -142,13 +142,13 @@ class figure_axis_xy:
                     os.makedirs(savepath)
                 #os.makedirs(savepath, exist_ok=True)
                 name=name if name is not None else datetime.date.today().strftime("%Y%m%d_%I%M%p")
-                #print(savepath)
-                #print(name)
+                #_logger.debug(savepath)
+                #_logger.debug(name)
                 extension='.pdf'
                 full_name= (os.path.join(savepath,name)) + extension
-                #print(full_name)
+                #_logger.debug(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=300)
-                _logger.info('save at: ',full_name)
+                _logger.info('save at: %s',full_name)
 
         def save_light(self,name=None,path=None):
                 import datetime
@@ -158,13 +158,13 @@ class figure_axis_xy:
                     os.makedirs(savepath)
                 #os.makedirs(savepath, exist_ok=True)
                 name=name if name is not None else datetime.date.today().strftime("%Y%m%d_%I%M%p")
-                #print(savepath)
-                #print(name)
+                #_logger.debug(savepath)
+                #_logger.debug(name)
                 extension='.png'
                 full_name= (os.path.join(savepath,name)) + extension
-                #print(full_name)
+                #_logger.debug(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='png', dpi=180)
-                _logger.info('save with: ',name)
+                _logger.info('save with: %s',name)
 
 class subplot_routines(figure_axis_xy):
         def __init__(self, ax):
@@ -297,7 +297,7 @@ class plot_periodogram:
 
                 self.cs=plt.contourf(tt[:-2], self.fs[:],dd, self.clevs,cmap=self.cmap)
                 #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                print(self.clevs)
+                _logger.debug("%s", self.clevs)
                 plt.ylabel(('Power db(' + self.data_unit + '^2/' + self.sample_unit+ ')'))
                 plt.xlabel(('f  (' + self.sample_unit+ ')'))
                 self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
@@ -346,11 +346,11 @@ class plot_periodogram:
                 self.F.ax.set_yscale("log", nonposy='clip')
                 tt = self.time.astype(DT.datetime)
 
-                print(tt[:-1].shape, self.fs[:].shape,dd.T.shape)
+                _logger.debug("%s %s", tt[:-1].shape, self.fs[:].shape,dd.T.shape)
                 self.cs=plt.contourf(tt[:-1], self.fs[:],dd.T, self.clevs,cmap=self.cmap)
                 self.x=np.arange(0,tt[:-1].size)
                 #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                print(self.clevs)
+                _logger.debug("%s", self.clevs)
                 plt.xlabel('Time')
                 plt.ylabel(('f  (' + self.sample_unit+ ')'))
                 self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
@@ -437,13 +437,13 @@ class plot_periodogram:
                         fsn_p=gen_log_space(self.fs.size,int(np.round(self.fs.size/downscale_fac)))
                         fsn_p_run=np.append(fsn_p,fsn_p[-1])
                         dd=dd.T
-                        #print(ddn.shape, fsn_p.shape)
+                        #_logger.debug(ddn.shape, fsn_p.shape)
                         for fr in np.arange(0,fsn_p.size,1):
-                            #print(np.mean(dd[fsn_p[fr]:fsn_p[fr+1], :],axis=0).shape)
+                            #_logger.debug(np.mean(dd[fsn_p[fr]:fsn_p[fr+1], :],axis=0).shape)
 
                             ddn=np.vstack((ddn, np.mean(dd[fsn_p_run[fr]:fsn_p_run[fr+1], :],axis=0)))
                         ddn=np.delete(ddn, 0,0)
-                        #print(ddn.shape)
+                        #_logger.debug(ddn.shape)
                         dd2=ddn
                         fn=self.fs[fsn_p]
 
@@ -451,7 +451,7 @@ class plot_periodogram:
                             tt=tt
                         else:
                             tt=tt[:-1]
-                        #print(dd2.shape, fn.shape, tt.shape)
+                        #_logger.debug(dd2.shape, fn.shape, tt.shape)
 
                 else:
                     if nopower is True:
@@ -462,18 +462,18 @@ class plot_periodogram:
                     fn=self.fs
 
                 if isinstance(tt[0], np.datetime64):
-                    print('time axis is numpy.datetime64, converted to number for plotting')
+                    _logger.debug('time axis is numpy.datetime64, converted to number for plotting')
                     ttt=dates.date2num(tt.astype(DT.datetime))
-                    #print(ttt)
+                    #_logger.debug(ttt)
                 elif isinstance(tt[0], np.timedelta64):
-                    print('time axis is numpy.timedelta64, converted to number for plotting')
-                    #print(tt)
+                    _logger.debug('time axis is numpy.timedelta64, converted to number for plotting')
+                    #_logger.debug(tt)
                     ttt=tt
                 else:
-                    #print(type(tt[0]))
-                    #print(tt)
+                    #_logger.debug(type(tt[0]))
+                    #_logger.debug(tt)
 
-                    print('time axis is not converted')
+                    _logger.debug('time axis is not converted')
                     ttt=tt
 
                 MT.stats_format(dd2)
@@ -484,7 +484,7 @@ class plot_periodogram:
 
                 #self.F.ax.set_yscale("log", nonposy='clip')
                 #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                #print(self.clevs)
+                #_logger.debug(self.clevs)
                 plt.ylabel(('f  (' + self.sample_unit+ ')'))
                 if cbar is True:
                     self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
@@ -594,13 +594,13 @@ class plot_periodogram:
                         fsn_p=gen_log_space(self.fs.size,int(np.round(self.fs.size/downscale_fac)))
                         fsn_p_run=np.append(fsn_p,fsn_p[-1])
                         dd=dd.T
-                        #print(ddn.shape, fsn_p.shape)
+                        #_logger.debug(ddn.shape, fsn_p.shape)
                         for fr in np.arange(0,fsn_p.size,1):
-                            #print(np.mean(dd[fsn_p[fr]:fsn_p[fr+1], :],axis=0).shape)
+                            #_logger.debug(np.mean(dd[fsn_p[fr]:fsn_p[fr+1], :],axis=0).shape)
 
                             ddn=np.vstack((ddn, np.mean(dd[fsn_p_run[fr]:fsn_p_run[fr+1], :],axis=0)))
                         ddn=np.delete(ddn, 0,0)
-                        #print(ddn.shape)
+                        #_logger.debug(ddn.shape)
                         dd2=ddn
                         fn=self.fs[fsn_p]
 
@@ -608,7 +608,7 @@ class plot_periodogram:
                             tt=tt
                         else:
                             tt=tt[:-1]
-                        #print(dd2.shape, fn.shape, tt.shape)
+                        #_logger.debug(dd2.shape, fn.shape, tt.shape)
 
                 else:
                     if nopower is True:
@@ -619,18 +619,18 @@ class plot_periodogram:
                     fn=self.fs
 
                 if isinstance(tt[0], np.datetime64):
-                    print('numpy.datetime64')
+                    _logger.debug('numpy.datetime64')
                     ttt=dates.date2num(tt.astype(DT.datetime))
-                    #print(ttt)
+                    #_logger.debug(ttt)
                 elif isinstance(tt[0], np.timedelta64):
-                    print('numpy.timedelta64')
-                    #print(tt)
+                    _logger.debug('numpy.timedelta64')
+                    #_logger.debug(tt)
                     ttt=tt
                 else:
-                    #print(type(tt[0]))
-                    #print(tt)
+                    #_logger.debug(type(tt[0]))
+                    #_logger.debug(tt)
 
-                    print('something else')
+                    _logger.debug('something else')
                     ttt=tt
 
 
@@ -641,7 +641,7 @@ class plot_periodogram:
 
                 #self.F.ax.set_yscale("log", nonposy='clip')
                 #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                #print(self.clevs)
+                #_logger.debug(self.clevs)
 
 
                 plt.ylabel(('f  (' + self.sample_unit+ ')'))
@@ -714,7 +714,7 @@ class plot_polarspectra:
             self.min=np.nanmin(data[freq_sel_bool,:])#*0.5e-17
             self.max=np.nanmax(data[freq_sel_bool,:])
             if verbose:
-                print(str(self.min), str(self.max) )
+                _logger.debug(str(self.min), str(self.max) )
 
             self.ylabels=np.arange(10, 100, 20)
             self.data_type=data_type
@@ -837,11 +837,11 @@ def log_power(data):
 
 def echo_dt(a, as_string=False):
     string=str(a.astype('timedelta64[s]'))+'/'+str(a.astype('timedelta64[m]'))+'/'+str(a.astype('timedelta64[h]'))+'/'+str(a.astype('timedelta64[D]'))
-    #print(string)
+    #_logger.debug(string)
     if as_string:
         return string
     else:
-        print(string)
+        _logger.debug(string)
 
 def easy_dtstr(a):
     if a.astype('timedelta64[s]') < np.timedelta64(60,'s'):
@@ -879,13 +879,13 @@ def save_anyfig(fig,name=None,path=None):
                 if not os.path.exists(savepath):
                     os.makedirs(savepath)
                 name=name if name is not None else datetime.date.today().strftime("%Y%m%d_%I%M%p")
-                #print(savepath)
-                #print(name)
+                #_logger.debug(savepath)
+                #_logger.debug(name)
                 extension='.png'
                 full_name= (os.path.join(savepath,name)) + extension
-                #print(full_name)
+                #_logger.debug(full_name)
                 fig.savefig(full_name, bbox_inches='tight', format='png', dpi=180)
-                print('save at: ',full_name)
+                _logger.debug('save at: ',full_name)
 #def downscale_2d(data,x,dx):
 #   s1,s2 =data.shape
 #   if s1 == x.size
@@ -893,50 +893,50 @@ def save_anyfig(fig,name=None,path=None):
 def read_cdo(file):
     cdo = Cdo()
     G=cdo.readCdf(file).variables
-    print(G.keys())
+    _logger.debug(G.keys())
     return G
 
 def build_timestamp(time, unit, start, verbose=True): #G.time,'h','1900-01-01' ):
     timestamp=np.datetime64(start)+time[:].astype('m8['+unit+']')
-    #print('timespan:', timestamp[0], '-', timestamp[-1])
+    #_logger.debug('timespan:', timestamp[0], '-', timestamp[-1])
     if verbose is True:
-        print(timestamp)
+        _logger.debug(timestamp)
     return timestamp
 
 def build_timestamp_v2(time, unit, start, verbose=True): #G.time,'h','1900-01-01' ):
     timestamp=np.datetime64(start)+time[:].astype('datetime64[s]')
-    #print('timespan:', timestamp[0], '-', timestamp[-1])
+    #_logger.debug('timespan:', timestamp[0], '-', timestamp[-1])
     if verbose is True:
-        print(timestamp)
+        _logger.debug(timestamp)
     return timestamp
 
 def cut_nparray(var, low, high, verbose=False):
     if low < high:
         if low < var[0]:
             if verbose:
-                print('out of lower limit!')
+                _logger.debug('out of lower limit!')
         if high > var[-1]:
             if verbose:
-                print('out of upper limit!')
-                print(high ,'>', var[-1])
+                _logger.debug('out of upper limit!')
+                _logger.debug(high ,'>', var[-1])
         return (var >=low) & (var <=high)
 
     elif high < low:
         if high < var[0]:
-            print('limits flipped, out of lower limit!')
+            _logger.debug('limits flipped, out of lower limit!')
         if low > var[-1]:
-            print('limits flipped, out of lower limit!')
+            _logger.debug('limits flipped, out of lower limit!')
 
         return (var >=high) & (var <=low)
 
     elif high == low:
         if verbose:
-            print('find nearest')
+            _logger.debug('find nearest')
         a=var-low
         return np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))
 
     else:
-        print('error')
+        _logger.debug('error')
         return
 
 def boxmean(data, lon , lat, xlim, ylim):#, data_index, G.lon[:], G.lat[:], [160, -140+360], [-50 , -70]):
@@ -957,30 +957,30 @@ def boxmean(data, lon , lat, xlim, ylim):#, data_index, G.lon[:], G.lat[:], [160
         ybool=(lat >=ylim[1]) & (lat <=ylim[0])
 
     if (xp == 0 and yp ==1):
-        #print('0,1')
+        #_logger.debug('0,1')
         datan=data[xbool,:,:][:,ybool,:].mean()
 
     elif (xp == 0 and yp ==2):
-        #print('0,2')
+        #_logger.debug('0,2')
         datan=data[xbool,:,:][:,:,ybool]
     elif (xp == 1 and yp ==0):
-        #print('1,0')
+        #_logger.debug('1,0')
         datan=data[:,xbool,:][ybool,:,:]
 
     elif (xp == 1 and yp ==2):
-        #print('1,2')
+        #_logger.debug('1,2')
         datan=data[:,xbool,:][:,:,ybool]
 
     elif (xp == 2 and yp ==0):
-        #print('2,0')
+        #_logger.debug('2,0')
         datan=data[:,:, xbool][ybool,:,:]
     elif (xp == 2 and yp ==1):
-        #print('2,1')
+        #_logger.debug('2,1')
         datan=data[:,:, xbool][:,ybool,:]
     else:
-        print('arrays have not the same shape')
+        _logger.debug('arrays have not the same shape')
 
-    print('new shape', datan.shape)
+    _logger.debug('new shape', datan.shape)
 
     return np.nanmean(np.nanmean(datan, axis=xp), axis=yp).squeeze() #, xbool , ybool
 
@@ -998,12 +998,12 @@ def detrend(data, od=None, x=None, plot=False, verbose=False):
 
 
     elif od > 0 :
-        if verbose: print('assume data is equal dist. You can define option x= if not.')
+        if verbose: _logger.debug('assume data is equal dist. You can define option x= if not.')
 
         d_org=data-np.nanmean(data)
         x=np.arange(0,d_org.size,1) if x is None else x
 
-        #print(np.isnan(x).sum(), np.isnan(d_org).sum())
+        #_logger.debug(np.isnan(x).sum(), np.isnan(d_org).sum())
         idx = np.isfinite(x) & np.isfinite(d_org)
         px=np.polyfit(x[idx], d_org[idx], od)
         dline=np.polyval( px, x)
@@ -1028,7 +1028,7 @@ def detrend(data, od=None, x=None, plot=False, verbose=False):
         stats['line']=dline
         stats['polynom order']=od
         stats['polyvals']=px
-    if verbose: print(stats)
+    if verbose: _logger.debug(stats)
     return d_detrend/np.nanstd(d_detrend) , stats
 
 def normalize(data):
@@ -1040,19 +1040,19 @@ def runningvar(var, m, tailcopy=False):
     m=int(m)
     s =var.shape
     if s[0] <= 2*m:
-        print('0 Dimension is smaller then averaging length')
+        _logger.debug('0 Dimension is smaller then averaging length')
         return
     rr=np.asarray(var)*np.nan
     var_range=np.arange(m,int(s[0])-m-1,1)
-#    print(var_range)
-#    print(np.isfinite(var))
-#    print(var_range[np.isfinite(var[m:int(s[0])-m-1])])
+#    _logger.debug(var_range)
+#    _logger.debug(np.isfinite(var))
+#    _logger.debug(var_range[np.isfinite(var[m:int(s[0])-m-1])])
     for i in var_range[np.isfinite(var[m:int(s[0])-m-1])]:
         #rm.append(var[i-m:i+m].mean())
         rr[int(i)]=np.nanvar(var[i-m:i+m])
 
     if tailcopy:
-#        print('tailcopy')
+#        _logger.debug('tailcopy')
         rr[0:m]=rr[m+1]
         rr[-m-1:-1]=rr[-m-2]
     return rr
@@ -1064,17 +1064,17 @@ def runningmean_wrap_around(var, m):
     m=int(m)
     s =var.shape
     if s[0] <= 2*m:
-        print('0 Dimension is smaller then averaging length')
+        _logger.debug('0 Dimension is smaller then averaging length')
         return
 
     rr=np.asarray(var)*np.nan
     var_range=np.arange(var.size)
-    #print(var_range[0], var_range[-1])
+    #_logger.debug(var_range[0], var_range[-1])
 
     for i in var_range:
-        #print(i, i-m, i+m)
-        #print(i, var.take(range(i-m, i+m ), mode='wrap'))
-        #print(i, var[i-m:i+m])
+        #_logger.debug(i, i-m, i+m)
+        #_logger.debug(i, var.take(range(i-m, i+m ), mode='wrap'))
+        #_logger.debug(i, var[i-m:i+m])
         #rm.append(var[i-m:i+m].mean())
         rr[int(i)]=np.nanmean(var.take(range(i-m, i+m ), mode='wrap'))
 
@@ -1084,20 +1084,20 @@ def runningmean(var, m, tailcopy=False):
     m=int(m)
     s =var.shape
     if s[0] <= 2*m:
-        print('0 Dimension is smaller then averaging length')
+        _logger.debug('0 Dimension is smaller then averaging length')
         return
     rr=np.asarray(var)*np.nan
-    #print(type(rr))
+    #_logger.debug(type(rr))
     var_range=np.arange(m,int(s[0])-m-1,1)
-#    print(var_range)
-#    print(np.isfinite(var))
-#    print(var_range[np.isfinite(var[m:int(s[0])-m-1])])
+#    _logger.debug(var_range)
+#    _logger.debug(np.isfinite(var))
+#    _logger.debug(var_range[np.isfinite(var[m:int(s[0])-m-1])])
     for i in var_range[np.isfinite(var[m:int(s[0])-m-1])]:
         #rm.append(var[i-m:i+m].mean())
         rr[int(i)]=np.nanmean(var[i-m:i+m])
 
     if tailcopy:
-#        print('tailcopy')
+#        _logger.debug('tailcopy')
         rr[0:m]=rr[m+1]
         rr[-m-1:-1]=rr[-m-2]
 
@@ -1142,14 +1142,14 @@ def find_max_ts(data_org, threshold=None, jump=None, smooth=True, spreed=None, p
 
     if smooth is True:
         data=runningmean(data,spreed)
-    #print(threshold is not None and threshold > np.nanmin(data))
+    #_logger.debug(threshold is not None and threshold > np.nanmin(data))
     #if threshold is not None and numpy.ndarray
 
     if threshold is not None and threshold > np.nanmin(data):
         data[np.isnan(data)]=0
         data[data<threshold]=0#np.nan
     else:
-        #print(type(data.astype('float64')))
+        #_logger.debug(type(data.astype('float64')))
         data[np.isnan(data)]=0
 
     index=np.where(np.diff(np.sign(np.gradient(data)))== -2)[0]+1
@@ -1162,7 +1162,7 @@ def find_max_ts(data_org, threshold=None, jump=None, smooth=True, spreed=None, p
 
         adjustment=data[i-1:i+2].argmax()-1
         if adjustment != 0:
-            #print(str(i) +' adjusted by ' + str(adjustment))
+            #_logger.debug(str(i) +' adjusted by ' + str(adjustment))
             index2.append(i+data[i-1:i+2].argmax()-1)
         else:
             index2.append(i)
@@ -1171,31 +1171,31 @@ def find_max_ts(data_org, threshold=None, jump=None, smooth=True, spreed=None, p
 
     if jump is None:
         if verbose:
-            print('index, data, edit ts (index)')
+            _logger.debug('index, data, edit ts (index)')
         return index, data, data[index]
     else:
         c=np.diff(index)
         b=[]
         i=0
         while i < index.size-1:
- #           print(i, index.size-2, c[i:])
+ #           _logger.debug(i, index.size-2, c[i:])
             if c[i] < jump:
                 if i >= index.size-2:
                     nc=1
                 elif sum(c[i:] >= jump) == 0:
                     nc=c[i:].size
                 else:
-#                    print(np.nonzero(c[i:] >= jump))
+#                    _logger.debug(np.nonzero(c[i:] >= jump))
                     nc=np.nonzero(c[i:] >= jump)[0][0]
                 b=np.append(b, np.round(np.mean(index[i:i+nc+1]))).astype(int)
- #               print(nc, index[i:i+nc+1], ' new', np.round(np.mean(index[i:i+nc+1])))
+ #               _logger.debug(nc, index[i:i+nc+1], ' new', np.round(np.mean(index[i:i+nc+1])))
                 i=i+nc+1
             else:
                 b=np.append(b, index[i]).astype(int)
-  #              print(' ', index[i], ' new', index[i])
+  #              _logger.debug(' ', index[i], ' new', index[i])
                 i=i+1
         if verbose:
-            print('index, edited ts, edit ts (index), org_index')
+            _logger.debug('index, edited ts, edit ts (index), org_index')
 
         return b, data, data[b], index
 
@@ -1204,7 +1204,7 @@ def spickes_to_nan(ts, nloop=None, spreed=1):
     i=0
     while i <= nloop:
         ts.max()
-        #print(np.where(ts == ts.max()))
+        #_logger.debug(np.where(ts == ts.max()))
         pa=np.where(ts == np.nanmax(ts))[0][0]
         ts[pa-spreed:pa+spreed]=np.NaN
         i=i+1
@@ -1217,37 +1217,37 @@ def spickes_to_mean(ts, nloop=None, spreed=1, gaussian=True):
     b=2*spreed
     gaus=signal.gaussian(b, std=b/10)
     while i <= nloop:
-        #print(i)
+        #_logger.debug(i)
         #ts.max()
-        #print(np.where(ts == ts.max()))
+        #_logger.debug(np.where(ts == ts.max()))
         tsabs=np.abs(ts)
         tmax=np.nanmax(tsabs)
-        #print(tsabs, tmax)
+        #_logger.debug(tsabs, tmax)
         pa=np.where(tsabs == tmax)[0][0]
 
         if gaussian:
             tsm=np.mean([ts[pa-spreed],ts[pa+spreed]]) #ts[pa-spreed:pa+spreed]
-            #print(ts[pa-spreed:pa+spreed].shape)
+            #_logger.debug(ts[pa-spreed:pa+spreed].shape)
             #print((gaus*(tmax-tsm)).shape)
-            #print(np.shape(gaus*(tmax-tsm)))
+            #_logger.debug(np.shape(gaus*(tmax-tsm)))
             le=int(pa-spreed)
             ue=int(pa+spreed)
 
             ts[le:ue]=ts[le:ue]-gaus*(tmax-tsm)
         else:
             #tsm=np.mean([ts[pa-spreed],ts[pa+spreed]]) #ts[pa-spreed:pa+spreed]
-            #print(ts[pa-spreed:pa+spreed].shape)
+            #_logger.debug(ts[pa-spreed:pa+spreed].shape)
             #print((gaus*(tmax-tsm)).shape)
-            #print(np.shape(gaus*(tmax-tsm)))
-            #print(len(ts))
-            #print(pa+spreed)
+            #_logger.debug(np.shape(gaus*(tmax-tsm)))
+            #_logger.debug(len(ts))
+            #_logger.debug(pa+spreed)
             if pa+spreed > len(ts):
                 le= int(pa-spreed)
                 ts[le:-1]=np.linspace(ts[le],ts[-1],len(ts[le:-1]))
             else:
                 le=int(pa-spreed)
                 ue=int(pa+spreed)
-                #print(le, ue)
+                #_logger.debug(le, ue)
                 ts[ le : ue ]=np.linspace(ts[le],ts[ue],len(ts[le:ue]))
 
         i=i+1
@@ -1257,7 +1257,7 @@ def spickes_to_mean(ts, nloop=None, spreed=1, gaussian=True):
 
 class composite_data:
         def __init__(self,var, index_weight=None):
-            #print(var.shape)
+            #_logger.debug(var.shape)
             self.composites=var
             self.comp_mean=np.nanmean(var, axis=0)
             self.comp_std=np.nanstd(var, axis=0)
@@ -1269,11 +1269,11 @@ class composite_data:
 
         def weight(self,index_weight):
             length=self.comp_mean.size
-            #print('composites ', self.composites.shape)
-            #print('index respeat',index_weight.shape,self.comp_mean.shape)
+            #_logger.debug('composites ', self.composites.shape)
+            #_logger.debug('index respeat',index_weight.shape,self.comp_mean.shape)
             weight_mat=np.repeat(index_weight,length).reshape((self.composites.shape))/index_weight.mean()
-            #print(weight_mat.shape)
-            #print(self.composites.shape)
+            #_logger.debug(weight_mat.shape)
+            #_logger.debug(self.composites.shape)
             self.comp_weighted_mean=np.nanmean(self.composites*weight_mat, axis=0)
             self.comp_weighted_norm=self.comp_weighted_mean/np.nanstd(self.comp_weighted_mean, axis=0)
 
@@ -1322,7 +1322,7 @@ class composite:
             self.weigthing=weigthing if weigthing is not False else None
             self.comp=dict()
             if time is None:
-                print('timeaxis is not defined. Make sure that both timeseries have the same timestamp')
+                _logger.debug('timeaxis is not defined. Make sure that both timeseries have the same timestamp')
                 self.time_index=None
             else:
                 self.time_index=time
@@ -1335,7 +1335,7 @@ class composite:
         def corse_iter(self, dt, unit=None):
             '''build intereration aaxis and timestamps for corser resoltions'''
             #np.array(C.span)*dt_old
-            #print(type(self.dt), type(dt)
+            #_logger.debug(type(self.dt), type(dt)
 
             assert unit == self.iter.unit, "span units do not match! old unit=" + self.iter.unit +", new unit="+ unit
 
@@ -1343,41 +1343,41 @@ class composite:
             # convert iter.dt in right unit
             dt_format=np.timedelta64(self.iter.dt,self.iter.unit ).astype('timedelta64['+unit+']').astype('float')
             span_new=np.array(self.span)*dt_format/dt
-            print('old span=',self.span )
-            print('new span=',span_new )
+            _logger.debug('old span=',self.span )
+            _logger.debug('new span=',span_new )
 
             for s in span_new:
                 span.append(int(np.floor(s)))
 
-            print(span)
+            _logger.debug(span)
             self.iter2=comp_iter(span, dt , unit=unit)
 
         def iter_info(self):
             self.iter_operate.__dict__
 
-            print('available iters')
+            _logger.debug('available iters')
             if self.iter is not None:
-                print('self.iter')
+                _logger.debug('self.iter')
                 self.iter.__dict__
             if self.iter2 is not None:
-                print('self.iter2')
+                _logger.debug('self.iter2')
                 self.iter2.__dict__
 
 
         def info(self):
-            print('index', self.index)
-            print('span', self.span)
-            print('weight', self.weigthing)
-            print('comp', self.comp.keys())
+            _logger.debug('index', self.index)
+            _logger.debug('span', self.span)
+            _logger.debug('weight', self.weigthing)
+            _logger.debug('comp', self.comp.keys())
 
         def transform_index_time(self, time_index, time_composite):
             """ find nearest time index of compostite time compared to index times"""
             index_composite=[]
             for i in self.index:
-                #print('old:',i, '   ',time_index[i])
+                #_logger.debug('old:',i, '   ',time_index[i])
                 t_diff=time_index[i]-time_composite
                 nindex=np.unravel_index(np.abs(t_diff).argmin(),t_diff.shape)
-                #print('new:',nindex,time_composite[nindex])#, t_diff[nindex[0]-5:nindex[0]+5])
+                #_logger.debug('new:',nindex,time_composite[nindex])#, t_diff[nindex[0]-5:nindex[0]+5])
                 index_composite=np.append(index_composite,nindex)
             return index_composite.astype(int)
 
@@ -1385,7 +1385,7 @@ class composite:
         def compose_ts(self,ts,name, time=None):
             if time is not None:
                 if self.time_index is None:
-                    print('timeaxis of index TS is not defined!')
+                    _logger.debug('timeaxis of index TS is not defined!')
                     return
                 else:
                     iindex=self.transform_index_time(self.time_index, time)
@@ -1393,37 +1393,37 @@ class composite:
                 iindex=self.index
 
             span=self.iter_operate.span
-            print(iindex)
+            _logger.debug(iindex)
             if self.span != [0, 0]:
                 comp=np.empty((-span[0]+span[1]))#*np.NaN
                 self.length=comp.size
 
                 for i in iindex:
                     if i+span[0] < 0:
-                        print('i', i, 'span:', span[0], span[1] )
-                        print('left postion:', i+span[0])
+                        _logger.debug('i', i, 'span:', span[0], span[1] )
+                        _logger.debug('left postion:', i+span[0])
                         raise ValueError("composite span exceeds ts limits")
-                        #print('right postion:',i+self.span[1])
+                        #_logger.debug('right postion:',i+self.span[1])
                         return -1
                     elif i+span[1] > ts.size:
                         return -1
-                        print(i, span[0], span[1] )
-                        print('i', i, 'span:', span[0], span[1] )
-                        #print('left postion:', i+self.span[0])
-                        print('right postion:',i+span[1])
+                        _logger.debug(i, span[0], span[1] )
+                        _logger.debug('i', i, 'span:', span[0], span[1] )
+                        #_logger.debug('left postion:', i+self.span[0])
+                        _logger.debug('right postion:',i+span[1])
                         raise ValueError("composite span exceeds ts limits")
-                        #print('right postion:',i+self.span[1])
+                        #_logger.debug('right postion:',i+self.span[1])
                         return -1
 
                     #self.comp[i]=ts[i]
-                    print('comp', comp.shape)
-                    print('ts', ts[i+span[0]:i+span[1]].shape)
-                    #print('ltjergij')
-                    print(i, span[0], span[1] )
+                    _logger.debug('comp', comp.shape)
+                    _logger.debug('ts', ts[i+span[0]:i+span[1]].shape)
+                    #_logger.debug('ltjergij')
+                    _logger.debug(i, span[0], span[1] )
                     comp=np.vstack((comp,ts[i+span[0]:i+span[1]]))
                     #comp[:,i]=((comp,ts[i+self.span[0]:i+self.span[1]]))
-                    #print(ts[i])
-                    #print(comp)
+                    #_logger.debug(ts[i])
+                    #_logger.debug(comp)
                     #self.comp.append(ts[i])
 
                 comp=np.delete(comp,0,0)
@@ -1437,7 +1437,7 @@ class composite:
         def compose_2d(self,field, name, time=None):
             if time is not None:
                 if self.time_index is None:
-                    print('timeaxis of index TS is not defined!')
+                    _logger.debug('timeaxis of index TS is not defined!')
                     return
                 else:
                     iindex=self.transform_index_time(self.time_index, time)
@@ -1446,10 +1446,10 @@ class composite:
             span=self.iter_operate.span
 
             if span != [0, 0]:
-                print(-span[0]+span[1],field.shape[1])
+                _logger.debug(-span[0]+span[1],field.shape[1])
                 comp=np.empty((-span[0]+span[1],field.shape[1]))*np.NaN
                 self.length=-span[0]+span[1]
-               # print('comp shape',comp.shape)
+               # _logger.debug('comp shape',comp.shape)
                 for i in iindex:
                     if i+span[1] > field.shape[0]:
                         ff=field[i+span[0]:field.shape[0],:]
@@ -1463,10 +1463,10 @@ class composite:
                         comp=np.vstack((comp,cc))
                     else:
                         comp=np.vstack((comp,field[i+span[0]:i+span[1],:]))
-                    #print(comp.shape)
+                    #_logger.debug(comp.shape)
 
-                #print('comp shape',comp.shape)
-                #print(iindex.size*self.length ,iindex.size, self.length,field.shape[1])
+                #_logger.debug('comp shape',comp.shape)
+                #_logger.debug(iindex.size*self.length ,iindex.size, self.length,field.shape[1])
                 comp=comp.reshape( iindex.size+1,self.length,field.shape[1])
                 #comp.shape
                 comp=np.delete(comp,0,0)
@@ -1475,7 +1475,7 @@ class composite:
                 #b2_mean=b2.mean(axis=0)
                 self.comp[name]=comp1
             else:
-                print('no span defined')
+                _logger.debug('no span defined')
                 comp=field[iindex,:]
 
                 comp1=composite_data(comp, self.weigthing)
@@ -1485,7 +1485,7 @@ class composite:
         def compose_field(self,field, name, time=None):
             if time is not None:
                 if self.time_index is None:
-                    print('timeaxis of index TS is not defined!')
+                    _logger.debug('timeaxis of index TS is not defined!')
                     return
                 else:
                     iindex=self.transform_index_time(self.time_index, time)
@@ -1493,18 +1493,18 @@ class composite:
                 iindex=self.index
 
             span=self.iter_operate.span
-            #print(field.shape)
-            #print('iindex', iindex)
+            #_logger.debug(field.shape)
+            #_logger.debug('iindex', iindex)
             if span != [0, 0]:
                 comp=np.empty((-span[0]+span[1],field.shape[1],field.shape[2]))*np.NaN
                 self.length=-span[0]+span[1]
-                #print(comp.shape)
+                #_logger.debug(comp.shape)
                 for i in iindex:
 
-                    #print(i+span[0],i+span[1])
+                    #_logger.debug(i+span[0],i+span[1])
                     comp=np.vstack((comp,field[i+span[0]:i+span[1],:,:]))
-                    #print(comp.shape)
-                #print(iindex)
+                    #_logger.debug(comp.shape)
+                #_logger.debug(iindex)
                 comp=comp.reshape( iindex.size+1,self.length,field.shape[1], field.shape[2])
                 #comp.shape
                 comp=np.delete(comp,0,0)
@@ -1513,7 +1513,7 @@ class composite:
                 #b2_mean=b2.mean(axis=0)
                 self.comp[name]=comp1
             else:
-                print('no span defined')
+                _logger.debug('no span defined')
                 comp=field[iindex,:,:]
 
                 comp1=composite_data(comp, self.weigthing)
@@ -1523,7 +1523,7 @@ class composite:
 def time_overlap(time1, time2):
 
     if (time1[0]-time2[0]).astype(int) > 0:
-        #print('time1 is first')
+        #_logger.debug('time1 is first')
         start=time1[0]
     else:
         start=time2[0]
@@ -1568,18 +1568,18 @@ def gen_log_space(limit, n):
 
 def linefit2Points(time_lin, f, data, f1, f2, f_delta=None,  plot=False):
     if isinstance(time_lin[0], np.datetime64):
-        print('type is numpy.datetime64', time_lin.shape)
+        _logger.debug('type is numpy.datetime64', time_lin.shape)
         time_lin=time_lin.astype('m8[s]').astype(int)
-        #print(ttt)
+        #_logger.debug(ttt)
 
     #if isinstance(time_delta, np.timedelta64):
     #        time_delta=time_delta.astype('m8[s]').astype(int)
-    #        #print(time_delta)
+    #        #_logger.debug(time_delta)
 
 
     if f.shape [0] != data.shape [0]:
-        print('ERROR: shapes are not correct')
-        print(f.shape, time_lin.shape, data.shape )
+        _logger.debug('ERROR: shapes are not correct')
+        _logger.debug(f.shape, time_lin.shape, data.shape )
         return
 
     # find neerest discrete frequency
@@ -1587,14 +1587,14 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None,  plot=False):
     f1_approx=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))
     a=f-f2
     f2_approx=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))
-    #print(f2_approx)
+    #_logger.debug(f2_approx)
 
     # find postion of maximum at freqeuency band
     dd=np.squeeze(data[f1_approx,:])
     fin1=np.where(dd==dd.max())[0][0]
     dd=np.squeeze(data[f2_approx,:])
     fin2=np.where(dd==dd.max())[0][0]
-    #print(fin1,time_lin, time_lin.size)
+    #_logger.debug(fin1,time_lin, time_lin.size)
 
     # define as point in time
     x1=time_lin[fin1]
@@ -1615,7 +1615,7 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None,  plot=False):
     #fit simple line.
     p1, p2=np.polyfit([y1 , y2], [x1, x2], 1)
     limit_mid=np.polyval([p1, p2], f)
-    #print(p2, time_delta)
+    #_logger.debug(p2, time_delta)
     limit_line1=np.polyval([p1, p2], f-f_delta)
     limit_line2=np.polyval([p1, p2], f+f_delta)
 
@@ -1639,7 +1639,7 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
 
     timestamp=time_lin
     if isinstance(time_lin[0], np.datetime64):
-        print('time is numpy.datetime64')
+        _logger.debug('time is numpy.datetime64')
         time_lin=time_lin.astype('m8[s]').astype(int)
 
     if mode is None:
@@ -1647,11 +1647,11 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
     if mode is 'free_limits' or mode is 'upper_limit':
         if line_left[0] > time_lin[0]:
             f_start=0
-            print(' left line > time0')
-            print(line_left[0] , time_lin[0])
+            _logger.debug(' left line > time0')
+            _logger.debug(line_left[0] , time_lin[0])
         else:
-            print(' left line < time')
-            print(line_left[0] , time_lin[0])
+            _logger.debug(' left line < time')
+            _logger.debug(line_left[0] , time_lin[0])
             a=line_left-time_lin[0]
             f_start=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]+1
     else:
@@ -1659,22 +1659,22 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
         a=f-f1
         f_start=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]
 
-    #print(f_start)
+    #_logger.debug(f_start)
     if mode == 'free_limits' or mode == 'lower_limit':
         if line_right[-1] > time_lin[-1]:
-            print(' right line > time window')
-            print( line_right[-1] ,time_lin[-1])
+            _logger.debug(' right line > time window')
+            _logger.debug( line_right[-1] ,time_lin[-1])
             a=line_right-time_lin[-1]
             f_end=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]-1
         else:
-            print(' right line < time window')
-            print( line_right[-1] ,time_lin[-1])
+            _logger.debug(' right line < time window')
+            _logger.debug( line_right[-1] ,time_lin[-1])
             f_end=time_lin.size-2
     else:
         a=f-f2
         f_end=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]
 
-    #print(f_end)
+    #_logger.debug(f_end)
 
     if plot:
         plt.figure()
@@ -1700,17 +1700,17 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
 
     STR['left_limit']=line_left
     STR['right_limit']=line_right
-    #print(flin[f_start:f_end].shape)
+    #_logger.debug(flin[f_start:f_end].shape)
     for i in enumerate(flin[f_start:f_end]):
         ii=f_start+i[0]
-        #print(i[0])
-        #print('ii',ii , type(i[0]), type(i) )
-        #print(round(line_left[ii]), round(line_right[ii]))
+        #_logger.debug(i[0])
+        #_logger.debug('ii',ii , type(i[0]), type(i) )
+        #_logger.debug(round(line_left[ii]), round(line_right[ii]))
         cut=cut_nparray(time_lin, line_left[ii], line_right[ii], verbose=False)
-        #print( cut[:data.shape[1]].shape, data.shape)
+        #_logger.debug( cut[:data.shape[1]].shape, data.shape)
         #plt.plot(data[i, cut], Color='grey', alpha=0.5)
-        #print(type(data[ii, cut]), type(cut[0]), type(ii))
-        #print(data[ii, cut[:data.shape[1]]])
+        #_logger.debug(type(data[ii, cut]), type(cut[0]), type(ii))
+        #_logger.debug(data[ii, cut[:data.shape[1]]])
         out=find_max_ts(data[ii, cut[:data.shape[1]]], smooth=True, spreed=spreed, plot=plot, verbose=False)
         #STR['cut_pos'].append(np.where(np.diff(cut) == True)[0][0])
         STR['out'].append(out[0][0])
@@ -1797,15 +1797,15 @@ def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False,  **kw
     #self.clevs=self.clevs if self.clevs is not None else clevels(dd)
     if time_lin_arg is not None:
         time_lin=time_lin_arg
-        print('time lin is set')
+        _logger.debug('time lin is set')
     else:
-        print('create linear time axis')
+        _logger.debug('create linear time axis')
         time_lin=np.linspace(time.min(), time.max(), freq.size)
 
     RAMS_predicted_line=time_lin*RAMS_slope+ RAMS_intercept
 
 
-    print(RAMS_slope, RAMS_intercept)
+    _logger.debug(RAMS_slope, RAMS_intercept)
     RAMS_out=boot.ci((time, freq), simple_RAMSAC_regression_estimator, method='bca' , **kwargs)
 
     # Robustly fit linear model with RANSAC algorithm

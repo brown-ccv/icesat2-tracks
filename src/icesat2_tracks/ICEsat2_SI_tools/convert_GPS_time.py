@@ -29,9 +29,14 @@ UPDATE HISTORY:
 	Updated 10/2017: added leap second from midnight 2016-12-31
 	Written 04/2016
 """
+import logging
+
 import numpy as np
 from .convert_julian import convert_julian
 import pdb
+
+_logger = logging.getLogger(__name__)
+
 
 #-- PURPOSE: Define GPS leap seconds
 def get_leaps():
@@ -60,7 +65,7 @@ def count_leaps(GPS_Time):
 		count = np.count_nonzero(GPS_Time >= leap)
 		if (count > 0):
 			indices, = np.nonzero(GPS_Time >= leap)
-			# print(indices)
+			# _logger.debug(indices)
 			# pdb.set_trace()
 			n_leaps[indices] += 1
 	return n_leaps

@@ -1,9 +1,13 @@
 """
 This library contains method, and classes used to search for the best angle given x,y data using single frequecy fits.
 """
+import logging
+
 from numba import jit
 import numpy as np
 
+
+_logger = logging.getLogger(__name__)
 
 numba_parallel = False
 
@@ -196,9 +200,9 @@ class sample_with_mcmc:
         self.seeds = np.vstack([pxx.flatten(), pyy.flatten() ]).T
         self.params = params
         if verbose:
-            print('Nwalker: ', self.nwalkers)
-            print('Seeds: ', self.seeds.shape)
-            print(self.params)
+            _logger.debug('Nwalker: ', self.nwalkers)
+            _logger.debug('Seeds: ', self.seeds.shape)
+            _logger.debug(self.params)
 
     def test_objective_func(self):
         return self.objective_func(self.params, *self.fitting_args, **self.fitting_kargs)
@@ -212,8 +216,8 @@ class sample_with_mcmc:
                         args=fitting_args, kws=fitting_kargs ,
                         nwalkers=self.nwalkers, steps=steps, pos= self.seeds,nan_policy='omit' , **kargs)
         if verbose:
-            print(self.LM.report_fit(self.fitter))
-            print('results at self.fitter')
+            _logger.debug(self.LM.report_fit(self.fitter))
+            _logger.debug('results at self.fitter')
 
     def plot_sample(self, **kargs ):
         import matplotlib.pyplot as plt
@@ -232,8 +236,8 @@ class sample_with_mcmc:
         self.fitter_optimize = self.LM.minimize(self.objective_func, self.params,  method=method,
                         args=fitting_args, kws=fitting_kargs )
         if verbose:
-            print(self.LM.report_fit(self.fitter_optimize))
-            print('results at self.fitter_optimize')
+            _logger.debug(self.LM.report_fit(self.fitter_optimize))
+            _logger.debug('results at self.fitter_optimize')
 
     def plot_optimze(self, **kargs):
         import matplotlib.pyplot as plt
@@ -249,8 +253,8 @@ class sample_with_mcmc:
                         args=fitting_args, kws=fitting_kargs, Ns=N_grid  )
 
         if verbose:
-            print(self.LM.report_fit(self.fitter_brute))
-            print('results at self.fitter_brute')
+            _logger.debug(self.LM.report_fit(self.fitter_brute))
+            _logger.debug('results at self.fitter_brute')
 
 
     def plot_brute(self, clevel = np.linspace(-3.2, 3.2, 30), **kargs):

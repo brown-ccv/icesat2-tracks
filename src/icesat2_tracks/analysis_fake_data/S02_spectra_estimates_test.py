@@ -37,9 +37,9 @@ xx = np.arange(0, Lx, 0.1)
 
 lam = 10
 k = 1 / lam
-print(k)
+_logger.debug(k)
 k2 = 1  / 0.21
-print(k2)
+_logger.debug(k2)
 #yy = np.sin( k * xx  * 2 * np.pi ) + np.sin(  k2 * xx  * 2 * np.pi ) + 0.1 *np.random.randn(len(xx))
 
 decay = np.exp( -  0.2 *(np.arange(len(xx))/Lx))

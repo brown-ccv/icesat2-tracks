@@ -37,7 +37,7 @@ def track_pole_ward_file(hdf5_file, product='ALT03'):
         T_lat = hdf5_file['gt1r/freeboard_beam_segment/latitude'][:]
         T_time = hdf5_file['gt1r/freeboard_beam_segment/delta_time'][:]
     #return ( T_lat[T_time.argmax()] - T_lat[T_time.argmin()] ) < 0
-    print('1st lat =' + str(abs(T_lat[T_time.argmin()])) , ';last lat =' + str(abs(T_lat[T_time.argmax()])) )
+    _logger.debug('1st lat =' + str(abs(T_lat[T_time.argmin()])) , ';last lat =' + str(abs(T_lat[T_time.argmax()])) )
     return abs(T_lat[T_time.argmax()]) > abs(T_lat[T_time.argmin()])
 
 
@@ -175,7 +175,7 @@ def derive_axis(TT, lat_lims = None):
         # decending track
         lon_min = TT['lons'].min()
 
-    #print(lon_min)
+    #_logger.debug(lon_min)
     TT['x']     = (TT['lons'] - lon_min) * np.cos( TT['lats']*np.pi/180.0 ) * dy
     #TT['x']     = (TT['lons'] ) * np.cos( TT['lats']*np.pi/180.0 ) * dy
     TT['dist']  =   np.sqrt(TT['x']**2 + TT['y']**2)
@@ -448,7 +448,7 @@ def bin_means(T2, dist_grid):
 
     for i in np.arange(1,ilim-1, 1):
         if i % 5000 ==0:
-            print(i)
+            _logger.debug(i)
         i_mask=(T2['dist'] >= dist_grid[i-1])  & (T2['dist'] < dist_grid[i+1])
         #if ( (T2['dist'] >= dist_grid[i-1])  & (T2['dist'] < dist_grid[i+1]) ).sum() > 0:
         dF_mean[i] = T2[i_mask].mean()

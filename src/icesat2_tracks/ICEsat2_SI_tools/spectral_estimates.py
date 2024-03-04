@@ -1,4 +1,9 @@
+import logging
+
 import numpy as np
+
+
+_logger = logging.getLogger(__name__)
 
 
 # basic functions
@@ -21,8 +26,8 @@ def create_chunk_boundaries(L, dsize, ov= None,  iter_flag=True):
     xcenter_pos = np.arange(int(L-ov),dsize-int(L-ov)+1,int(L-ov))
     max_size = min([xleft.size , xcenter_pos.size, xright.size])
     # if xright[max_size-1] < dsize:
-    #     print('left out last ' + str(dsize- xright[max_size-1]) + ' data points' )
-    #print([xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]])
+    #     _logger.debug('left out last ' + str(dsize- xright[max_size-1]) + ' data points' )
+    #_logger.debug([xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]])
     position_stancil = np.vstack([xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]])
 
     if iter_flag is True:
@@ -44,7 +49,7 @@ def create_chunk_boundaries_unit_lengths(L_unit, data_limits, ov= None,  iter_fl
     """
     L= L_unit
     ov=np.round(L/2) if ov is None else ov
-    #print(ov)
+    #_logger.debug(ov)
     dl = (L-ov)
     xleft   = np.arange(data_limits[0]           ,   data_limits[1]-dl,   dl )
     xcenter_pos = np.arange(data_limits[0]+ L/2   ,   data_limits[1]-dl+1, dl )
@@ -53,8 +58,8 @@ def create_chunk_boundaries_unit_lengths(L_unit, data_limits, ov= None,  iter_fl
 
     max_size = min([xleft.size , xcenter_pos.size, xright.size])
     # if xright[max_size-1] < data_limits[1]:
-    #     print('left out last ' + str(data_limits[1]- xright[max_size-1]) + ' data points' )
-    #print([xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]])
+    #     _logger.debug('left out last ' + str(data_limits[1]- xright[max_size-1]) + ' data points' )
+    #_logger.debug([xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]])
     position_stancil = np.vstack([xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]])
 
     if iter_flag is True:
@@ -143,7 +148,7 @@ def reconstruct_data_from_LS(LS, x_real_axis, freq):
     freq_seq = freq[1:] if freq[0] == 0 else freq
     freq_mask= freq <= 1/100
 
-    #print(freq_seq)
+    #_logger.debug(freq_seq)
     for fi in freq_seq:
         try:
             theta = LS.model_parameters(fi)
@@ -360,7 +365,7 @@ def sub_sample_coords(X, lons, lats, stancils, map_func =None):
     def get_lon_lat_coords(stancil):
 
         x_mask= (stancil[0] <= X) & (X <= stancil[-1])
-        #print(stancil[1])
+        #_logger.debug(stancil[1])
         if sum(x_mask) ==0: # if there are not enough photos set results to nan
             return np.array([stancil[1], np.nan, np.nan])
 
@@ -369,7 +374,7 @@ def sub_sample_coords(X, lons, lats, stancils, map_func =None):
         return np.array([stancil[1],lon_bin, lat_bin])
 
     map_func = map if map_func is None else map_func
-    #print(map_func)
+    #_logger.debug(map_func)
     coord_positions = list(map_func( get_lon_lat_coords, copy.copy(stancils)   ))
 
     coord_positions = np.vstack(coord_positions)
@@ -404,8 +409,8 @@ class wavenumber_spectrogram:
         # to get the waveumber units (2  pi/ lambda), multiply by 2 pi
         self.k, self.dk = self.k * 2 * np.pi, self.dk  * 2 * np.pi 
 
-        # print(self.k[0], self.k[-1])
-        # print(self.dk)
+        # _logger.debug(self.k[0], self.k[-1])
+        # _logger.debug(self.dk)
         # create window
         self.win    = create_window(Lpoints)
 
@@ -500,12 +505,12 @@ class wavenumber_spectrogram:
         for I in D_vars.values():
             stancil_vars.append(I)
 
-        print('Parcevals Theorem:')
-        print('variance of unweighted timeseries: ',DATA.var())
-        print('mean variance of detrended chunks: ', np.array(stancil_vars).mean())
-        #print('variance of weighted timeseries: ',self.phi.var() )
+        _logger.debug('Parcevals Theorem:')
+        _logger.debug('variance of unweighted timeseries: ',DATA.var())
+        _logger.debug('mean variance of detrended chunks: ', np.array(stancil_vars).mean())
+        #_logger.debug('variance of weighted timeseries: ',self.phi.var() )
         #self.calc_var(self)
-        print('variance of the pwelch Spectrum: ', self.calc_var())
+        _logger.debug('variance of the pwelch Spectrum: ', self.calc_var())
 
         if add_attrs:
             self.G.attrs['variance_unweighted_data']        = DATA.var()
@@ -541,7 +546,7 @@ class wavenumber_spectrogram_LS_even:
 
 
         # create subsample k
-        #print(waven_method)
+        #_logger.debug(waven_method)
         if type(waven_method) is str:
             self.k, self.dk  = calc_freq_LS(x, L, method = waven_method )
         elif type(waven_method) is np.ndarray:
@@ -650,7 +655,7 @@ class wavenumber_spectrogram_LS:
 
 
         # create subsample k
-        #print(waven_method)
+        #_logger.debug(waven_method)
         if type(waven_method) is str:
             self.k, self.dk  = calc_freq_LS(x, self.Lpoints, method = waven_method )
         elif type(waven_method) is np.ndarray:
@@ -714,7 +719,7 @@ class wavenumber_spectrogram_LS:
             #x = X[stancil[0]:stancil[-1]]
             x_mask= (stancil[0] <= X) & (X <= stancil[-1])
 
-            #print(stancil[1])
+            #_logger.debug(stancil[1])
             x = X[x_mask]
             if x.size < 200: # if there are not enough photos set results to nan
                 #return stancil[1], self.k*np.nan, np.fft.rfftfreq( int(self.Lpoints), d=self.dx)*np.nan,  x.size
@@ -737,17 +742,17 @@ class wavenumber_spectrogram_LS:
             nan_mask         =np.isnan(y_gridded)
 
             err = ERR[x_mask] if ERR is not None else None
-            #print(x.shape, y.shape, self.k,  self.LS)
+            #_logger.debug(x.shape, y.shape, self.k,  self.LS)
             LS_PSD, LS_object = calc_spectrum_LS( x, y, self.k, err=err,  LS= None, dk =self.dk)
 
             y_model           = reconstruct_data_from_LS(LS_object, x_model, self.k)
 
 
-            # print(stancil[-1], x_model[-1])
-            # print(stancil[0], x_model[0])
-            # print(np.fft.rfft(y_model).size , kk.size)
-            # print(x_model.size, y_gridded.size, y_model.size)
-            # print('--')
+            # _logger.debug(stancil[-1], x_model[-1])
+            # _logger.debug(stancil[0], x_model[0])
+            # _logger.debug(np.fft.rfft(y_model).size , kk.size)
+            # _logger.debug(x_model.size, y_gridded.size, y_model.size)
+            # _logger.debug('--')
             P = conserve_variance(np.fft.rfft(y_model), self.k, y_gridded, nan_mask = nan_mask )
             P.set_parameters()
             #P.test_ojective_func(P.tanh_weight_function, plot_flag=False)
@@ -762,11 +767,11 @@ class wavenumber_spectrogram_LS:
         # apply func to all stancils
         # Spec_returns=list()
         # for ss in stancil_iter:
-        #     print(ss)
+        #     _logger.debug(ss)
         #     Spec_returns.append( calc_spectrum_apply(ss) )
 
         map_func = map if map_func is None else map_func
-        print(map_func)
+        _logger.debug(map_func)
         Spec_returns = list(map_func( calc_spectrum_and_field_apply, copy.copy(self.stancil_iter)   ))
         # # linear version
         #Spec_returns = list(map( calc_spectrum_and_field_apply, copy.copy(self.stancil_iter)   ))
@@ -777,7 +782,7 @@ class wavenumber_spectrogram_LS:
         Pars            = dict()
         N_per_stancil   = list()
         for I in Spec_returns:
-            #print(I[1].shape, I[2].shape)
+            #_logger.debug(I[1].shape, I[2].shape)
             D_specs[I[0]]      = I[1]
             Y_model[I[0]]      = I[2]
             Pars[I[0]]         = I[3]
@@ -906,12 +911,12 @@ class wavenumber_spectrogram_LS:
 
         stancil_weighted_variance = np.nansum(np.array(stancil_vars))/Nphotons
 
-        print('Parcevals Theorem:')
-        print('variance of timeseries: ', DATA.var())
-        print('mean variance of stancils: ', stancil_weighted_variance )
-        #print('variance of weighted timeseries: ',self.phi.var() )
+        _logger.debug('Parcevals Theorem:')
+        _logger.debug('variance of timeseries: ', DATA.var())
+        _logger.debug('mean variance of stancils: ', stancil_weighted_variance )
+        #_logger.debug('variance of weighted timeseries: ',self.phi.var() )
         #self.calc_var(self)
-        print('variance of the optimzed windowed LS Spectrum: ', self.calc_var())
+        _logger.debug('variance of the optimzed windowed LS Spectrum: ', self.calc_var())
 
         if add_attrs:
             self.G.attrs['variance_unweighted_data']        = DATA.var()
@@ -974,21 +979,21 @@ class wavenumber_pwelch:
         self.k  = self.calc_freq()
         #del(self.df)
 
-        #print(data.size, L, ov, int(L-ov) )
+        #_logger.debug(data.size, L, ov, int(L-ov) )
         nbin=int(np.floor(dsize/(L-ov)))
-        #print(nbin)
+        #_logger.debug(nbin)
 
         if save_chunks:
             chunks=np.empty([int(nbin),int(L)])
 
         self.specs=np.empty([int(nbin),self.k.size])
-        #print(chunks.shape)
+        #_logger.debug(chunks.shape)
         #result_array = np.empty((0, 100))
         #if plot_chunks:
             #M.figure_axis_xy()
         last_k=0
         k=0
-        #print('iter range', np.arange(0,data.size,int(L-ov)))
+        #_logger.debug('iter range', np.arange(0,data.size,int(L-ov)))
         for i in np.arange(0,dsize-int(L-ov)+1,int(L-ov)):
 
             if (plot_chunks) and (i >= dsize-6*int(L-ov)):
@@ -997,12 +1002,12 @@ class wavenumber_pwelch:
             self.phi=data[int(i):int(i+L)]
 
             #self.ii=np.append(self.ii,[i,i+L])
-            #print(self.phi.max())
+            #_logger.debug(self.phi.max())
 
-            #print(self.phi.mean())
-            #print(self.phi.shape)
-            #print('i',int(i), int(i+L))
-            #print(chunk.size, l)
+            #_logger.debug(self.phi.mean())
+            #_logger.debug(self.phi.shape)
+            #_logger.debug('i',int(i), int(i+L))
+            #_logger.debug(chunk.size, l)
             if int(i+L) <= data.size-1:
                 if save_chunks:
                     chunks[k,:]=self.phi
@@ -1021,11 +1026,11 @@ class wavenumber_pwelch:
 
             else:
                 if plot_chunks:
-                    print('end of TS is reached')
-                    print('last spec No: '+str(last_k))
-                    print('spec container: '+str(specs.shape))
-                    print('last used Timestep: '+str(last_used_TS))
-                    print('length of TS '+ str(dsize) +'ms')
+                    _logger.debug('end of TS is reached')
+                    _logger.debug('last spec No: '+str(last_k))
+                    _logger.debug('spec container: '+str(specs.shape))
+                    _logger.debug('last used Timestep: '+str(last_used_TS))
+                    _logger.debug('length of TS '+ str(dsize) +'ms')
 
             k+=1
 
@@ -1083,12 +1088,12 @@ class wavenumber_pwelch:
         self.El, self.Eu =spec_error(self.spec_est,self.n_spec,ci=ci)
 
     def parceval(self):
-        print('Parcevals Theorem:')
-        print('variance of unweighted timeseries: ',self.data.var())
-        print('mean variance of timeseries chunks: ',self.chunks.var(axis=1).mean() if self.save_chunks is True else 'data not saved')
-        #print('variance of weighted timeseries: ',self.phi.var() )
+        _logger.debug('Parcevals Theorem:')
+        _logger.debug('variance of unweighted timeseries: ',self.data.var())
+        _logger.debug('mean variance of timeseries chunks: ',self.chunks.var(axis=1).mean() if self.save_chunks is True else 'data not saved')
+        #_logger.debug('variance of weighted timeseries: ',self.phi.var() )
         #self.calc_var(self)
-        print('variance of the pwelch Spectrum: ',self.var)
+        _logger.debug('variance of the pwelch Spectrum: ',self.var)
 
     def calc_var(self):
         """ Compute total variance from spectrum """
@@ -1276,10 +1281,10 @@ class conserve_variance:
         m=int(m)
         s =var.shape
         if s[0] <= 2*m:
-            print('0 Dimension is smaller then averaging length')
+            _logger.debug('0 Dimension is smaller then averaging length')
             return
         rr=np.asarray(var)*np.nan
-        #print(type(rr))
+        #_logger.debug(type(rr))
         var_range=np.arange(m,int(s[0])-m-1,1)
         for i in var_range[np.isfinite(var[m:int(s[0])-m-1])]:
             #rm.append(var[i-m:i+m].mean())

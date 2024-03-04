@@ -1,3 +1,4 @@
+import logging
 import os, sys
 #execfile(os.environ['PYTHONSTARTUP'])
 from icesat2_tracks.config.IceSAT2_startup import mconfig
@@ -32,6 +33,8 @@ import concurrent.futures as futures
 
 import piecewise_regression
 
+_logger = logging.getLogger(__name__)
+
 #import s3fs
 #processed_ATL03_20190605061807_10380310_004_01.h5
 
@@ -54,7 +57,7 @@ track_name, batch_key, test_flag = io.init_from_input(sys.argv) # loads standard
 #track_name, batch_key, test_flag = '20190208142818_06440201_005_01', 'SH_publish', False
 
 
-#print(track_name, batch_key, test_flag)
+#_logger.debug(track_name, batch_key, test_flag)
 hemis, batch = batch_key.split('_')
 #track_name= '20190605061807_10380310_004_01'
 
@@ -81,14 +84,14 @@ all_beams = mconfig['beams']['all_beams']
 try:
     f     = h5py.File(load_file, 'r')
 except:
-    print('file not found, exit')
+    _logger.debug('file not found, exit')
     MT.json_save(name='A01b_'+track_name+'_success', path=save_path, data= {'reason':'ATL07 file not found, exit'})
     exit()
 
 beams     = [b if b in f.keys() else None for b in all_beams]
 imp.reload(regrid)
 #track_poleward    = regrid.track_pole_ward_file(f, product='ATL10')
-# print('poleward track is' , track_poleward)
+# _logger.debug('poleward track is' , track_poleward)
 # ATL03       =   h5py.File(load_file, 'r')
 # ATL03['orbit_info'].keys()
 # ATL03['orbit_info/lan'][:]
@@ -106,7 +109,7 @@ def cut_rear_data(xx0, dd0, N_seg= 20):
     cut_flag = True
     dd_old = -1
 
-    print('inital length' , nsize0)
+    _logger.debug('inital length' , nsize0)
 
     #@jit(nopython=True, parallel= False)
     def adjust_length(var_list, rear_mask, cut_flag):
@@ -114,7 +117,7 @@ def cut_rear_data(xx0, dd0, N_seg= 20):
         #var_list = var_list if track_poleward else var_list[::-1]
 
         if var_list[0:3].mean()*2 < var_list[-1]:
-            #print('cut last '+ str(100/N_seg) +'% of data')
+            #_logger.debug('cut last '+ str(100/N_seg) +'% of data')
             rear_mask[int(nsize* (N_seg-1) / N_seg):] = False
         else:
             cut_flag =  False
@@ -129,16 +132,16 @@ def cut_rear_data(xx0, dd0, N_seg= 20):
     while cut_flag:
         dd= dd0[rear_mask]
         nsize = dd.size
-        print('new length', nsize)
+        _logger.debug('new length', nsize)
         if (nsize/N_seg) < 1:
             break
         stencil_iter = create_chunk_boundaries( int(nsize/N_seg), nsize,ov =0, iter_flag=True )
         var_list = np.array(list(map(get_var, stencil_iter)))
-        #print(k, var_list)
+        #_logger.debug(k, var_list)
         rear_mask, cut_flag = adjust_length(var_list, rear_mask, cut_flag)
 
         if nsize == dd_old:
-            print('--- lengthen segments')
+            _logger.debug('--- lengthen segments')
             N_seg -=1
             #cut_flag = False
 
@@ -167,7 +170,7 @@ def get_breakingpoints(xx, dd ,Lmeter= 3000):
     n_breakpoints= 1
     while convergence_flag:
         pw_fit = piecewise_regression.Fit(x2, y2, n_breakpoints=1)
-        print('n_breakpoints', n_breakpoints, pw_fit.get_results()['converged'])
+        _logger.debug('n_breakpoints', n_breakpoints, pw_fit.get_results()['converged'])
         convergence_flag = not pw_fit.get_results()['converged']
         n_breakpoints += 1
         if n_breakpoints == 4:
@@ -176,8 +179,8 @@ def get_breakingpoints(xx, dd ,Lmeter= 3000):
     pw_results = pw_fit.get_results()
     if pw_results['converged']:
         if pw_results['estimates']['alpha1']['estimate'] < 0:
-            print('decay at the front')
-            print('n_breakpoints',pw_fit.n_breakpoints )
+            _logger.debug('decay at the front')
+            _logger.debug('n_breakpoints',pw_fit.n_breakpoints )
 
         breakpoint = pw_results['estimates']['breakpoint1']['estimate']
         return pw_results['estimates']['alpha1']['estimate'], pw_fit, breakpoint
@@ -200,15 +203,15 @@ for k in beams:
 
     #k = 'gt2r'#beams[0]
     #imp.reload(io)
-    print(k)
+    _logger.debug(k)
     try:
         T_freeboard = io.getATL07_beam(load_file, beam= k)
     except:
-        print('failed to load beam')
+        _logger.debug('failed to load beam')
         slope_test = False
         data_density  = False
         #return data_density, slope_test
-        print('break -------', k, TF,  data_density, slope_test)
+        _logger.debug('break -------', k, TF,  data_density, slope_test)
         continue
 
     # find devide such that each hemisphere is split into two parts, if data is there
@@ -260,7 +263,7 @@ for k in beams:
             return None
         time = T['time']['delta_time']
         lat = T['ref']['latitude']
-        print('1st lat =' + str(abs(lat.iloc[time.argmin()])) , ';last lat =' + str(abs(lat.iloc[time.argmax()])) )
+        _logger.debug('1st lat =' + str(abs(lat.iloc[time.argmin()])) , ';last lat =' + str(abs(lat.iloc[time.argmax()])) )
 
         return abs(lat.iloc[time.argmax()]) > abs(lat.iloc[time.argmin()])
 
@@ -279,7 +282,7 @@ for k in beams:
     # assign Region to each subset, hemisphere dependent
     for TF,Tsel,TF_poleward in zip(['TF1', 'TF2'], [TF1, TF2], [TF1_poleward, TF2_poleward]):
 
-        print(TF,TF_poleward)
+        _logger.debug(TF,TF_poleward)
         if (hemis == 'SH') & TF_poleward:
             region = ('10') # SO region
         elif (hemis == 'SH') & (not TF_poleward):
@@ -295,13 +298,13 @@ for k in beams:
             slope_test = False
             data_density  = False
             #return data_density, slope_test
-            print('break -------', k, TF,  data_density, slope_test)
+            _logger.debug('break -------', k, TF,  data_density, slope_test)
             continue
 
         else:
             # flip the beam section that is not poleward
             if not TF_poleward:
-                print('TF polewards is ', TF_poleward)
+                _logger.debug('TF polewards is ', TF_poleward)
                 Tsel = Tsel.sort_values(('ref','seg_dist_x'), ascending=False).reset_index()
 
             # create local x axis
@@ -310,7 +313,7 @@ for k in beams:
         # ignore bad segments
         Tsel = Tsel[Tsel['heights']['height_segment_surface_error_est'] < 1e2]
         if (Tsel.size <= 50):
-            #print('too small table, skip ')
+            #_logger.debug('too small table, skip ')
             Tsel = None
 
         # if Tsel is None skip this itteration
@@ -318,7 +321,7 @@ for k in beams:
             slope_test = False
             data_density  = False
             #return data_density, slope_test
-            print('break -------', k, TF,  data_density, slope_test)
+            _logger.debug('break -------', k, TF,  data_density, slope_test)
             continue
         else:
             data_density =Tsel.shape[0]/abs(Tsel['x'].max() - Tsel['x'].min()) # datapoints per meters
@@ -339,14 +342,14 @@ for k in beams:
             # assume all data points are valid for NH ...
             rear_mask = np.array(Tsel['x'] > -1)
 
-        #print('density post cutting', len(xx0[rear_mask])/abs(xx0[rear_mask].max() - xx0[rear_mask].min()) )
+        #_logger.debug('density post cutting', len(xx0[rear_mask])/abs(xx0[rear_mask].max() - xx0[rear_mask].min()) )
 
         # if cutted data is too short, skip loop
         if len(xx0[rear_mask]) < 500:
             slope_test = False
             data_density  = False
             #return data_density, slope_test
-            print('break -------', k, TF,  data_density, slope_test)
+            _logger.debug('break -------', k, TF,  data_density, slope_test)
             continue
 
         # estmiate slope at the beginning
@@ -371,14 +374,14 @@ for k in beams:
         DD_pos_end.loc[k,   TF]  =  Tsel.iloc[-1]['ref']['longitude'] , Tsel.iloc[-1]['ref']['latitude'],  Tsel.iloc[-1]['ref']['seg_dist_x'], Tsel.iloc[-1]['time']['delta_time']
         # DD_pos_start.loc[k, [TF+'_lon', TF+'_lat']]  =  Tsel.iloc[0]['ref']['longitude']  , Tsel.iloc[0]['ref']['latitude'],  Tsel.iloc[0]['ref']['seg_dist_x'],  Tsel.iloc[0]['time']['delta_time']
         # DD_pos_end.loc[k, [TF+'_lon', TF+'_lat']]    =  Tsel.iloc[-1]['ref']['longitude'] , Tsel.iloc[-1]['ref']['latitude'],  Tsel.iloc[-1]['ref']['seg_dist_x'], Tsel.iloc[-1]['time']['delta_time']
-        print('result-------', k, TF, data_density, slope_test)
+        _logger.debug('result-------', k, TF, data_density, slope_test)
 
 
 # %% check decisions
 
 TT_start, TT_end = dict(), dict()
 for Ti in DD_pos_start:
-    print(Ti)
+    _logger.debug(Ti)
 
     ddtime_start, ddtime_end = list(), list()
     for k in all_beams:
@@ -388,13 +391,13 @@ for Ti in DD_pos_start:
         else:
             ddtime_start.append(DD_pos_start[Ti][k][1]) # get latitude
             ddtime_end.append(DD_pos_end[Ti][k][1])     # get latitude
-            print('poleward check ', k , abs(DD_pos_start[Ti][k][1]) < abs(DD_pos_end[Ti][k][1]), abs(DD_pos_start[Ti][k][1]) ,  abs(DD_pos_end[Ti][k][1]))
+            _logger.debug('poleward check ', k , abs(DD_pos_start[Ti][k][1]) < abs(DD_pos_end[Ti][k][1]), abs(DD_pos_start[Ti][k][1]) ,  abs(DD_pos_end[Ti][k][1]))
 
-    #print(ddtime_start, ddtime_end)
+    #_logger.debug(ddtime_start, ddtime_end)
     TT_start[Ti] = DD_pos_start[Ti].iloc[np.array(ddtime_start).argmin()]
     TT_end[Ti] = DD_pos_end[Ti].iloc[np.array(ddtime_end).argmax()]
     try:
-        print('poleward check sum', abs(TT_start[Ti][1]) < abs(TT_end[Ti][1]), abs(TT_start[Ti][1]) ,  abs(TT_end[Ti][1]))
+        _logger.debug('poleward check sum', abs(TT_start[Ti][1]) < abs(TT_end[Ti][1]), abs(TT_start[Ti][1]) ,  abs(TT_end[Ti][1]))
     except:
         pass
 
@@ -406,7 +409,7 @@ F = M.figure_axis_xy(10, 4  ,container = True)
 
 for Ti,figp in zip(DD_pos_start, [121, 122]):
     ax = F.fig.add_subplot(figp, projection='polar')
-    print(Ti)
+    _logger.debug(Ti)
     for k in all_beams:
         if (type(DD_pos_start[Ti][k]) is tuple):
             plt.scatter(  np.deg2rad( DD_pos_start[Ti][k][0]), DD_pos_start[Ti][k][1] ,s=20, color='green')#, label='start')
@@ -448,10 +451,10 @@ DD_slope_mask = DD_slope < 1e-3
 
 # if there is at leat one slope pair download data, otherwise write files and exit
 if ( (DD_slope_mask.sum() > 1).sum() > 0) :
-    print('download data')
+    _logger.debug('download data')
 
 else:
-    print('no suffcient data, quit()')
+    _logger.debug('no suffcient data, quit()')
     MT.json_save(name='A01b_'+track_name+'_success', path=save_path, \
     data= {'failed': 'True', 'reason':'no sufficient data' ,'slope': DD_slope.where(pd.notnull(DD_slope), 0).to_dict(), 'density':DD_data.where(pd.notnull(DD_data), 0).to_dict() })
     exit()
@@ -465,7 +468,7 @@ for TF,TF_poleward in zip(['TF1', 'TF2'], [TF1_poleward, TF2_poleward]):
     if len(iregion) !=0:
         #iregion2 = iregion[0][0] # for testing
         iregion2 = iregion[0]
-        print(iregion2)
+        _logger.debug(iregion2)
         # create track dict
         CID = io.case_ID(hemis+'_'+track_name)
         if type(iregion2) is str:  # This is the SH case
@@ -477,7 +480,7 @@ for TF,TF_poleward in zip(['TF1', 'TF2'], [TF1_poleward, TF2_poleward]):
             CIDr.GRN = iregion2
             CIDr.RL = '005'
             #ATL03_list.append('ATL03_'+CIDr.set_ATL03_trackname())
-            #print(CIDr.get_granule() in remote_names)
+            #_logger.debug(CIDr.get_granule() in remote_names)
 
             #ATL03_dummy= [CIDr.set_dummy()]
             ATL03_list = ['ATL03_'+CIDr.set_ATL03_trackname()]
@@ -524,7 +527,7 @@ for TF,TF_poleward in zip(['TF1', 'TF2'], [TF1_poleward, TF2_poleward]):
         if len(remote_names) !=0:
             MT.json_save2(name='A01b_ID_'+CID.ID, path=save_path, data= DD)
         else:
-            print('no ATL03 track found for CID.ID')
+            _logger.debug('no ATL03 track found for CID.ID')
 
 
 ATL03_proposed      = list(set(ATL03_proposed))
@@ -533,7 +536,7 @@ ATL03_remote        = list(set(ATL03_remote))
 
 
 if len(ATL03_remote) ==0:
-    print('no ATL03 tracks found! quit()')
+    _logger.debug('no ATL03 tracks found! quit()')
     MT.json_save(name='A01b_'+track_name+'_success', path=save_path, \
     data= {'failed': 'True', 'reason':'no ATL03 track found' ,'slope': DD_slope.where(pd.notnull(DD_slope), 0).to_dict(), 'density':DD_data.where(pd.notnull(DD_data), 0).to_dict() })
     exit()
@@ -544,7 +547,7 @@ product_directory, sd = ATL03_remote_link[0].split('/')[4], ATL03_remote_link[0]
 # %% download ATL03 file to scratch folder
 def ATL03_download_worker(fname):
     io.ATL03_download(None,None, scratch_path, product_directory, sd,fname)
-    print(fname, ' done')
+    _logger.debug(fname, ' done')
 
 if test_flag:
     for rname in remote_names:
@@ -560,11 +563,11 @@ else:
 
 # %%
 # print results and write files to exit
-print('data density N/meter')
-print(DD_data)
+_logger.debug('data density N/meter')
+_logger.debug(DD_data)
 
-print('slopes')
-print(DD_slope)
+_logger.debug('slopes')
+_logger.debug(DD_slope)
 
 # write slope data for fun
 #DD_merge = pd.concat({'density_Nperm':DD_data , 'slopes':DD_slope}, axis=1)

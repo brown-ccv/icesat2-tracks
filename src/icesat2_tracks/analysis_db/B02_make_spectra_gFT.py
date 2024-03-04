@@ -43,7 +43,6 @@ _logger = logging.getLogger(__name__)
 
 # import tracemalloc # removing this for now. CP
 
-
 matplotlib.use("Agg")  # prevent plot windows from opening
 
 
@@ -125,7 +124,7 @@ def run_B02_make_spectra_gFT(
             bad_ratio_flag = True
 
     if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
-        _logger.warning(
+        _logger.critical(
             "nan fraction > 95%, or bad ratio of data, pass this track, add to bad tracks"
         )
         MT.json_save(
@@ -136,7 +135,7 @@ def run_B02_make_spectra_gFT(
                 "date": str(datetime.date.today()),
             },
         )
-        _logger.warning("exit.")
+        _logger.critical("exit.")
         exit()
 
     # test LS with an even grid where missing values are set to 0

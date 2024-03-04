@@ -1,4 +1,8 @@
+import logging
+
 from ipyleaflet import basemaps
+
+_logger = logging.getLogger(__name__)
 
 
 # height correction tools
@@ -376,11 +380,11 @@ def check_RGT_in_domain(Gtrack_lowest, gdf):
     interect_list = list(result)
     interect_list.sort()
 
-    print("RGT in domain: ", len(Gtrack_lowest["RGT"].unique()))
-    print("RGT with data found: ", len(gdf_list))
-    print("RGT in both: ", len(interect_list))
+    _logger.debug("RGT in domain: ", len(Gtrack_lowest["RGT"].unique()))
+    _logger.debug("RGT with data found: ", len(gdf_list))
+    _logger.debug("RGT in both: ", len(interect_list))
     if len(interect_list) != len(gdf_list):
-        print("RGT not in both: ", list(set(gdf_list) - result))
+        _logger.debug("RGT not in both: ", list(set(gdf_list) - result))
     return interect_list
 
 
@@ -406,7 +410,7 @@ def define_x_coordinate_in_polygon(table_data, polygon, round=True):
     if ascending_test(table_data):
         table_data["x"] = table_data["x_atc"] - min_eq_dist
     else:
-        # print('descending')
+        # _logger.debug('descending')
         table_data["x"] = ((np.pi * 6371 * 1e3) - min_eq_dist) - table_data["x_atc"]
 
     return table_data

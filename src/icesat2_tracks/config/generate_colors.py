@@ -1,5 +1,9 @@
 #%matplotlib inline
+import logging
+
 from icesat2_tracks.local_modules import m_colormanager_ph3 as M_color
+
+_logger = logging.getLogger(__name__)
 
 mconfig['paths']
 path=mconfig['paths']['config']
@@ -8,7 +12,7 @@ A = M_color.ase_to_json(path+'color_def.ase')
 B=dict()
 for i in A[0]['swatches']:
     B[i['name']] = i['data']['values']
-    print(i['name'] + '  ' + str(i['data']['values']))
+    _logger.debug("%s %s", i['name'], str(i['data']['values']))
 
 rels=dict()
 
