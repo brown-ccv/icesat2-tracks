@@ -37,7 +37,7 @@ def track_pole_ward_file(hdf5_file, product='ALT03'):
         T_lat = hdf5_file['gt1r/freeboard_beam_segment/latitude'][:]
         T_time = hdf5_file['gt1r/freeboard_beam_segment/delta_time'][:]
     #return ( T_lat[T_time.argmax()] - T_lat[T_time.argmin()] ) < 0
-    _logger.debug('1st lat =' + str(abs(T_lat[T_time.argmin()])) , ';last lat =' + str(abs(T_lat[T_time.argmax()])) )
+    _logger.debug('1st lat = %s, ; last lat= %s', abs(T_lat[T_time.argmin()]), abs(T_lat[T_time.argmax()]))
     return abs(T_lat[T_time.argmax()]) > abs(T_lat[T_time.argmin()])
 
 
