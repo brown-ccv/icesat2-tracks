@@ -1,0 +1,130 @@
+{
+    "paths":{
+            "work": "/Users/Shared/Projects/2021_IceSAT2_tracks/data/work/",
+            "downloads": "/project/downloads/",
+            "scratch": "/Users/Shared/Projects/2021_IceSAT2_tracks/data/scratch/",
+            "outputs": "/project/output/",
+            "plot": "/Users/Shared/Projects/2021_IceSAT2_tracks/plots/",
+            "processed": "/Users/Shared/Projects/2021_IceSAT2_tracks/data/processed/",
+            "analysis": "/Users/Shared/Projects/2021_IceSAT2_tracks/analysis/",
+            "local_script": "/Users/Shared/Projects/2021_IceSAT2_tracks/modules/",
+            "config": "/Users/Shared/Projects/2021_IceSAT2_tracks/config/",
+            "add_data": "/Users/Shared/Projects/2021_IceSAT2_tracks/other_data",
+            "code": "/Users/Shared/Projects/2021_IceSAT2_tracks/code/",
+            "code_1L": "/Users/Shared/Projects/2021_IceSAT2_tracks/code_barotropic/",
+            "targets": "/Users/Shared/Projects/2021_IceSAT2_tracks/targets/"
+          },
+
+    "server":"lime",
+    "processor_folder":"automated_processor",
+    "ph2_env_src_str":[" source ", " " ," ~/.virtualenv/RIS2016_fig/bin/activate; "],
+    "ph3_env_src_str":[" source ", " " ," ~/.virtualenv/cyc_ph3/bin/activate; "],
+
+    "fig_sizes":{
+    "AMS":{
+      "one_column":[3.2, 2],
+      "one_column_high":[3.2, 5.12],
+      "23rd_width":[4.5, 2.8],
+      "23rd_width_high":[4.5, 7.2],
+      "two_column":[5.5, 3.4],
+      "two_column_square":[5.5, 5.5],
+      "two_column_oversize":[6.5, 4]
+          },
+      "JGR":{
+        "one_column":[5.6, 3.5],
+        "one_column_high":[5.6, 8.96],
+        "one_column_square":[5.6, 5.6],
+        "full_page":[7.5, 4.68 ],
+        "full_page_high":[7.5, 12],
+        "full_page_square":[7.5, 7.5 ]
+      },
+      "Cryosphere":{
+        "one_column":[3.34, 2.5],
+        "one_column_high":[3.34, 4.45],
+        "two_column":[6.97, 3.92],
+        "two_column_square":[6.97, 6.97],
+        "two_column_oversize":[6.97, 9]
+      }
+
+        },
+
+        "beams": {
+          "all_beams" :   ["gt1l", "gt1r", "gt2l", "gt2r", "gt3l", "gt3r"],
+          "low_beams" :   ["gt1l",  "gt2l",  "gt3l"],
+          "high_beams" :  ["gt1r",  "gt2r",  "gt3r"],
+      "groups":     [ ["gt1l", "gt1r"], ["gt2l", "gt2r"], ["gt3l", "gt3r" ] ],
+        "group_names": ["group1", "group2", "group3"]
+        },
+    "standard_var_name": {
+              "eddy" : ["E_u1p_qp",
+                       "E_q1_dissp_q1p_fft",
+                       "E_u10_1",
+                       "E_q1_hat",
+                       "E_v1p_qp",
+                       "E_q1",
+                       "E_dissp",
+                       "E_u1_qp_qp",
+                       "E_psi_1",
+                       "E_v1_qp_qp",
+                       "E_v10_1"],
+              "eddy_org" : [ "v1_qp_qp", "v1p_qp", "qp_psi1_psi2", "q1_dissp_q1p_fft", "u1p_qp", "dissp", "psi1_psi2_psiR", "u1_qp_qp" ],
+              "mean" : [ "psi_1","psi_2","u10_1","v10_1","q1", "q2","q1_hat" ]
+        },
+    "constants": {
+              "ocean":{
+                    "gas_constant": "gas constant dry air [J/kg/K]",
+                    "gas_constant": "287.04",
+                    "kappa": "2/7",
+
+                    "cp" : "specific heat at constant pressure",
+                    "cp" : "gas_constant/kappa",
+
+                    "cp_v": "specific heat water vapor [J/kg/K]",
+                    "cp_v": "1870.0",
+
+                    "cl": "heat capacity liquid water [J/kg/K]",
+                    "cl": "4190.0",
+
+                    "gas_constant_v": " gas constant water vapor [J/kg/K]",
+                    "gas_constant_v": "461.50",
+
+                    "latent_heat_v": "latent heat of evaporation [J/kg]",
+                    "latent_heat_v": "2.5E+6"
+                  },
+              "atmos":{
+                    "gas_constant": "gas constant of pure water [J/kg/K]",
+                    "gas_constant": "461.5",
+
+                    "cp_0": "specific heat at 0 deg C [J/kg/K]",
+                    "cp_0": "4217.0",
+
+                    "viscosity_0": "shear viscosity",
+                    "viscosity_0": "1.787E-6",
+
+                    "viscosity_20": "shear viscosity",
+                    "viscosity_20": "1.002E-3",
+
+                    "density": "at 0 deg C [kg /m^3]",
+                    "density": "1000.0"
+                  },
+
+              "radius": "in meters [for Earth]",
+              "radius": "6.3710E+6",
+
+              "gravity": "in m/s^2",
+              "gravity": "9.81",
+
+              "omega": "angular velocity earth [rad/s]",
+              "omega": "7.292E-5",
+
+              "mean_sfc_press": "mean surface pressure",
+              "mean_sfc_press": "1E+5",
+
+              "solar_constant": "1360",
+              "tau": "0.22",
+              "albedo": "0.38",
+              "del_sol": "1.2",
+              "p_ref": "1e5",
+              "secs_per_day": "86400"
+                }
+}

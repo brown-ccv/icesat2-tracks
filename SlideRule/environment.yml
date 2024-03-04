@@ -1,0 +1,45 @@
+# conda env create -f environment.yml
+name: IS2_waves
+channels:
+  - conda-forge
+dependencies:
+  - geopandas
+  - h5py
+  - ipykernel
+  - ipywidgets
+  - ipyleaflet
+  - jupyterlab
+  - jupyterlab_widgets
+  - matplotlib
+  - ipympl
+  - numpy
+  - pandas
+  - pip
+  - pyproj
+  - pytables
+  - pytest
+  - python
+  - requests
+  - scikit-learn
+  - scipy
+  - setuptools_scm
+  - shapely
+  - tk
+  - xyzservices
+  - pyarrow
+  - sliderule
+  - arrow
+  - cartopy
+  - dask 
+  - emcee 
+  - geopandas
+  - h5py
+  - hdf5
+  - lmfit
+  - nbconvert
+  - netcdf4
+  - pandas
+  - xarray
+  - xhistogram
+  - zarr
+  - wget
