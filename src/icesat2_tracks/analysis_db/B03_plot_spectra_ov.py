@@ -3,6 +3,7 @@
 This file open a ICEsat2 track applied filters and corrections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+import logging
 from ast import comprehension
 from pathlib import Path
 import matplotlib
@@ -23,15 +24,15 @@ from icesat2_tracks.config.IceSAT2_startup import (
 )
 
 from icesat2_tracks.clitools import (
-    echo,
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     update_paths_mconfig,
     report_input_parameters,
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def plot_wavenumber_spectrogram(ax, Gi, clev, title=None, plot_photon_density=True):
@@ -352,11 +353,11 @@ def run_B03_plot_spectra_ov(
     Gk.sel(beam=k).gFT_PSD_data.plot()
 
     if "y_data" in Gx.sel(beam="gt3r").keys():
-        print("ydata is ", ("y_data" in Gx.sel(beam="gt3r").keys()))
+        _logger.debug("ydata is %s", ("y_data" in Gx.sel(beam="gt3r").keys()))
     else:
-        print("ydata is ", ("y_data" in Gx.sel(beam="gt3r").keys()))
+        _logger.warning("ydata is %s", ("y_data" in Gx.sel(beam="gt3r").keys()))
         MT.json_save("B03_fail", plot_path, {"reason": "no y_data"})
-        echo("failed, exit", "red")
+        _logger.warning("failed, exit")
         exit()
 
     fltostr, _ = MT.float_to_str, MT.num_to_str
@@ -581,10 +582,11 @@ def run_B03_plot_spectra_ov(
         {"time": "time.asctime( time.localtime(time.time()) )"},
     )
 
-    echo("success", "green")
+    _logger.info("success")
 
 
 plot_spectra = makeapp(run_B03_plot_spectra_ov, name="plotspectra")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     plot_spectra()
