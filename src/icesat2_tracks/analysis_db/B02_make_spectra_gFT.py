@@ -110,9 +110,7 @@ def run_B02_make_spectra_gFT(
     nan_fraction = list()
     for k in all_beams:
         heights_c_std = io.get_beam_var_hdf_store(Gd[k], "x")
-        nan_fraction.append(
-            np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0]
-        )
+        nan_fraction.append(np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0])
 
     del heights_c_std
 
@@ -575,4 +573,5 @@ def run_B02_make_spectra_gFT(
 make_spectra_app = makeapp(run_B02_make_spectra_gFT, name="makespectra")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     make_spectra_app()

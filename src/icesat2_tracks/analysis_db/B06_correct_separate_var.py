@@ -42,6 +42,7 @@ from icesat2_tracks.clitools import (
 
 _logger = logging.getLogger(__name__)
 
+
 def get_correct_breakpoint(pw_results):
     br_points = [i for i in pw_results.keys() if "breakpoint" in i]
 
@@ -99,7 +100,6 @@ def get_correct_breakpoint(pw_results):
 
 
 def get_breakingpoints(xx, dd):
-
     convergence_flag = True
     n_breakpoints = 3
     while convergence_flag:
@@ -124,7 +124,6 @@ def get_breakingpoints(xx, dd):
 
 
 def define_noise_wavenumber_piecewise(data_xr, plot_flag=False):
-
     data_log = np.log(data_xr)
 
     k = data_log.k.data
@@ -183,7 +182,6 @@ def tanh_fitler(x, x_cutoff, sigma_g=0.01):
 
 
 def get_k_x_corrected(Gk, theta=0, theta_flag=False):
-
     if not theta_flag:
         return np.nan, np.nan
 
@@ -248,14 +246,15 @@ def save_table(data, tablename, save_path):
         io.save_pandas_table(data, tablename, save_path)
     except Exception as e:
         tabletoremove = save_path + tablename + ".h5"
-        _logger.warning(f"Failed to save table with error {e}. "
-                      f"Removing {tabletoremove} and re-trying..")
+        _logger.warning(
+            f"Failed to save table with error {e}. "
+            f"Removing {tabletoremove} and re-trying.."
+        )
         os.remove(tabletoremove)
         io.save_pandas_table(data, tablename, save_path)
 
 
 def buil_G_error(Gk_sel, PSD_list, list_name):
-
     return xr.DataArray(
         data=PSD_list, coords=Gk_sel.drop("N_per_stancil").coords, name=list_name
     ).expand_dims("beam")
@@ -267,7 +266,6 @@ def run_B06_correct_separate_var(
     ID_flag: bool = True,
     output_dir: str = typer.Option(..., callback=validate_output_dir),
 ):
-
     color_schemes.colormaps2(31, gamma=1)
     col_dict = color_schemes.rels
 
@@ -307,9 +305,7 @@ def run_B06_correct_separate_var(
 
     file_suffixes = ["_gFT_k.nc", "_gFT_x.nc"]
     Gk, Gx = [
-        xr.open_dataset(
-            load_path_work / "B02_spectra" / f"B02_{track_name}{suffix}"
-        )
+        xr.open_dataset(load_path_work / "B02_spectra" / f"B02_{track_name}{suffix}")
         for suffix in file_suffixes
     ]
 
@@ -512,9 +508,7 @@ def run_B06_correct_separate_var(
         + " to "
         + str(np.round(Gx.isel(x=-1).lat.mean().data, 2))
     )
-    plt.title(
-        next(fn) + "Mean Displacement Spectra\n(lat=" + lat_str + ")", loc="left"
-    )
+    plt.title(next(fn) + "Mean Displacement Spectra\n(lat=" + lat_str + ")", loc="left")
 
     dd = 10 * np.log((G_gFT_smth / G_gFT_smth.k).isel(x=slice(0, -1)))
     dd = dd.where(~np.isinf(dd), np.nan)
@@ -680,17 +674,13 @@ def run_B06_correct_separate_var(
         T3["heights_c_model_err"] = np.interp(
             T3["dist"], continous_x_grid, concented_err
         )
-        T3["heights_c_residual"] = (
-            T3["heights_c_weighted_mean"] - T3["heights_c_model"]
-        )
+        T3["heights_c_residual"] = T3["heights_c_weighted_mean"] - T3["heights_c_model"]
 
         B3_v2[bb] = T3
         Gx_v2[bb] = Gx_k
 
     try:
-        G_angle = xr.open_dataset(
-            load_path_angle / (f"B05_{track_name}_angle_pdf.nc")
-        )
+        G_angle = xr.open_dataset(load_path_angle / (f"B05_{track_name}_angle_pdf.nc"))
 
     except ValueError as e:
         _logger.warning(f"{e} no angle data found, skip angle corretion")
@@ -776,4 +766,5 @@ def run_B06_correct_separate_var(
 correct_separate_app = makeapp(run_B06_correct_separate_var, name="correct-separate")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     correct_separate_app()

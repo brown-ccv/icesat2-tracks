@@ -649,4 +649,5 @@ def run_A02c_IOWAGA_thredds_prior(
 make_iowaga_threads_prior_app = makeapp(run_A02c_IOWAGA_thredds_prior, name="threads-prior")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     make_iowaga_threads_prior_app()
