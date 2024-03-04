@@ -291,7 +291,7 @@ class wavenumber_spectrogram_gFT:
             # define error
             err = ERR[x_mask] if ERR is not None else 1
 
-            _logger.debug("compute time weights : ", time.perf_counter() - ta)
+            _logger.debug("compute time weights : %s", time.perf_counter() - ta)
 
             ta = time.perf_counter()
             FT.define_problem(weight, err)
@@ -301,13 +301,11 @@ class wavenumber_spectrogram_gFT:
 
             if np.isnan(np.mean(p_hat)):
                 _logger.debug(" -- inversion nan!")
-                _logger.debug(" -- data fraction", x.size / Lpoints)
+                _logger.debug(" -- data fraction %s", x.size / Lpoints)
                 _logger.debug(
-                    " -- weights:",
+                    " -- weights: %s err: %s y: %s",
                     np.mean(weight),
-                    "err:",
                     np.mean(err),
-                    "y:",
                     np.mean(y),
                 )
                 _logger.debug(" -- skip stancil")
