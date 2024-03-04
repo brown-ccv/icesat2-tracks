@@ -47,10 +47,18 @@ app = Typer(add_completion=False)
 
 
 class _LogLevel(str, Enum):
-    QUIET = "quiet"  # logging.CRITICAL
-    WARNING = "warning"  # logging.WARNING
-    VERBOSE = "verbose"  # logging.INFO
-    DEBUG = "debug"  # logging.DEBUG
+    QUIET = "quiet"
+    WARNING = "warning"
+    VERBOSE = "verbose"
+    DEBUG = "debug"
+
+
+_LOG_LEVEL_MAPPING = {
+    _LogLevel.QUIET: logging.CRITICAL,
+    _LogLevel.WARNING: logging.WARNING,
+    _LogLevel.VERBOSE: logging.INFO,
+    _LogLevel.DEBUG: logging.DEBUG,
+}
 
 
 @app.callback()
@@ -61,12 +69,7 @@ def main(
     ] = "warning"
 ):
     """Analyze data from the ICESAT2 satellite."""
-    level = {
-        _LogLevel.QUIET: logging.CRITICAL,
-        _LogLevel.WARNING: logging.WARNING,
-        _LogLevel.VERBOSE: logging.INFO,
-        _LogLevel.DEBUG: logging.DEBUG,
-    }[log]
+    level = _LOG_LEVEL_MAPPING[log]
     logging.basicConfig(level=level)
 
 
