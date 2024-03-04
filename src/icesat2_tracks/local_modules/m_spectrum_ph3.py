@@ -614,9 +614,9 @@ class Spectogram_subsample(pwelch):
 
         n_specs=[]
         k=0
-        _logger.debug('subL', subL)
-        _logger.debug('L', L)
-        _logger.debug(data_size_adjust)
+        _logger.debug('subL %s', subL)
+        _logger.debug('L %s', L)
+        _logger.debug("%s", data_size_adjust)
         #_logger.debug(specs.shape, np.arange(0,data.size,int(L-ov)), np.arange(0,data.size-L,int(L-ov)).shape, )
         #_logger.debug(specs.shape,np.arange(0,data_size_adjust-int(L-ov)+1,int(L-ov)) )
         for i in np.arange(0,data_size_adjust-int(L-ov)+1,int(L-ov)):
@@ -737,7 +737,7 @@ class Spectogram_subsample(pwelch):
         self.hist=write_log(self.hist, s, verbose=verbose)
     def log(self):
         _logger.debug('.hist variable')
-        _logger.debug(self.hist)
+        _logger.debug("%s", self.hist)
     def power_anomalie(self, clim=None):
         dd=10*np.log10(self.data[:,:])
         #_logger.debug(dd)
@@ -747,8 +747,8 @@ class Spectogram_subsample(pwelch):
 
         self.data_power_mean=np.nanmedian(dd, axis=0) if clim is None else 10*np.log10(clim)
         dd_tmp=self.data_power_mean.repeat(self.time.size)
-        _logger.debug(self.data_power_mean.shape)
-        _logger.debug(self.f.size,self.time.size)
+        _logger.debug("%s", self.data_power_mean.shape)
+        _logger.debug("%s %s", self.f.size,self.time.size)
         self.data_power_ano=dd- dd_tmp.reshape(self.f.size,self.time.size).T
 
     def anomalie(self, clim=None):
@@ -789,8 +789,8 @@ class Periodogram(pwelch):
             end_time=timestamp[-1]
 
         _logger.debug('Periodogram starttime and endtime:')
-        _logger.debug(start_time)
-        _logger.debug(end_time)
+        _logger.debug("%s", start_time)
+        _logger.debug("%s", end_time)
 
 
         time = np.arange(start_time+L/2, end_time+dt_timedelta, timeres)
@@ -805,7 +805,7 @@ class Periodogram(pwelch):
         #self.time=np.arange(,nin*)
     def save_data(self, path=None, S=None):
         P=save_data_periodogram(self , S=S)
-        _logger.debug(P.meta)
+        _logger.debug("%s", P.meta)
         _logger.debug('constructed class for saving')
         save_file(P, path)
 
@@ -976,7 +976,7 @@ def save_file( data, path):
     outfile=path
     f = open(outfile, 'wb')
     pickle.dump(data,f, pickle.HIGHEST_PROTOCOL)
-    _logger.debug('saved to:',outfile)
+    _logger.debug('saved to: %s',outfile)
     f.close()
 
 ## ceasars funcitons
