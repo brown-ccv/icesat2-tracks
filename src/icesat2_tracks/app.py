@@ -202,7 +202,6 @@ def correct_separate(  # TODO: rename with a verb or something
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
