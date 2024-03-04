@@ -75,12 +75,16 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0 , verbose=False
         if  nstd* data.std() < np.max(np.abs(data2)):
             act_flag=True
             if verbose:
-                _logger.debug('true: '+ str(nstd* datastd) +' < '+str( np.max(np.abs(data)) ) )
+                _logger.debug(
+                    'true: %s < %s',
+                    nstd * datastd,
+                    np.max(np.abs(data))
+                )
             data2=M.spickes_to_mean(data2, nloop=0, spreed=spreed, gaussian=False)
             looper_count+=1
         else:
             if verbose:
-                _logger.debug('False: '+ str(nstd* datastd) +' > '+str( np.max(np.abs(data)) ) )
+                _logger.debug('False: %s > %s', nstd * datastd , np.max(np.abs(data)))
             peak_remove=False
 
         if looper_count > max_loops:
@@ -146,10 +150,12 @@ class Spectrum:
     def parceval(self):
 
         _logger.debug('Parcevals Theorem:')
-        _logger.debug('variance of unweighted timeseries: ',self.data.var())
-        _logger.debug('variance of weighted timeseries: ',self.phi.var() if self.win_flag is 1 else 'data not windowed')
-        _logger.debug('variance of weighted timeseries: ',self.phi.var() )
-        _logger.debug('variance of the Spectrum: ',self.var)
+        _logger.debug('variance of unweighted timeseries: %s',self.data.var())
+        _logger.debug(
+            'variance of weighted timeseries: %s',
+            self.phi.var() if self.win_flag is 1 else 'data not windowed')
+        _logger.debug('variance of weighted timeseries: %s',self.phi.var() )
+        _logger.debug('variance of the Spectrum: %s',self.var)
 
 
 
@@ -267,10 +273,10 @@ class moments:
             else:
                 if plot_chunks:
                     _logger.debug('end of TS is reached')
-                    _logger.debug('last spec No: '+str(last_k))
-                    _logger.debug('spec container: '+str(specs.shape))
-                    _logger.debug('last used Timestep: '+str(last_used_TS))
-                    _logger.debug('length of TS '+ str(data.size))
+                    _logger.debug('last spec No: %s', last_k)
+                    _logger.debug('spec container: %s ', specs.shape)
+                    _logger.debug('last used Timestep: %s', last_used_TS)
+                    _logger.debug('length of TS %s', data.size)
 
             k+=1
 

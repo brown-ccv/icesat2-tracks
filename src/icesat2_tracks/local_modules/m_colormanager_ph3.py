@@ -19,7 +19,7 @@ def ase_to_json(path):
     A=swatch.parse(path)
 
     for i in A[0]['swatches']:
-        _logger.debug(i['name'] + '  ' + str(i['data']['values']))
+        _logger.debug("%s %s", i['name'], i['data']['values'])
 
     return A
 
@@ -32,7 +32,7 @@ def json_save(name, path, data, return_name=False):
     full_name= (os.path.join(full_name_root+ '.json'))
     with open(full_name, 'w') as outfile:
         json.dump(data, outfile)
-    _logger.debug(f'save at: {full_name}')
+    _logger.debug('save at: %s', full_name)
     if return_name:
         return full_name_root
     else:
@@ -45,7 +45,7 @@ def json_load(name, path):
 
     with open(full_name, 'r') as ifile:
         data=json.load(ifile)
-    _logger.debug('loaded from: {full_name}')
+    _logger.debug('loaded from: %s', full_name)
     return data
 
 
@@ -55,7 +55,7 @@ class color:
         def __init__(self, path=None, name=None):
             self.white=(1,1,1)
             if (path is not None) & (name is not None):
-                _logger.debug('color theme: '+name)
+                _logger.debug('color theme: %s', name)
                 try:
                     theme=json_load(name, path)
                     for k, v in theme.items():
@@ -177,11 +177,11 @@ class color:
 
         def show(self):
             for key in self.__dict__.keys():
-                _logger.debug(key)
+                _logger.debug("%s",key)
 
             _logger.debug('  rels dict:')
             for key in self.rels.keys():
-                _logger.debug('  '+key)
+                _logger.debug('  %s', key)
 
             #_logger.debug(self.__dict__)
         def plot(self):

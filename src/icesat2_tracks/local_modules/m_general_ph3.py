@@ -130,7 +130,7 @@ class figure_axis_xy:
                 full_name= (os.path.join(savepath,name)) + extension
                 #_logger.debug(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=180)
-                _logger.info('save at: '+name)
+                _logger.info('save at: %s', name)
 
         def save_pup(self,name=None,path=None):
                 import datetime
@@ -148,7 +148,7 @@ class figure_axis_xy:
                 full_name= (os.path.join(savepath,name)) + extension
                 #_logger.debug(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='pdf', dpi=300)
-                _logger.info('save at: ',full_name)
+                _logger.info('save at: %s',full_name)
 
         def save_light(self,name=None,path=None):
                 import datetime
@@ -164,7 +164,7 @@ class figure_axis_xy:
                 full_name= (os.path.join(savepath,name)) + extension
                 #_logger.debug(full_name)
                 self.fig.savefig(full_name, bbox_inches='tight', format='png', dpi=180)
-                _logger.info('save with: ',name)
+                _logger.info('save with: %s',name)
 
 class subplot_routines(figure_axis_xy):
         def __init__(self, ax):
@@ -297,7 +297,7 @@ class plot_periodogram:
 
                 self.cs=plt.contourf(tt[:-2], self.fs[:],dd, self.clevs,cmap=self.cmap)
                 #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                _logger.debug(self.clevs)
+                _logger.debug("%s", self.clevs)
                 plt.ylabel(('Power db(' + self.data_unit + '^2/' + self.sample_unit+ ')'))
                 plt.xlabel(('f  (' + self.sample_unit+ ')'))
                 self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#
@@ -346,11 +346,11 @@ class plot_periodogram:
                 self.F.ax.set_yscale("log", nonposy='clip')
                 tt = self.time.astype(DT.datetime)
 
-                _logger.debug(tt[:-1].shape, self.fs[:].shape,dd.T.shape)
+                _logger.debug("%s %s", tt[:-1].shape, self.fs[:].shape,dd.T.shape)
                 self.cs=plt.contourf(tt[:-1], self.fs[:],dd.T, self.clevs,cmap=self.cmap)
                 self.x=np.arange(0,tt[:-1].size)
                 #self.cs=plt.pcolormesh(self.time[:-2], self.fs[:],dd,cmap=self.cmap,shading='gouraud')
-                _logger.debug(self.clevs)
+                _logger.debug("%s", self.clevs)
                 plt.xlabel('Time')
                 plt.ylabel(('f  (' + self.sample_unit+ ')'))
                 self.cbar= plt.colorbar(self.cs,pad=0.01)#, Location='right')#

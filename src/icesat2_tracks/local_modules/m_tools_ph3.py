@@ -103,9 +103,9 @@ def fake_2d_data(verbose=True, timeaxis=False):
     z3= 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (YY - mu)**2 / (2 * sigma**2) )
     z3=z3/z3.max()
     if verbose:
-        _logger.debug('x' , x.shape)
-        _logger.debug('y' , y.shape)
-        _logger.debug('z' , z3.shape)
+        _logger.debug('x %s' , x.shape)
+        _logger.debug('y %s' , y.shape)
+        _logger.debug('z %s' , z3.shape)
 
         plt.contourf(x, y,z2/2+z3/2)
         plt.colorbar()
@@ -124,7 +124,7 @@ def pickle_save(name, path, data, verbose=True):
     with open(full_name, 'wb') as f2:
         pickle.dump(data, f2)
     if verbose:
-        _logger.debug('save at: ',full_name)
+        _logger.debug('save at: %s',full_name)
 
 def pickle_load(name, path, verbose=True):
     #if not os.path.exists(path):
@@ -135,7 +135,7 @@ def pickle_load(name, path, verbose=True):
         data=pickle.load(f)
 
     if verbose:
-        _logger.debug('load from: ',full_name)
+        _logger.debug('load from: %s',full_name)
     return data
 
 
@@ -148,7 +148,7 @@ def json_save(name, path, data, verbose=False, return_name=False):
     with open(full_name, 'w') as outfile:
         json.dump(data, outfile, indent=2)
     if verbose:
-        _logger.debug('save at: ',full_name)
+        _logger.debug('save at: %s',full_name)
     if return_name:
         return full_name_root
     else:
@@ -174,7 +174,7 @@ def json_save2(name, path, data, verbose=False, return_name=False):
     with open(full_name, 'w') as outfile:
         json.dump(data, outfile, cls=CustomJSONizer, indent=2)
     if verbose:
-        _logger.debug('save at: ',full_name)
+        _logger.debug('save at: %s',full_name)
     if return_name:
         return full_name_root
     else:
@@ -188,7 +188,7 @@ def json_load(name, path, verbose=False):
     with open(full_name, 'r') as ifile:
         data=json.load(ifile)
     if verbose:
-        _logger.debug('loaded from: ',full_name)
+        _logger.debug('loaded from: %s', full_name)
     return data
 
 def h5_load(name, path, verbose=False):
@@ -205,7 +205,7 @@ def h5_load_v2(name, path, verbose=False):
 
     h5f = h5py.File(path + name + '.h5','r')
     if verbose:
-        _logger.debug(h5f.keys())
+        _logger.debug("%s", h5f.keys())
 
     data_dict=dict()
     for k, I in h5f.iteritems():
@@ -233,7 +233,7 @@ def h5_save(name, path, data_dict, verbose=False, mode='w'):
     store.close()
 
     if verbose:
-        _logger.debug('saved at: ' +full_name)
+        _logger.debug('saved at: %s', full_name)
 
 
 
@@ -255,7 +255,7 @@ def h5_save(name, path, data_dict, verbose=False, mode='w'):
     store.close()
 
     if verbose:
-        _logger.debug('saved at: ' +full_name)
+        _logger.debug('saved at: %s', full_name)
 
 
 def load_pandas_table_dict(name , save_path):
