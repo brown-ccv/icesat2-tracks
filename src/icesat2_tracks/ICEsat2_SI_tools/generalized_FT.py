@@ -321,7 +321,7 @@ class wavenumber_spectrogram_gFT:
                     "spec_adjust": np.nan,
                 }
 
-            _logger.debug("compute time solve : ", time.perf_counter() - ta)
+            _logger.debug("compute time solve : %s", time.perf_counter() - ta)
             ta = time.perf_counter()
 
             x_pos = (np.round((x - stancil[0]) / self.dx, 0)).astype("int")
@@ -338,7 +338,7 @@ class wavenumber_spectrogram_gFT:
             for k, I in prior_pars.items():
                 inverse_stats[k] = I.value if hasattr(I, "value") else np.nan
 
-            _logger.debug("compute time stats : ", time.perf_counter() - ta)
+            _logger.debug("compute time stats : %s", time.perf_counter() - ta)
 
             # multiply with the standard deviation of the data to get dimensions right
             PSD = power_from_model(p_hat, dk, self.k.size, x.size, Lpoints)
@@ -398,7 +398,7 @@ class wavenumber_spectrogram_gFT:
         N_stencil = len(self.stancil_iter_list.T)
         Ni = 1
         for ss in copy.copy(self.stancil_iter):
-            _logger.debug(Ni, "/", N_stencil, "Stancils")
+            _logger.debug("%s / %s Stancils", Ni, N_stencil)
             # prior step
             if prior[0] is False:  # make NL fit of piors do not exist
                 _logger.debug("1st step: with NL-fit")
@@ -472,7 +472,7 @@ class wavenumber_spectrogram_gFT:
             N_per_stancil.append(I["x_size"])
             Spec_adjust_per_stancil.append(spec_adjust)
 
-        _logger.debug("# of x-coordinates %s" + len(Spec_returns))
+        _logger.debug("# of x-coordinates %s", len(Spec_returns))
 
         self.N_per_stancil = N_per_stancil
         chunk_positions = np.array(list(D_specs.keys()))
@@ -875,7 +875,7 @@ class generalized_Fourier:
                 "var_spec_complete",
                 "spec_adjust",
             ]:
-                _logger.debug(ki.ljust(20) + str(pars[ki]))
+                _logger.debug("%s", ki.ljust(20) + str(pars[ki]))
 
         return pars
 
