@@ -885,7 +885,7 @@ def save_anyfig(fig,name=None,path=None):
                 full_name= (os.path.join(savepath,name)) + extension
                 #_logger.debug(full_name)
                 fig.savefig(full_name, bbox_inches='tight', format='png', dpi=180)
-                _logger.debug('save at: ',full_name)
+                _logger.debug('save at: %s',full_name)
 #def downscale_2d(data,x,dx):
 #   s1,s2 =data.shape
 #   if s1 == x.size
@@ -918,7 +918,7 @@ def cut_nparray(var, low, high, verbose=False):
         if high > var[-1]:
             if verbose:
                 _logger.debug('out of upper limit!')
-                _logger.debug(high ,'>', var[-1])
+                _logger.debug("%s > %s", high, var[-1])
         return (var >=low) & (var <=high)
 
     elif high < low:
@@ -980,7 +980,7 @@ def boxmean(data, lon , lat, xlim, ylim):#, data_index, G.lon[:], G.lat[:], [160
     else:
         _logger.debug('arrays have not the same shape')
 
-    _logger.debug('new shape', datan.shape)
+    _logger.debug('new shape %s', datan.shape)
 
     return np.nanmean(np.nanmean(datan, axis=xp), axis=yp).squeeze() #, xbool , ybool
 
@@ -1343,8 +1343,8 @@ class composite:
             # convert iter.dt in right unit
             dt_format=np.timedelta64(self.iter.dt,self.iter.unit ).astype('timedelta64['+unit+']').astype('float')
             span_new=np.array(self.span)*dt_format/dt
-            _logger.debug('old span=',self.span )
-            _logger.debug('new span=',span_new )
+            _logger.debug('old span= %s',self.span )
+            _logger.debug('new span= %s',span_new )
 
             for s in span_new:
                 span.append(int(np.floor(s)))
@@ -1365,10 +1365,10 @@ class composite:
 
 
         def info(self):
-            _logger.debug('index', self.index)
-            _logger.debug('span', self.span)
-            _logger.debug('weight', self.weigthing)
-            _logger.debug('comp', self.comp.keys())
+            _logger.debug('index %s', self.index)
+            _logger.debug('span %s', self.span)
+            _logger.debug('weight %s', self.weigthing)
+            _logger.debug('comp %s', self.comp.keys())
 
         def transform_index_time(self, time_index, time_composite):
             """ find nearest time index of compostite time compared to index times"""
@@ -1400,26 +1400,26 @@ class composite:
 
                 for i in iindex:
                     if i+span[0] < 0:
-                        _logger.debug('i', i, 'span:', span[0], span[1] )
-                        _logger.debug('left postion:', i+span[0])
+                        _logger.debug('i: %s span: %s %s', i, span[0], span[1] )
+                        _logger.debug('left postion: %s', i+span[0])
                         raise ValueError("composite span exceeds ts limits")
                         #_logger.debug('right postion:',i+self.span[1])
                         return -1
                     elif i+span[1] > ts.size:
                         return -1
                         _logger.debug(i, span[0], span[1] )
-                        _logger.debug('i', i, 'span:', span[0], span[1] )
+                        _logger.debug('i: %s span: %s %s', i, span[0], span[1] )
                         #_logger.debug('left postion:', i+self.span[0])
-                        _logger.debug('right postion:',i+span[1])
+                        _logger.debug('right postion: %s',i+span[1])
                         raise ValueError("composite span exceeds ts limits")
                         #_logger.debug('right postion:',i+self.span[1])
                         return -1
 
                     #self.comp[i]=ts[i]
-                    _logger.debug('comp', comp.shape)
-                    _logger.debug('ts', ts[i+span[0]:i+span[1]].shape)
+                    _logger.debug('comp %s', comp.shape)
+                    _logger.debug('ts %s', ts[i+span[0]:i+span[1]].shape)
                     #_logger.debug('ltjergij')
-                    _logger.debug(i, span[0], span[1] )
+                    _logger.debug("%s %s %s", i, span[0], span[1])
                     comp=np.vstack((comp,ts[i+span[0]:i+span[1]]))
                     #comp[:,i]=((comp,ts[i+self.span[0]:i+self.span[1]]))
                     #_logger.debug(ts[i])
@@ -1446,7 +1446,7 @@ class composite:
             span=self.iter_operate.span
 
             if span != [0, 0]:
-                _logger.debug(-span[0]+span[1],field.shape[1])
+                _logger.debug("%s %s", -span[0]+span[1],field.shape[1])
                 comp=np.empty((-span[0]+span[1],field.shape[1]))*np.NaN
                 self.length=-span[0]+span[1]
                # _logger.debug('comp shape',comp.shape)
@@ -1579,7 +1579,7 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None,  plot=False):
 
     if f.shape [0] != data.shape [0]:
         _logger.debug('ERROR: shapes are not correct')
-        _logger.debug(f.shape, time_lin.shape, data.shape )
+        _logger.debug("%s %s %s", f.shape, time_lin.shape, data.shape)
         return
 
     # find neerest discrete frequency
@@ -1648,10 +1648,10 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
         if line_left[0] > time_lin[0]:
             f_start=0
             _logger.debug(' left line > time0')
-            _logger.debug(line_left[0] , time_lin[0])
+            _logger.debug("%s %s", line_left[0] , time_lin[0])
         else:
             _logger.debug(' left line < time')
-            _logger.debug(line_left[0] , time_lin[0])
+            _logger.debug("%s %s", line_left[0] , time_lin[0])
             a=line_left-time_lin[0]
             f_start=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]+1
     else:
@@ -1663,12 +1663,12 @@ def find_max_along_line(time_lin, f, data, f1, f2, f_delta=.05, spreed=10,  plot
     if mode == 'free_limits' or mode == 'lower_limit':
         if line_right[-1] > time_lin[-1]:
             _logger.debug(' right line > time window')
-            _logger.debug( line_right[-1] ,time_lin[-1])
+            _logger.debug("%s %s", line_right[-1] ,time_lin[-1])
             a=line_right-time_lin[-1]
             f_end=np.unravel_index(np.abs(a).argmin(),np.transpose(a.shape))[0]-1
         else:
             _logger.debug(' right line < time window')
-            _logger.debug( line_right[-1] ,time_lin[-1])
+            _logger.debug("%s %s", line_right[-1] ,time_lin[-1])
             f_end=time_lin.size-2
     else:
         a=f-f2
@@ -1805,7 +1805,7 @@ def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False,  **kw
     RAMS_predicted_line=time_lin*RAMS_slope+ RAMS_intercept
 
 
-    _logger.debug(RAMS_slope, RAMS_intercept)
+    _logger.debug("%s %s", RAMS_slope, RAMS_intercept)
     RAMS_out=boot.ci((time, freq), simple_RAMSAC_regression_estimator, method='bca' , **kwargs)
 
     # Robustly fit linear model with RANSAC algorithm
