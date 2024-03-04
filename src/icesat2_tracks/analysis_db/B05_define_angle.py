@@ -31,7 +31,6 @@ from scipy.ndimage import label
 from icesat2_tracks.clitools import (
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     report_input_parameters,
     validate_track_name_steps_gt_1,
     makeapp,

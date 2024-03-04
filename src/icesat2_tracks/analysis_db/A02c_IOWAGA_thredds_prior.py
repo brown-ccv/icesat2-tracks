@@ -25,7 +25,6 @@ from icesat2_tracks.config.IceSAT2_startup import font_for_print
 from icesat2_tracks.clitools import (
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     update_paths_mconfig,
     report_input_parameters,
     validate_track_name_steps_gt_1,

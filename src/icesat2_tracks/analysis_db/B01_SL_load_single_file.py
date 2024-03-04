@@ -32,7 +32,6 @@ from icesat2_tracks.clitools import (
     validate_track_name,
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     report_input_parameters,
     update_paths_mconfig,
     echo,
