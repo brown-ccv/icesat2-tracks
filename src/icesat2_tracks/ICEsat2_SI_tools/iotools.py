@@ -79,7 +79,7 @@ def init_data(ID_name, batch_key, ID_flag, ID_root, prefix="A01b_ID"):
 
     """
 
-    _logger.debug(ID_name, batch_key, ID_flag)
+    _logger.debug("%s %s %s",ID_name, batch_key, ID_flag)
     hemis, batch = batch_key.split("_")
 
     if ID_flag:
