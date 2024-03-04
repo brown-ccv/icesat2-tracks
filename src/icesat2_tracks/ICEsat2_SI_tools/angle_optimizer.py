@@ -200,9 +200,9 @@ class sample_with_mcmc:
         self.seeds = np.vstack([pxx.flatten(), pyy.flatten() ]).T
         self.params = params
         if verbose:
-            _logger.debug('Nwalker: ', self.nwalkers)
-            _logger.debug('Seeds: ', self.seeds.shape)
-            _logger.debug(self.params)
+            _logger.debug('Nwalker: %s', self.nwalkers)
+            _logger.debug('Seeds: %s', self.seeds.shape)
+            _logger.debug("Params: %s", self.params)
 
     def test_objective_func(self):
         return self.objective_func(self.params, *self.fitting_args, **self.fitting_kargs)
@@ -216,7 +216,7 @@ class sample_with_mcmc:
                         args=fitting_args, kws=fitting_kargs ,
                         nwalkers=self.nwalkers, steps=steps, pos= self.seeds,nan_policy='omit' , **kargs)
         if verbose:
-            _logger.debug(self.LM.report_fit(self.fitter))
+            _logger.debug("%s", self.LM.report_fit(self.fitter))
             _logger.debug('results at self.fitter')
 
     def plot_sample(self, **kargs ):
@@ -236,7 +236,7 @@ class sample_with_mcmc:
         self.fitter_optimize = self.LM.minimize(self.objective_func, self.params,  method=method,
                         args=fitting_args, kws=fitting_kargs )
         if verbose:
-            _logger.debug(self.LM.report_fit(self.fitter_optimize))
+            _logger.debug("%s", self.LM.report_fit(self.fitter_optimize))
             _logger.debug('results at self.fitter_optimize')
 
     def plot_optimze(self, **kargs):
@@ -253,7 +253,7 @@ class sample_with_mcmc:
                         args=fitting_args, kws=fitting_kargs, Ns=N_grid  )
 
         if verbose:
-            _logger.debug(self.LM.report_fit(self.fitter_brute))
+            _logger.debug("%s", self.LM.report_fit(self.fitter_brute))
             _logger.debug('results at self.fitter_brute')
 
 
