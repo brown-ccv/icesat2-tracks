@@ -337,7 +337,7 @@ def save_log_txt(name, path, hist,verbose=False):
     with open(full_name, 'w') as ifile:
         ifile.write(str(hist))
     if verbose:
-        _logger.debug('saved at: ',full_name)
+        _logger.debug('saved at: %s',full_name)
 
 def load_log_txt(name, path):
     import glob
@@ -372,11 +372,13 @@ def find_O(a, case='round'):
         raise Warning('no propper case')
 
 def stats(a):
-	_logger.debug('shape' , a.shape)
-	_logger.debug('Nans',np.sum(np.isnan(a)))
-	_logger.debug('max' , np.nanmax(a))
-	_logger.debug('min' ,np.nanmin(a))
-	_logger.debug('mean' ,np.nanmean(a))
+	_logger.debug('shape %s' , a.shape)
+	_logger.debug('Nans %s',np.sum(np.isnan(a)))
+	_logger.debug('max %s' , np.nanmax(a))
+	_logger.debug('min %s' ,np.nanmin(a))
+	_logger.debug('mean %s' ,np.nanmean(a))
 
 def stats_format(a, name=None):
-	_logger.debug('Name:', str(name),'   Shape:' , a.shape ,'   NaNs:',np.sum(np.isnan(a)),' max:', np.nanmax(a),' min', np.nanmin(a),' mean:', np.nanmean(a))
+	_logger.debug('Name: %s   Shape: %s   NaNs: %s    max: %s    min: %s    mean: %s',
+                  str(name), a.shape , np.sum(np.isnan(a)), np.nanmax(a),
+                  np.nanmin(a), np.nanmean(a))
