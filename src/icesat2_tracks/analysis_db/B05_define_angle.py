@@ -121,7 +121,7 @@ class PlotPolarSpectra:
         self.min = np.round(np.nanmin(data[freq_sel_bool, :]), 2)
         self.max = np.round(np.nanmax(data[freq_sel_bool, :]), 2)
 
-        _logger.info(str(self.min), str(self.max))
+        _logger.info("%s %s", str(self.min), str(self.max))
 
         self.klabels = np.linspace(self.min, self.max, 5)
 
@@ -369,7 +369,7 @@ def define_angle(
                     ax_list[key].tick_params(labelbottom=True)
                     ax_list[key].set_xlabel("Angle (rad)")
             else:
-                _logger.debug(f"Key {key} not found in ax_list")
+                _logger.debug("Key %s not found in ax_list", key)
 
         ax_final = F.fig.add_subplot(gs[-1, :])
         plt.title("Final angle PDF", loc="left")

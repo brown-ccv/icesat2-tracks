@@ -452,7 +452,7 @@ def run_A02c_IOWAGA_thredds_prior(
             return ((~imask).sum() / imask.size).data < 0.3
 
         while test_nan_frac(ice_mask_prior):
-            _logger.debug(lat_range_prior)
+            _logger.debug("%s", lat_range_prior)
             lat_range_prior = lat_range_prior[0] + 0.5, lat_range_prior[1] + 0.5
             G_prior = sel_data(G_beam, lon_range, lat_range_prior)
             ice_mask_prior = ice_mask.sel(latitude=G_prior.latitude)
@@ -634,7 +634,7 @@ def run_A02c_IOWAGA_thredds_prior(
 
         F.save_pup(path=plot_path, name=plot_name + "_hindcast_prior")
     except Exception as e:
-        _logger.warning(e)
+        _logger.warning("%s", e)
         _logger.warning("2nd figure failed")
 
     MT.json_save(

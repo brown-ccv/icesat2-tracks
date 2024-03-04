@@ -102,7 +102,7 @@ def run_B02_make_spectra_gFT(
     all_beams = mconfig["beams"]["all_beams"]
 
     N_process = 4
-    _logger.debug("N_process=", N_process)
+    _logger.debug("N_process= %s", N_process)
 
     Gd = h5py.File(Path(load_path) / (track_name + "_B01_binned.h5"), "r")
 
@@ -121,7 +121,7 @@ def run_B02_make_spectra_gFT(
         Ib = Gd[group[1]]
         ratio = Ia["x"][:].size / Ib["x"][:].size
         if (ratio > 10) | (ratio < 0.1):
-            _logger.debug("bad data ratio ", ratio, 1 / ratio)
+            _logger.debug("bad data ratio %s %s", ratio, 1 / ratio)
             bad_ratio_flag = True
 
     if (np.array(nan_fraction).mean() > 0.95) | bad_ratio_flag:
@@ -140,7 +140,7 @@ def run_B02_make_spectra_gFT(
         exit()
 
     # test LS with an even grid where missing values are set to 0
-    _logger.debug(Gd.keys())
+    _logger.debug("%s", Gd.keys())
     Gi = Gd[list(Gd.keys())[0]]  # to select a test  beam
     dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "x")
     # make dataframe form hdf5
@@ -155,9 +155,9 @@ def run_B02_make_spectra_gFT(
     Lpoints = int(np.round(min_datapoint) * 10)
     Lmeters = Lpoints * dx
 
-    _logger.debug("L number of gridpoint:", Lpoints)
-    _logger.debug("L length in km:", Lmeters / 1e3)
-    _logger.debug("approx number windows", 2 * dist.iloc[-1] / Lmeters - 1)
+    _logger.debug("L number of gridpoint: %s", Lpoints)
+    _logger.debug("L length in km: %s", Lmeters / 1e3)
+    _logger.debug("approx number windows %s", 2 * dist.iloc[-1] / Lmeters - 1)
 
     T_min = 6
     lambda_min = 9.81 * T_min**2 / (2 * np.pi)
@@ -167,14 +167,14 @@ def run_B02_make_spectra_gFT(
     kk = np.arange(0, 1 / lambda_min, 1 / dlambda) * 2 * np.pi
     kk = kk[k_0 <= kk]
 
-    _logger.debug("2 M = ", kk.size * 2)
+    _logger.debug("2 M =  %s", kk.size * 2)
 
     _logger.debug("define global xlims")
     dist_list = np.array([np.nan, np.nan])
     for k in all_beams:
         _logger.debug(k)
         x = Gd[k + "/x"][:]
-        _logger.debug(x[0], x[-1])
+        _logger.debug("%s %s",x[0], x[-1])
         dist_list = np.vstack([dist_list, [x[0], x[-1]]])
 
     xlims = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
@@ -182,16 +182,16 @@ def run_B02_make_spectra_gFT(
     for k in all_beams:
         dist_i = io.get_beam_var_hdf_store(Gd[k], "x")
         x_mask = (dist_i > xlims[0]) & (dist_i < xlims[1])
-        _logger.debug(k, sum(x_mask["x"]) / (xlims[1] - xlims[0]))
+        _logger.debug("%s  %s", k, sum(x_mask["x"]) / (xlims[1] - xlims[0]))
 
     _logger.debug("-reduced frequency resolution")
     kk = kk[::2]
 
-    _logger.debug("set xlims: ", xlims)
+    _logger.debug("set xlims: %s", xlims)
 
     # Commented out for now. CP
     # _logger.debug(
-    #     "Loop start:  ",
+    #     "Loop start: %s %s",
     #     tracemalloc.get_traced_memory()[0] / 1e6,
     #     tracemalloc.get_traced_memory()[1] / 1e6,
     # )
@@ -254,7 +254,7 @@ def run_B02_make_spectra_gFT(
 
         # Commented out for now. CP
         # _logger.debug(
-        #     "after ",
+        #     "after %s %s %s",
         #     k,
         #     tracemalloc.get_traced_memory()[0] / 1e6,
         #     tracemalloc.get_traced_memory()[1] / 1e6,
@@ -502,7 +502,7 @@ def run_B02_make_spectra_gFT(
             plt.legend()
             plt.show()
         except Exception as e:
-            _logger.debug(e, "An error occurred. Nothing to plot.")
+            _logger.debug("%s: An error occurred. Nothing to plot.", e)
 
     del Gd_cut
     Gd.close()

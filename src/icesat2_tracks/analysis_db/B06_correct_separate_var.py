@@ -78,7 +78,7 @@ def get_correct_breakpoint(pw_results):
     br_points_sorted[f"breakpoint{br_points_sorted.size + 1}"] = "end"
 
     _logger.debug("all alphas")
-    _logger.debug(alphas_v2_sorted)
+    _logger.debug("%s", alphas_v2_sorted)
     slope_mask = alphas_v2_sorted < 0
 
     if sum(slope_mask) == 0:
@@ -87,8 +87,8 @@ def get_correct_breakpoint(pw_results):
     else:
         # take steepest slope
         alpah_v2_sub = alphas_v2_sorted[slope_mask]
-        _logger.debug(alpah_v2_sub)
-        _logger.debug(alpah_v2_sub.argmin())
+        _logger.debug("%s", alpah_v2_sub)
+        _logger.debug("%s", alpah_v2_sub.argmin())
         break_point_name = alpah_v2_sub.index[alpah_v2_sub.argmin()].replace(
             "alpha", "breakpoint"
         )
@@ -104,7 +104,9 @@ def get_breakingpoints(xx, dd):
     n_breakpoints = 3
     while convergence_flag:
         pw_fit = piecewise_regression.Fit(xx, dd, n_breakpoints=n_breakpoints)
-        _logger.debug("n_breakpoints", n_breakpoints, pw_fit.get_results()["converged"])
+        _logger.debug(
+            "n_breakpoints %s %s", n_breakpoints, pw_fit.get_results()["converged"]
+        )
         convergence_flag = not pw_fit.get_results()["converged"]
         n_breakpoints += 1
         if n_breakpoints >= 4:
@@ -163,7 +165,7 @@ def weighted_mean(data, weights, additional_data=None):
 
 
 def calculate_k_end(x, k, k_end_previous, G_gFT_smth):
-    _logger.debug(x)
+    _logger.debug("%s", x)
     k_end, _ = define_noise_wavenumber_piecewise(
         G_gFT_smth.sel(x=x) / k, plot_flag=False
     )
@@ -247,8 +249,9 @@ def save_table(data, tablename, save_path):
     except Exception as e:
         tabletoremove = save_path + tablename + ".h5"
         _logger.warning(
-            f"Failed to save table with error {e}. "
-            f"Removing {tabletoremove} and re-trying.."
+            "Failed to save table with error %s. Removing %s and re-trying..",
+            e,
+            tabletoremove,
         )
         os.remove(tabletoremove)
         io.save_pandas_table(data, tablename, save_path)
@@ -647,7 +650,7 @@ def run_B06_correct_separate_var(
     Gx_v2, B2_v2, B3_v2 = dict(), dict(), dict()
 
     for bb in Gx.beam.data:
-        _logger.debug(bb)
+        _logger.debug("%s", bb)
         Gx_k = Gx.sel(beam=bb)
         Gh = Gx["height_model"].sel(beam=bb).T
         Gh_err = Gx_k["model_error_x"].T
@@ -683,7 +686,7 @@ def run_B06_correct_separate_var(
         G_angle = xr.open_dataset(load_path_angle / (f"B05_{track_name}_angle_pdf.nc"))
 
     except ValueError as e:
-        _logger.warning(f"{e} no angle data found, skip angle corretion")
+        _logger.warning("%s no angle data found, skip angle corretion", e)
         theta = 0
         theta_flag = False
     else:
@@ -759,7 +762,7 @@ def run_B06_correct_separate_var(
         (plot_path / "../"),
         {"time": time.asctime(time.localtime(time.time()))},
     )
-    _logger.info("done. saved target at " + str(plot_path) + "../B06_success")
+    _logger.info("done. saved target at %s../B06_success", str(plot_path))
     _logger.info("Done B06_correct_separate_var")
 
 

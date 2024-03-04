@@ -591,7 +591,7 @@ def run_B04_angle(
         mean_dist = (nu_2d.isel(beam=0) - nu_2d.isel(beam=1)).mean().data
         k_upper_lim = 2 * np.pi / (mean_dist * 1)
 
-        _logger.debug("k_upper_lim " + k_upper_lim)
+        _logger.debug("k_upper_lim %s", k_upper_lim)
 
         # variance method
         amp_data = np.sqrt(GGk.gFT_cos_coeff**2 + GGk.gFT_sin_coeff**2)
@@ -793,7 +793,7 @@ def run_B04_angle(
             return k_prime_max, rdict
 
         k_list, weight_list = k[mask], weights[mask]
-        _logger.debug("# of wavenumber: " + len(k_list))
+        _logger.debug("# of wavenumber: %s", len(k_list))
         if len(k_list) > max_wavenumbers:
             _logger.debug("cut wavenumber list to 20")
             k_list = k_list[0:max_wavenumbers]
@@ -829,7 +829,7 @@ def run_B04_angle(
         L_optimize = L_optimize.T.sort_values("K_prime")
         L_brute = L_brute.T.sort_values("K_prime")
 
-        _logger.info(f"done with {group} {xi / 1e3}")
+        _logger.info("done with %s %s", group, xi / 1e3)
 
         # collect
         ikey = str(xi) + "_" + "_".join(group)
@@ -867,7 +867,7 @@ def run_B04_angle(
             {"L_sample": LL}, save_name + "_res_table", str(save_path)
         )  # TODO: clean up save_pandas_table to use pathlib
     except Exception as e:
-        _logger.warning(f"This is a warning: {e}")
+        _logger.warning(f"This is a warning: %s", e)
     else:
         # plotting with LL
         font_for_print()

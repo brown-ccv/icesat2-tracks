@@ -346,9 +346,9 @@ def run_B03_plot_spectra_ov(
     Gk.sel(beam=k).gFT_PSD_data.plot()
 
     if "y_data" in Gx.sel(beam="gt3r").keys():
-        _logger.debug("ydata is " + str("y_data" in Gx.sel(beam="gt3r").keys()))
+        _logger.debug("ydata is %s", ("y_data" in Gx.sel(beam="gt3r").keys()))
     else:
-        _logger.warning("ydata is " + ("y_data" in Gx.sel(beam="gt3r").keys()))
+        _logger.warning("ydata is %s", ("y_data" in Gx.sel(beam="gt3r").keys()))
         MT.json_save("B03_fail", plot_path, {"reason": "no y_data"})
         _logger.warning("failed, exit")
         exit()
