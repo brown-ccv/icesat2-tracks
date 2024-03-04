@@ -269,6 +269,9 @@ def run_B06_correct_separate_var(
     ID_flag: bool = True,
     output_dir: str = typer.Option(..., callback=validate_output_dir),
 ):
+    """
+    TODO: Add docstring.
+    """
     color_schemes.colormaps2(31, gamma=1)
     col_dict = color_schemes.rels
 

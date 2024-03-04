@@ -322,6 +322,10 @@ def teardown_module():
     """
     shutil.rmtree(__outdir[-1])
 
+def test_step5():
+    # Step 5: B04_angle.py ~ 9 min
+    assert run_test(script5, paths5)
+
 
 def test_step1():
     # Step 1: B01_SL_load_single_file.py ~ 2 minutes
@@ -377,11 +381,6 @@ def test_step4():
     # check stochastic paths
     t2 = check_file_exists(dir4, prefix4)
     assert t2
-
-
-def test_step5():
-    # Step 5: B04_angle.py ~ 9 min
-    assert run_test(script5, paths5)
 
 
 def test_step6():
