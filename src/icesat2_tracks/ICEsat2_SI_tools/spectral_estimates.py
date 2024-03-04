@@ -506,11 +506,11 @@ class wavenumber_spectrogram:
             stancil_vars.append(I)
 
         _logger.debug('Parcevals Theorem:')
-        _logger.debug('variance of unweighted timeseries: ',DATA.var())
-        _logger.debug('mean variance of detrended chunks: ', np.array(stancil_vars).mean())
+        _logger.debug('variance of unweighted timeseries: %s', DATA.var())
+        _logger.debug('mean variance of detrended chunks: %s', np.array(stancil_vars).mean())
         #_logger.debug('variance of weighted timeseries: ',self.phi.var() )
         #self.calc_var(self)
-        _logger.debug('variance of the pwelch Spectrum: ', self.calc_var())
+        _logger.debug('variance of the pwelch Spectrum: %s', self.calc_var())
 
         if add_attrs:
             self.G.attrs['variance_unweighted_data']        = DATA.var()
@@ -912,11 +912,11 @@ class wavenumber_spectrogram_LS:
         stancil_weighted_variance = np.nansum(np.array(stancil_vars))/Nphotons
 
         _logger.debug('Parcevals Theorem:')
-        _logger.debug('variance of timeseries: ', DATA.var())
-        _logger.debug('mean variance of stancils: ', stancil_weighted_variance )
+        _logger.debug('variance of timeseries: %s', DATA.var())
+        _logger.debug('mean variance of stancils: %s', stancil_weighted_variance )
         #_logger.debug('variance of weighted timeseries: ',self.phi.var() )
         #self.calc_var(self)
-        _logger.debug('variance of the optimzed windowed LS Spectrum: ', self.calc_var())
+        _logger.debug('variance of the optimzed windowed LS Spectrum: %s', self.calc_var())
 
         if add_attrs:
             self.G.attrs['variance_unweighted_data']        = DATA.var()
@@ -1027,10 +1027,10 @@ class wavenumber_pwelch:
             else:
                 if plot_chunks:
                     _logger.debug('end of TS is reached')
-                    _logger.debug('last spec No: '+str(last_k))
-                    _logger.debug('spec container: '+str(specs.shape))
-                    _logger.debug('last used Timestep: '+str(last_used_TS))
-                    _logger.debug('length of TS '+ str(dsize) +'ms')
+                    _logger.debug('last spec No: %s', str(last_k))
+                    _logger.debug('spec container: %s', str(specs.shape))
+                    _logger.debug('last used Timestep: %s', str(last_used_TS))
+                    _logger.debug('length of TS %s ms', str(dsize))
 
             k+=1
 
@@ -1089,11 +1089,12 @@ class wavenumber_pwelch:
 
     def parceval(self):
         _logger.debug('Parcevals Theorem:')
-        _logger.debug('variance of unweighted timeseries: ',self.data.var())
-        _logger.debug('mean variance of timeseries chunks: ',self.chunks.var(axis=1).mean() if self.save_chunks is True else 'data not saved')
+        _logger.debug('variance of unweighted timeseries: %s',self.data.var())
+        _logger.debug('mean variance of timeseries chunks: %s',self.chunks.var(axis=1).mean() if
+        self.save_chunks is True else 'data not saved')
         #_logger.debug('variance of weighted timeseries: ',self.phi.var() )
         #self.calc_var(self)
-        _logger.debug('variance of the pwelch Spectrum: ',self.var)
+        _logger.debug('variance of the pwelch Spectrum: %s',self.var)
 
     def calc_var(self):
         """ Compute total variance from spectrum """
