@@ -52,15 +52,16 @@ class _LogLevel(str, Enum):
     VERBOSE = "verbose"
     DEBUG = "debug"
 
-
-_LOG_LEVEL_MAPPING = {
-    _LogLevel.QUIET: logging.CRITICAL,
-    _LogLevel.WARNING: logging.WARNING,
-    _LogLevel.VERBOSE: logging.INFO,
-    _LogLevel.DEBUG: logging.DEBUG,
-}
-
-
+    @property
+    def level(self):
+        return {
+            _LogLevel.QUIET: logging.CRITICAL,
+            _LogLevel.WARNING: logging.WARNING,
+            _LogLevel.VERBOSE: logging.INFO,
+            _LogLevel.DEBUG: logging.DEBUG,
+        }[self.value]
+ 
+       
 @app.callback()
 def main(
     log: Annotated[
@@ -69,8 +70,7 @@ def main(
     ] = "warning"
 ):
     """Analyze data from the ICESAT2 satellite."""
-    level = _LOG_LEVEL_MAPPING[log]
-    logging.basicConfig(level=level)
+    logging.basicConfig(level=log.level)
 
 
 validate_track_name_gt_1_opt = Option(..., callback=validate_track_name_steps_gt_1)
