@@ -164,7 +164,6 @@ test = [
 # which executes the function `main` from this package when invoked.
 [project.scripts]  # Optional
 #TODO: ADD ANY SCRIPTS WE WANT TO HAVE
-download = "icesat2_tracks.icesat2_tools_scripts.nsidc_icesat2_associated2:main"
 load-file = "icesat2_tracks.analysis_db.B01_SL_load_single_file:load_file_app"
 make-spectra = "icesat2_tracks.analysis_db.B02_make_spectra_gFT:make_spectra_app"
 plot-spectra = "icesat2_tracks.analysis_db.B03_plot_spectra_ov:plot_spectra"
