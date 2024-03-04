@@ -3,6 +3,8 @@
 Main CLI for icesat2waves.
 """
 import logging
+from enum import Enum
+
 from typer import Typer, Option
 from icesat2_tracks.analysis_db.B01_SL_load_single_file import (
     run_B01_SL_load_single_file as _loadfile,
@@ -34,17 +36,29 @@ from icesat2_tracks.clitools import (
     validate_output_dir,
     validate_track_name_steps_gt_1,
 )
+
 _logger = logging.getLogger(__name__)
 
 app = Typer(add_completion=False)
 
+
+class _LogLevel(str, Enum):
+    QUIET = "quiet"  # logging.CRITICAL
+    WARNING = "warning"  # logging.WARNING
+    VERBOSE = "verbose"  # logging.INFO
+    DEBUG = "debug"  # logging.DEBUG
+
+
 @app.callback()
-def main(verbose: bool = False, debug: bool = False):
-    """ Analyze data from the ICESAT2 satellite. """
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
-    elif verbose:
-        logging.basicConfig(level=logging.INFO)
+def main(log: _LogLevel = "warning"):
+    """Analyze data from the ICESAT2 satellite."""
+    level = {
+        _LogLevel.QUIET: logging.CRITICAL,
+        _LogLevel.WARNING: logging.WARNING,
+        _LogLevel.VERBOSE: logging.INFO,
+        _LogLevel.DEBUG: logging.DEBUG,
+    }[log]
+    logging.basicConfig(level=level)
 
 
 validate_track_name_gt_1_opt = Option(..., callback=validate_track_name_steps_gt_1)
