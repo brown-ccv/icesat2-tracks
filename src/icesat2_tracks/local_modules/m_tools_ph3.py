@@ -1,3 +1,5 @@
+import logging
+
 import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -9,6 +11,8 @@ import pickle
 #from matplotlib.dates import DateFormatter, MinuteLocator
 #from matplotlib import dates
 #import datetime as DT
+
+_logger = logging.getLogger(__name__)
 
 
 def dt_form_timestamp(timestamp, unit=None):
@@ -99,9 +103,9 @@ def fake_2d_data(verbose=True, timeaxis=False):
     z3= 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (YY - mu)**2 / (2 * sigma**2) )
     z3=z3/z3.max()
     if verbose:
-        print('x' , x.shape)
-        print('y' , y.shape)
-        print('z' , z3.shape)
+        _logger.debug('x %s' , x.shape)
+        _logger.debug('y %s' , y.shape)
+        _logger.debug('z %s' , z3.shape)
 
         plt.contourf(x, y,z2/2+z3/2)
         plt.colorbar()
@@ -120,7 +124,7 @@ def pickle_save(name, path, data, verbose=True):
     with open(full_name, 'wb') as f2:
         pickle.dump(data, f2)
     if verbose:
-        print('save at: ',full_name)
+        _logger.debug('save at: %s',full_name)
 
 def pickle_load(name, path, verbose=True):
     #if not os.path.exists(path):
@@ -131,7 +135,7 @@ def pickle_load(name, path, verbose=True):
         data=pickle.load(f)
 
     if verbose:
-        print('load from: ',full_name)
+        _logger.debug('load from: %s',full_name)
     return data
 
 
@@ -144,7 +148,7 @@ def json_save(name, path, data, verbose=False, return_name=False):
     with open(full_name, 'w') as outfile:
         json.dump(data, outfile, indent=2)
     if verbose:
-        print('save at: ',full_name)
+        _logger.debug('save at: %s',full_name)
     if return_name:
         return full_name_root
     else:
@@ -170,7 +174,7 @@ def json_save2(name, path, data, verbose=False, return_name=False):
     with open(full_name, 'w') as outfile:
         json.dump(data, outfile, cls=CustomJSONizer, indent=2)
     if verbose:
-        print('save at: ',full_name)
+        _logger.debug('save at: %s',full_name)
     if return_name:
         return full_name_root
     else:
@@ -184,7 +188,7 @@ def json_load(name, path, verbose=False):
     with open(full_name, 'r') as ifile:
         data=json.load(ifile)
     if verbose:
-        print('loaded from: ',full_name)
+        _logger.debug('loaded from: %s', full_name)
     return data
 
 def h5_load(name, path, verbose=False):
@@ -201,7 +205,7 @@ def h5_load_v2(name, path, verbose=False):
 
     h5f = h5py.File(path + name + '.h5','r')
     if verbose:
-        print(h5f.keys())
+        _logger.debug("%s", h5f.keys())
 
     data_dict=dict()
     for k, I in h5f.iteritems():
@@ -229,7 +233,7 @@ def h5_save(name, path, data_dict, verbose=False, mode='w'):
     store.close()
 
     if verbose:
-        print('saved at: ' +full_name)
+        _logger.debug('saved at: %s', full_name)
 
 
 
@@ -251,7 +255,7 @@ def h5_save(name, path, data_dict, verbose=False, mode='w'):
     store.close()
 
     if verbose:
-        print('saved at: ' +full_name)
+        _logger.debug('saved at: %s', full_name)
 
 
 def load_pandas_table_dict(name , save_path):
@@ -262,8 +266,8 @@ def load_pandas_table_dict(name , save_path):
 
     return_dict=dict()
     with HDFStore(save_path+'/'+name+'.h5') as store:
-        #print(store)
-        #print(store.keys())
+        #_logger.debug(store)
+        #_logger.debug(store.keys())
         for k in store.keys():
             return_dict[k[1:]]=store.get(k)
 
@@ -296,9 +300,9 @@ def write_log(hist, string, verbose=False, short=True , date=True):
         message='\n '.ljust(2)+' '+string
 
     if verbose== True:
-        print(message)
+        _logger.debug(message)
     elif verbose == 'all':
-        print(hist+message)
+        _logger.debug(hist+message)
     return hist+message
 
 def add_line_var(ss, name, var):
@@ -320,9 +324,9 @@ def write_variables_log(hist, var_list, locals, verbose=False, date=False):
         message='\n '.ljust(5)+' '+stringg
 
     if verbose== True:
-        print(message)
+        _logger.debug(message)
     elif verbose == 'all':
-        print(hist+message)
+        _logger.debug(hist+message)
     return hist+message
 
 
@@ -333,7 +337,7 @@ def save_log_txt(name, path, hist,verbose=False):
     with open(full_name, 'w') as ifile:
         ifile.write(str(hist))
     if verbose:
-        print('saved at: ',full_name)
+        _logger.debug('saved at: %s',full_name)
 
 def load_log_txt(name, path):
     import glob
@@ -345,7 +349,7 @@ def load_log_txt(name, path):
 
 def shape(a):
 	for i in a:
-		print(i.shape)
+		_logger.debug(i.shape)
 
 def find_O(a, case='round'):
     if case=='round':
@@ -368,11 +372,13 @@ def find_O(a, case='round'):
         raise Warning('no propper case')
 
 def stats(a):
-	print('shape' , a.shape)
-	print('Nans',np.sum(np.isnan(a)))
-	print('max' , np.nanmax(a))
-	print('min' ,np.nanmin(a))
-	print('mean' ,np.nanmean(a))
+	_logger.debug('shape %s' , a.shape)
+	_logger.debug('Nans %s',np.sum(np.isnan(a)))
+	_logger.debug('max %s' , np.nanmax(a))
+	_logger.debug('min %s' ,np.nanmin(a))
+	_logger.debug('mean %s' ,np.nanmean(a))
 
 def stats_format(a, name=None):
-	print('Name:', str(name),'   Shape:' , a.shape ,'   NaNs:',np.sum(np.isnan(a)),' max:', np.nanmax(a),' min', np.nanmin(a),' mean:', np.nanmean(a))
+	_logger.debug('Name: %s   Shape: %s   NaNs: %s    max: %s    min: %s    mean: %s',
+                  str(name), a.shape , np.sum(np.isnan(a)), np.nanmax(a),
+                  np.nanmin(a), np.nanmean(a))
