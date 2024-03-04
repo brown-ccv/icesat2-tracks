@@ -5,6 +5,7 @@ This is python 3
 """
 
 import itertools
+import logging
 
 from icesat2_tracks.config.IceSAT2_startup import (
     mconfig,
@@ -41,12 +42,13 @@ from typer import Option
 from icesat2_tracks.clitools import (
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     update_paths_mconfig,
     report_input_parameters,
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def run_B04_angle(
@@ -115,7 +117,7 @@ def run_B04_angle(
             "priors_hindcast"
         ]
     except FileNotFoundError:
-        print("Prior not found. exit")
+        _logger.critical("Prior not found. exit")
         MT.json_save(
             "B04_fail",
             plot_path,
@@ -127,7 +129,7 @@ def run_B04_angle(
         exit()
 
     if np.isnan(Prior["mean"]["dir"]):
-        print("Prior failed, entries are nan. exit.")
+        _logger.critical("Prior failed, entries are nan. exit.")
         MT.json_save(
             "B04_fail",
             plot_path,
@@ -173,7 +175,7 @@ def run_B04_angle(
     dir_best = np.array(dir_best[1:])
 
     if len(Pperiod) == 0:
-        print("constant peak wave number")
+        _logger.debug("constant peak wave number")
         kk = Gk.k
         Pwavenumber = kk * 0 + (2 * np.pi / (1 / Prior.loc["fp"]["mean"])) ** 2 / g
         dir_best = kk * 0 + Prior.loc["dp"]["mean"]
@@ -263,11 +265,8 @@ def run_B04_angle(
 
     prior_angle = Prior_smth.Prior_direction * 180 / np.pi
     if (abs(prior_angle) > 80).all():
-        print(
-            "Prior angle is ",
-            prior_angle.min().data,
-            prior_angle.max().data,
-            ". quit.",
+        _logger.critical(
+            "Prior angle is %s %s. Quit.", prior_angle.min().data, prior_angle.max().data,
         )
         dd_save = {
             "time": time.asctime(time.localtime(time.time())),
@@ -280,7 +279,7 @@ def run_B04_angle(
             ),
         }
         MT.json_save("B04_fail", plot_path, dd_save)
-        print("exit()")
+        _logger.critical("exit()")
         exit()
 
     # define parameter range
@@ -556,12 +555,12 @@ def run_B04_angle(
     ggg, xxx = np.meshgrid(group_number, x_list.data)
 
     for gi in zip(ggg.flatten(), xxx.flatten()):
-        print(gi)
+        _logger.debug(gi)
 
         group, xi = beam_groups[gi[0]], gi[1]
 
         if bool(x_list_flag.sel(x=xi).isel(beam_group=gi[0]).data) is False:
-            print("no data, fill with dummy")
+            _logger.debug("no data, fill with dummy")
             ikey = str(xi) + "_" + "_".join(group)
             Marginals[ikey] = make_fake_data(xi, group)
             continue
@@ -594,7 +593,7 @@ def run_B04_angle(
         mean_dist = (nu_2d.isel(beam=0) - nu_2d.isel(beam=1)).mean().data
         k_upper_lim = 2 * np.pi / (mean_dist * 1)
 
-        print("k_upper_lim ", k_upper_lim)
+        _logger.debug("k_upper_lim %s", k_upper_lim)
 
         # variance method
         amp_data = np.sqrt(GGk.gFT_cos_coeff**2 + GGk.gFT_sin_coeff**2)
@@ -607,7 +606,7 @@ def run_B04_angle(
         )
 
         if len(k[mask]) == 0:
-            print("no good k found, fill with dummy")
+            _logger.debug("no good k found, fill with dummy")
             ikey = str(xi) + "_" + "_".join(group)
             Marginals[ikey] = make_fake_data(xi, group)
             continue
@@ -804,9 +803,9 @@ def run_B04_angle(
             return k_prime_max, rdict
 
         k_list, weight_list = k[mask], weights[mask]
-        print("# of wavenumber: ", len(k_list))
+        _logger.debug("# of wavenumber: %s", len(k_list))
         if len(k_list) > max_wavenumbers:
-            print("cut wavenumber list to 20")
+            _logger.debug("cut wavenumber list to 20")
             k_list = k_list[0:max_wavenumbers]
             weight_list = weight_list[0:max_wavenumbers]
 
@@ -842,7 +841,7 @@ def run_B04_angle(
         L_optimize = L_optimize.T.sort_values("K_prime")
         L_brute = L_brute.T.sort_values("K_prime")
 
-        print("done with ", group, xi / 1e3)
+        _logger.info("done with %s %s", group, xi / 1e3)
 
         # collect
         ikey = str(xi) + "_" + "_".join(group)
@@ -880,7 +879,7 @@ def run_B04_angle(
             {"L_sample": LL}, save_name + "_res_table", str(save_path)
         )  # TODO: clean up save_pandas_table to use pathlib
     except Exception as e:
-        print(f"This is a warning: {e}")
+        _logger.warning(f"This is a warning: %s", e)
     else:
         # plotting with LL
         font_for_print()
@@ -1015,4 +1014,5 @@ def run_B04_angle(
 make_b04_angle_app = makeapp(run_B04_angle, name="B04_angle")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     make_b04_angle_app()
