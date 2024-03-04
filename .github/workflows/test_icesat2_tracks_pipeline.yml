@@ -37,4 +37,3 @@ jobs:
         run: icesat2waves define-angle --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
       - name: seventh step B06_correct_separate
         run: icesat2waves correct-separate --track-name SH_20190502_05180312 --batch-key SH_testSLsinglefile2 --output-dir ./work
-
