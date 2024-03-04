@@ -5,7 +5,7 @@ Main CLI for icesat2waves.
 import logging
 from enum import Enum
 
-from typer import Typer, Option, Argument
+from typer import Typer, Option
 from typing_extensions import Annotated
 
 from icesat2_tracks.analysis_db.B01_SL_load_single_file import (
