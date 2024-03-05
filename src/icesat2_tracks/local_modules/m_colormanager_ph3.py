@@ -181,7 +181,7 @@ class color:
 
             _logger.debug('  rels dict:')
             for key in self.rels.keys():
-                _logger.debug('  '+key)
+                _logger.debug("   %s", key)
 
             #print(self.__dict__)
         def plot(self):
