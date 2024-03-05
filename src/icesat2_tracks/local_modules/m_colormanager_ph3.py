@@ -55,7 +55,7 @@ class color:
         def __init__(self, path=None, name=None):
             self.white=(1,1,1)
             if (path is not None) & (name is not None):
-                _logger.debug('color theme: '+name)
+                _logger.debug("color theme: %s", name)
                 try:
                     theme=json_load(name, path)
                     for k, v in theme.items():
