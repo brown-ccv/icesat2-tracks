@@ -15,7 +15,7 @@ jobs:
       - name: install mpi macos
         if: matrix.os == 'macos-latest'
         run: brew install open-mpi
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup python
         uses: actions/setup-python@v4
         with:
