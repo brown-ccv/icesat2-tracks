@@ -20,7 +20,7 @@ def is_not_even(number):
 # basic functions
 def create_chunk_boundaries(L, dsize, ov=None, iter_flag=True):
     """
-    returns all need chunk boudaries and center position given L, and ov
+    returns all need chunk boundaries  and center position given L, and ov
     inputs:
     L desired length of window,
     dsize size of the data
@@ -39,10 +39,7 @@ def create_chunk_boundaries(L, dsize, ov=None, iter_flag=True):
         [xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]]
     )
 
-    if iter_flag is True:
-        return iter(position_stancil.T.tolist())
-    else:
-        return position_stancil
+    return iter(position_stancil.T.tolist()) if iter_flag else position_stancil
 
 
 def create_chunk_boundaries_unit_lengths(L_unit, data_limits, ov=None, iter_flag=True):
@@ -257,10 +254,7 @@ def calc_freq_LS(
         neven = is_not_even(N)
         dx = np.diff(x).mean() if dx is None else dx
         df = dx / 50
-        if neven:
-            f = df * np.arange(df, N + 1)
-        else:
-            f = df * np.arange(df, N)
+        f = df * np.arange(df, N + 1) if neven else df * np.arange(df, N)
 
     return f, df
 
@@ -453,11 +447,15 @@ class WavenumberSpectrogram:
 
         # repack data, create xarray
         self.spec_name = "power_spec" if name is None else name
-        G = dict()
-        for xi, I in D_specs.items():
-            G[xi] = xr.DataArray(
-                I, dims=["k"], coords={"k": self.k, "x": xi}, name=self.spec_name
-            )
+        G = {
+	        xi: xr.DataArray(
+	            I,
+	            dims=["k"],
+	            coords={"k": self.k, "x": xi * self.dx},
+	            name=self.spec_name,
+	        )
+	        for xi, I in D_specs.items()
+	    }
 
         self.G = xr.concat(G.values(), dim="x").T
         if self.G.k[0] == 0:
@@ -468,7 +466,7 @@ class WavenumberSpectrogram:
 
         return self.G
 
-    # cal variance
+    
     def calc_var(self):
         """Compute total variance from spectragram"""
         # do not consider zeroth frequency
