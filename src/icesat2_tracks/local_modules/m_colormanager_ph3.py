@@ -45,7 +45,7 @@ def json_load(name, path):
 
     with open(full_name, 'r') as ifile:
         data=json.load(ifile)
-    _logger.debug('loaded from: {full_name}')
+    _logger.debug('loaded from: %s', full_name)
     return data
 
 
