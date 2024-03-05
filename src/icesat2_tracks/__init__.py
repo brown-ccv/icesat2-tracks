@@ -1,1 +1,1 @@
-__version__ = "0.0.0"
+"""Tools to analyse data from ICESat-2."""
