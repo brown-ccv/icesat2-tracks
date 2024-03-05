@@ -131,7 +131,7 @@ def run_B01_SL_load_single_file(
     save_path_json = Path(workdir, batch_key, "A01b_ID")
     save_path_json.mkdir(parents=True, exist_ok=True)
 
-    ATL03_track_name = "ATL03_" + track_name + ".h5"
+    ATL03_track_name = f"ATL03_{track_name}.h5"
 
     # Configure SL Session
     icesat2.init("slideruleearth.io")
