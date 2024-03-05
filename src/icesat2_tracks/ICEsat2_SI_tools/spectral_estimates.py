@@ -771,7 +771,6 @@ class wavenumber_spectrogram_LS:
         #     Spec_returns.append( calc_spectrum_apply(ss) )
 
         map_func = map if map_func is None else map_func
-        _logger.debug(map_func)
         Spec_returns = list(map_func( calc_spectrum_and_field_apply, copy.copy(self.stancil_iter)   ))
         # # linear version
         #Spec_returns = list(map( calc_spectrum_and_field_apply, copy.copy(self.stancil_iter)   ))
