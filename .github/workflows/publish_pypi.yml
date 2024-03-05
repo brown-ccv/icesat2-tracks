@@ -1,8 +1,8 @@
-name: Publish Icesat2 to PyPI
+name: Publish icesat2waves to PyPI
 
 on:    
   release:
-    types: [prereleased]
+    types: [published]
 
 jobs:
   build:
@@ -33,4 +33,3 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages_dir: dist
-        repository-url: https://upload.pypi.org/legacy/        
