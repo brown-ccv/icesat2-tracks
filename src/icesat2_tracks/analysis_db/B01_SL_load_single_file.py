@@ -161,10 +161,9 @@ def run_B01_SL_load_single_file(
     }
 
     maximum_height = 30  # (meters) maximum height past dem_h correction
-    _logger.info("STARTS")
     _logger.info("Fetching ATL03 data from sliderule")
     gdf = icesat2.atl06p(params_yapc, resources=[ATL03_track_name])
-    _logger.info("ENDS")
+    _logger.info("Finished fetching ATL03 data from sliderule")
     gdf = sct.correct_and_remove_height(gdf, maximum_height)
 
     cdict = dict()
