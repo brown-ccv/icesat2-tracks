@@ -250,7 +250,7 @@ def run_B01_SL_load_single_file(
     _logger.info("write A01b .json")
     DD = {"case_ID": ID_name, "tracks": {}}
 
-    DD["tracks"]["ATL03"] = "ATL10-" + track_name
+    DD["tracks"]["ATL03"] = f"ATL10-{track_name}"
 
     start_pos = abs(table_data.lats).argmin()
     end_pos = abs(table_data.lats).argmax()
