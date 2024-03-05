@@ -19,7 +19,7 @@ def ase_to_json(path):
     A=swatch.parse(path)
 
     for i in A[0]['swatches']:
-        _logger.debug(i['name'] + '  ' + str(i['data']['values']))
+        _logger.debug("swatch name: %s, swatch values: %s", i['name'], i['data']['values'])
 
     return A
 
