@@ -1027,10 +1027,10 @@ class wavenumber_pwelch:
             else:
                 if plot_chunks:
                     _logger.debug('end of TS is reached')
-                    _logger.debug('last spec No: %s', str(last_k))
-                    _logger.debug('spec container: %s', str(specs.shape))
-                    _logger.debug('last used Timestep: %s', str(last_used_TS))
-                    _logger.debug('length of TS %s ms', str(dsize))
+                    _logger.debug('last spec No: %s', last_k)
+                    _logger.debug('spec container: %s', specs.shape)
+                    _logger.debug('last used Timestep: %s', last_used_TS)
+                    _logger.debug('length of TS %s ms', dsize)
 
             k+=1
 

@@ -450,7 +450,7 @@ def bin_means(T2, dist_grid):
 
     for i in np.arange(1,ilim-1, 1):
         if i % 5000 ==0:
-            _logger.debug(i)
+            _logger.debug("i= %s", i)
         i_mask=(T2['dist'] >= dist_grid[i-1])  & (T2['dist'] < dist_grid[i+1])
         #if ( (T2['dist'] >= dist_grid[i-1])  & (T2['dist'] < dist_grid[i+1]) ).sum() > 0:
         dF_mean[i] = T2[i_mask].mean()

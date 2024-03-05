@@ -236,7 +236,7 @@ class sample_with_mcmc:
         self.fitter_optimize = self.LM.minimize(self.objective_func, self.params,  method=method,
                         args=fitting_args, kws=fitting_kargs )
         if verbose:
-            _logger.debug("%s", self.LM.report_fit(self.fitter_optimize))
+            _logger.debug("fit report: %s", self.LM.report_fit(self.fitter_optimize))
             _logger.debug('results at self.fitter_optimize')
 
     def plot_optimze(self, **kargs):

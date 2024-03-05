@@ -26,15 +26,15 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0 , verbose=False
             act_flag=True
             if verbose:
                 _logger.debug('true: %s < %s',
-                              str(nstd* datastd),
-                              str( np.nanmax(np.abs(data))))
+                              nstd* datastd,
+                              np.nanmax(np.abs(data)))
             data2=spickes_to_mean(data2, nloop=0, spreed=spreed, gaussian=False)
             looper_count+=1
         else:
             if verbose:
                 _logger.debug('False: %s > %s ',
-                              str(nstd* datastd),
-                              str( np.nanmax(np.abs(data))))
+                              nstd* datastd,
+                              np.nanmax(np.abs(data)))
             peak_remove=False
 
         if looper_count > max_loops:

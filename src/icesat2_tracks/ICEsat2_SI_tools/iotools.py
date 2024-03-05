@@ -79,7 +79,7 @@ def init_data(ID_name, batch_key, ID_flag, ID_root, prefix="A01b_ID"):
 
     """
 
-    _logger.debug("%s %s %s",ID_name, batch_key, ID_flag)
+    _logger.debug("id name: %s, batch key: %s, id flag: %s", ID_name, batch_key, ID_flag)
     hemis, batch = batch_key.split("_")
 
     if ID_flag:
@@ -302,10 +302,10 @@ def nsidc_icesat2_get_associated_file(
         colnames, collastmod, colerror = icesat2_toolkit.utilities.nsidc_list(
             PATH, build=False, timeout=TIMEOUT, parser=parser, pattern=R1, sort=True
         )
-        _logger.debug(colnames)
+        _logger.debug("colnames: %s", colnames)
         # -- print if file was not found
         if not colnames:
-            _logger.debug(colerror)
+            _logger.debug("colerror: %s", colerror)
             continue
         # -- add to lists
         for colname, remote_mtime in zip(colnames, collastmod):
