@@ -3,6 +3,7 @@ from numba import jit
 import pandas as pd
 import matplotlib as plt
 
+
 def process_single_stencil_set(
     stancil_set, T2, key_var, key_x_coord, stancil_width, calc_stencil_stats
 ):
@@ -72,9 +73,9 @@ def track_pole_ward_file(hdf5_file, product="ALT03"):
         ";last lat =" + str(abs(T_lat[T_time.argmax()])),
     )
 
-    _lhs = abs(T_lat[T_time.argmax()]) 
+    _lhs = abs(T_lat[T_time.argmax()])
     _rhs = abs(T_lat[T_time.argmin()])
-    return  _lhs > _rhs
+    return _lhs > _rhs
 
 
 def track_type(T):
@@ -83,7 +84,7 @@ def track_type(T):
     T is a pandas table
     """
 
-    max_lat =  T["lats"].iloc[T["delta_time"].argmax()]
+    max_lat = T["lats"].iloc[T["delta_time"].argmax()]
     min_lat = T["lats"].iloc[T["delta_time"].argmin()]
     delta_lat = max_lat - min_lat
     return delta_lat < 0
@@ -414,10 +415,10 @@ def get_stencil_stats(
 
             Tmedian = T2[i_mask].median()
 
-            Tmedian[key + "_weighted_mean"] = np.nan
-            Tmedian[key + "_mode"] = np.nan
+            Tmedian[f"{key}_weighted_mean"] = np.nan
+            Tmedian[f"{key}_mode"] = np.nan
             Tmedian["N_photos"] = Nphoton
-            Tmedian[key + "_std"] = np.nan
+            Tmedian[f"{key}_std"] = np.nan
 
             return istencil[1], Tmedian
 
