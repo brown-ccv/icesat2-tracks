@@ -1,5 +1,16 @@
 # ICESAT2 Track Analysis
 
+- [ICESAT2 Track Analysis](#icesat2-track-analysis)
+  - [Installation for Developers](#installation-for-developers)
+  - [Installing on Oscar (Deprecated)](#installing-on-oscar-deprecated)
+  - [Conda Configuration (Deprecated)](#conda-configuration-deprecated)
+      - [`.condarc`](#condarc)
+      - [`pkgs_dirs`](#pkgs_dirs)
+      - [`envs_dirs`](#envs_dirs)
+      - [Environment Variables](#environment-variables)
+  - [Command line interface](#command-line-interface)
+  - [Sample workflow](#sample-workflow)
+
 ## Installation for Developers
 
 Prerequisites:
