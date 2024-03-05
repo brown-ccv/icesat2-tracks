@@ -3,9 +3,13 @@ FROM python:3.11
 
 # Update the system and install the packages
 RUN apt-get update && apt-get install -y \
+    git-lfs \
     openmpi-bin \
     openmpi-doc \
-    libopenmpi-dev
+    libopenmpi-dev \
+    gdal-bin \
+    libgdal-dev
+
 
 # Set the working directory to /app
 WORKDIR /app
@@ -17,6 +21,6 @@ COPY . /app
 RUN mkdir -p /app/output
 
 # Install any needed packages specified in pyproject.toml
-RUN pip install .
+RUN pip install --editable ".[dev]"
 
 CMD ["/bin/bash"]
