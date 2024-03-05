@@ -179,7 +179,7 @@ class color:
             for key in self.__dict__.keys():
                 _logger.debug(key)
 
-            _logger.debug('  rels dict:')
+            _logger.debug('  rels dict keys:')
             for key in self.rels.keys():
                 _logger.debug("   %s", key)
 
