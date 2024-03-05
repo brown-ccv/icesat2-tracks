@@ -12,7 +12,7 @@ A = M_color.ase_to_json(path+'color_def.ase')
 B=dict()
 for i in A[0]['swatches']:
     B[i['name']] = i['data']['values']
-    _logger.debug("%s %s", i['name'], str(i['data']['values']))
+    _logger.debug("swatch name: %s, values: %s", i['name'], i['data']['values'])
 
 rels=dict()
 
