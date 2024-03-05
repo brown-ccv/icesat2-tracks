@@ -87,8 +87,8 @@ def get_correct_breakpoint(pw_results):
     else:
         # take steepest slope
         alpah_v2_sub = alphas_v2_sorted[slope_mask]
-        _logger.debug("%s", alpah_v2_sub)
-        _logger.debug("%s", alpah_v2_sub.argmin())
+        _logger.debug("alpah_v2_sub: %s", alpah_v2_sub)
+        _logger.debug("alpah_v2_sub.argmin: %s", alpah_v2_sub.argmin())
         break_point_name = alpah_v2_sub.index[alpah_v2_sub.argmin()].replace(
             "alpha", "breakpoint"
         )
@@ -106,7 +106,7 @@ def get_breakingpoints(xx, dd):
     while convergence_flag:
         pw_fit = piecewise_regression.Fit(xx, dd, n_breakpoints=n_breakpoints)
         _logger.debug(
-            "n_breakpoints %s %s", n_breakpoints, pw_fit.get_results()["converged"]
+            "n_breakpoints %s\n%s", n_breakpoints, pw_fit.get_results()["converged"]
         )
         convergence_flag = not pw_fit.get_results()["converged"]
         n_breakpoints += 1
@@ -167,7 +167,7 @@ def weighted_mean(data, weights, additional_data=None):
 
 
 def calculate_k_end(x, k, k_end_previous, G_gFT_smth):
-    _logger.debug("%s", x)
+    _logger.debug("From calculate_k_end -- x: %s", x)
     k_end, _ = define_noise_wavenumber_piecewise(
         G_gFT_smth.sel(x=x) / k, plot_flag=False
     )
@@ -663,7 +663,7 @@ def run_B06_correct_separate_var(
     Gx_v2, B2_v2, B3_v2 = dict(), dict(), dict()
 
     for bb in Gx.beam.data:
-        _logger.debug("%s", bb)
+        _logger.debug("bb: %s", bb)
         Gx_k = Gx.sel(beam=bb)
         Gh = Gx["height_model"].sel(beam=bb).T
         Gh_err = Gx_k["model_error_x"].T
@@ -779,7 +779,7 @@ def run_B06_correct_separate_var(
         (plot_path / "../"),
         {"time": time.asctime(time.localtime(time.time()))},
     )
-    _logger.info("done. saved target at %s../B06_success", str(plot_path))
+    _logger.info("done. saved target at %s../B06_success", plot_path)
     _logger.info("Done B06_correct_separate_var")
 
 

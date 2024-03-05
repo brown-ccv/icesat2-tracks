@@ -143,7 +143,7 @@ def run_B02_make_spectra_gFT(
         exit()
 
     # test LS with an even grid where missing values are set to 0
-    _logger.debug("%s", Gd.keys())
+    _logger.debug("Gd.keys: %s", Gd.keys())
     Gi = Gd[list(Gd.keys())[0]]  # to select a test  beam
     dist = io.get_beam_var_hdf_store(Gd[list(Gd.keys())[0]], "x")
     # make dataframe form hdf5
@@ -175,9 +175,9 @@ def run_B02_make_spectra_gFT(
     _logger.debug("define global xlims")
     dist_list = np.array([np.nan, np.nan])
     for k in all_beams:
-        _logger.debug(k)
+        _logger.debug("k: %s", k)
         x = Gd[k + "/x"][:]
-        _logger.debug("%s %s",x[0], x[-1])
+        _logger.debug("x first element: %s, last element: %s", x[0], x[-1])
         dist_list = np.vstack([dist_list, [x[0], x[-1]]])
 
     xlims = np.nanmin(dist_list[:, 0]) - dx, np.nanmin(dist_list[:, 1])
@@ -185,7 +185,7 @@ def run_B02_make_spectra_gFT(
     for k in all_beams:
         dist_i = io.get_beam_var_hdf_store(Gd[k], "x")
         x_mask = (dist_i > xlims[0]) & (dist_i < xlims[1])
-        _logger.debug("%s  %s", k, sum(x_mask["x"]) / (xlims[1] - xlims[0]))
+        _logger.debug("k: %s, sum/range: %s", k, sum(x_mask["x"]) / (xlims[1] - xlims[0]))
 
     _logger.debug("-reduced frequency resolution")
     kk = kk[::2]

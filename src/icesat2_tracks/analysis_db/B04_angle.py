@@ -279,7 +279,7 @@ def run_B04_angle(
             ),
         }
         MT.json_save("B04_fail", plot_path, dd_save)
-        _logger.critical("exit()")
+        _logger.critical("terminating")
         exit()
 
     # define parameter range
@@ -555,7 +555,7 @@ def run_B04_angle(
     ggg, xxx = np.meshgrid(group_number, x_list.data)
 
     for gi in zip(ggg.flatten(), xxx.flatten()):
-        _logger.debug(gi)
+        _logger.debug("gi = %s", gi)
 
         group, xi = beam_groups[gi[0]], gi[1]
 
@@ -841,7 +841,7 @@ def run_B04_angle(
         L_optimize = L_optimize.T.sort_values("K_prime")
         L_brute = L_brute.T.sort_values("K_prime")
 
-        _logger.info("done with %s %s", group, xi / 1e3)
+        _logger.info("done with group %s,  xi = %s", group, xi / 1e3)
 
         # collect
         ikey = str(xi) + "_" + "_".join(group)
@@ -879,7 +879,7 @@ def run_B04_angle(
             {"L_sample": LL}, save_name + "_res_table", str(save_path)
         )  # TODO: clean up save_pandas_table to use pathlib
     except Exception as e:
-        _logger.warning(f"This is a warning: %s", e)
+        _logger.warning("This is a warning: %s", e)
     else:
         # plotting with LL
         font_for_print()

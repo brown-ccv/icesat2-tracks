@@ -121,7 +121,7 @@ class PlotPolarSpectra:
         self.min = np.round(np.nanmin(data[freq_sel_bool, :]), 2)
         self.max = np.round(np.nanmax(data[freq_sel_bool, :]), 2)
 
-        _logger.info("%s %s", str(self.min), str(self.max))
+        _logger.info("min %s, max %s", self.min, self.max)
 
         self.klabels = np.linspace(self.min, self.max, 5)
 
@@ -428,7 +428,7 @@ def define_angle(
                 "reason": "not enough x segments",
             },
         )
-        _logger.critical("exit()")
+        _logger.critical("exiting")
         exit()
 
     font_for_print()
