@@ -451,7 +451,7 @@ class WavenumberSpectrogram:
 	        xi: xr.DataArray(
 	            I,
 	            dims=["k"],
-	            coords={"k": self.k, "x": xi * self.dx},
+	            coords={"k": self.k, "x": xi },
 	            name=self.spec_name,
 	        )
 	        for xi, I in D_specs.items()
