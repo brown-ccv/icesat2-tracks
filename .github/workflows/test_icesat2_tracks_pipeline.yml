@@ -13,9 +13,9 @@ jobs:
     steps:
       - name: install mpi
         run: sudo apt update && sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.version }} # install the python version needed
           cache: "pip"
