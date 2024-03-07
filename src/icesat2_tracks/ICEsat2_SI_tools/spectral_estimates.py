@@ -406,13 +406,15 @@ class WavenumberSpectrogram:
         """
 
         self.Lpoints = Lpoints
-        #when not defined in create_chunk_boundaries then L/2
+        # when not defined in create_chunk_boundaries then L/2
         self.ov = int(Lpoints / 2) if ov is None else ov
 
         self.data = data
 
         # create subsample k
-        self.k, self.dk = calc_freq_fft(x_grid, Lpoints) # return 1/ unit of frid points
+        self.k, self.dk = calc_freq_fft(
+            x_grid, Lpoints
+        )  # return 1/ unit of frid points
         # to get the waveumber units (2  pi/ lambda), multiply by 2 pi
         self.k, self.dk = self.k * 2 * np.pi, self.dk * 2 * np.pi
 
@@ -449,14 +451,14 @@ class WavenumberSpectrogram:
         # repack data, create xarray
         self.spec_name = name
         G = {
-	        xi: xr.DataArray(
-	            I,
-	            dims=["k"],
-	            coords={"k": self.k, "x": xi },
-	            name=self.spec_name,
-	        )
-	        for xi, I in D_specs.items()
-	    }
+            xi: xr.DataArray(
+                I,
+                dims=["k"],
+                coords={"k": self.k, "x": xi},
+                name=self.spec_name,
+            )
+            for xi, I in D_specs.items()
+        }
 
         self.G = xr.concat(G.values(), dim="x").T
         if self.G.k[0] == 0:
@@ -467,7 +469,6 @@ class WavenumberSpectrogram:
 
         return self.G
 
-    
     def calc_var(self):
         """Compute total variance from spectragram"""
         # do not consider zeroth frequency
