@@ -55,9 +55,9 @@ Installation:
   > pip install --upgrade --editable ".[dev]"
   > ```
 
-- Check the module `icesat2_tracks` is available by loading the module:
+- Check the module `icesat2waves` is available by loading the module:
   ```shell
-  python -c "import icesat2_tracks; print(icesat2_tracks.__version__)"
+  python -c "import icesat2waves; print(icesat2waves.__version__)"
   ```
 
 ## Command line interface

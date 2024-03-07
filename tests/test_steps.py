@@ -102,7 +102,7 @@ def create_script(script_name, track_name="SH_20190502_05180312"):
         "--verbose",
         "--output-dir",
     ]
-    base_path = "src/icesat2_tracks/analysis_db/"
+    base_path = "src/icesat2waves/analysis_db/"
     return head + [f"{base_path}{script_name}.py"] + tail
 
 

@@ -4,8 +4,8 @@ import string
 
 import matplotlib.pyplot as plt
 
-from icesat2_tracks.local_modules import m_colormanager_ph3 as M_color
-from icesat2_tracks.local_modules import m_tools_ph3 as MT
+from icesat2waves.local_modules import m_colormanager_ph3 as M_color
+from icesat2waves.local_modules import m_tools_ph3 as MT
 
 ## Read folders and configuration paths
 config_dir_path = os.path.dirname(__file__)
