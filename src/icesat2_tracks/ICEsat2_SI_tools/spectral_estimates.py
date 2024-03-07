@@ -220,7 +220,7 @@ def calc_freq_LS(
         minimum_frequency, maximum_frequency only used for LS_auto
     """
 
-    if method is "fftX2":
+    if method == "fftX2":
         neven = is_not_even(N)
         dx = np.diff(x).mean() if dx is None else dx
         df = 1.0 / ((N - 1) * dx) / 2
@@ -406,19 +406,20 @@ class WavenumberSpectrogram:
         """
 
         self.Lpoints = Lpoints
+        #when not defined in create_chunk_boundaries then L/2
         self.ov = int(Lpoints / 2) if ov is None else ov
 
         self.data = data
 
         # create subsample k
-        self.k, self.dk = calc_freq_fft(x_grid, Lpoints)
+        self.k, self.dk = calc_freq_fft(x_grid, Lpoints) # return 1/ unit of frid points
         # to get the waveumber units (2  pi/ lambda), multiply by 2 pi
         self.k, self.dk = self.k * 2 * np.pi, self.dk * 2 * np.pi
 
         # create window
         self.win = create_window(Lpoints)
 
-    def cal_spectrogram(self, data=None, name=None):
+    def cal_spectrogram(self, data=None, name="power_spec"):
         """
         defines apply function and calculated all sub-sample sprectra using map
         """
@@ -446,7 +447,7 @@ class WavenumberSpectrogram:
         self.N_stancils = len(chunk_positions)
 
         # repack data, create xarray
-        self.spec_name = "power_spec" if name is None else name
+        self.spec_name = name
         G = {
 	        xi: xr.DataArray(
 	            I,
@@ -565,7 +566,7 @@ class WavenumberSpectrogramLSEven:
         self.k, self.dk = self.k[::kjumps], self.dk * kjumps
         self.win = None
 
-    def cal_spectrogram(self, x=None, data=None, name=None, dx=1):
+    def cal_spectrogram(self, x=None, data=None, name="power_spec", dx=1):
         """
         defines apply function and calculated all sub-sample sprectra using map
         dx      nominal resolution of the data resolutionif not set, dx= 1
@@ -576,7 +577,7 @@ class WavenumberSpectrogramLSEven:
         L, dk = self.L, self.dk
         win = self.win
         self.dx = dx
-
+        # init Lomb scargle object with noise as nummy data ()
         self.LS = LombScargle(X[0:L], np.random.randn(L) * 0.001, fit_mean=True)
 
         def calc_spectrum_apply(stancil):
@@ -601,7 +602,7 @@ class WavenumberSpectrogramLSEven:
         self.N_stancils = len(chunk_positions)
 
         # repack data, create xarray
-        self.spec_name = "power_spec" if name is None else name
+        self.spec_name = name
         G = dict()
         for xi, I in D_specs.items():
             G[xi] = xr.DataArray(
