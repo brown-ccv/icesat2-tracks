@@ -10,7 +10,7 @@
 # There are some restrictions on what makes a valid project name
 # specification here:
 # https://packaging.python.org/specifications/core-metadata/#name
-name = "icesat2-tracks"  # Required
+name = "icesat2waves"  # Required
 
 # Versions should comply with PEP 440:
 # https://www.python.org/dev/peps/pep-0440/
@@ -39,7 +39,7 @@ readme = "README.md" # Optional
 # 'Programming Language' classifiers above, 'pip install' will check this
 # and refuse to install the project if the version does not match. See
 # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 # This is either text indicating the license for the distribution, or a file
 # that contains the license
@@ -92,7 +92,6 @@ classifiers = [  # Optional
   # Specify the Python versions you support here. In particular, ensure
   # that you indicate you support Python 3. These classifiers are *not*
   # checked by "pip install". See instead "python_requires" below.
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3 :: Only",
@@ -138,7 +137,7 @@ dependencies = [ # Optional
 dev = [
   "check-manifest",
   "black",
-  "icesat2-tracks[test]"
+  "icesat2waves[test]"
 ]
 test = [
   "coverage",
@@ -157,9 +156,9 @@ test = [
 # maintainers, and where to support the project financially. The key is
 # what's used to render the link text on PyPI.
 [project.urls]  # Optional
-"Homepage" = "https://github.com/brown-ccv/icesat2-tracks"
-"Bug Reports" = "https://github.com/brown-ccv/icesat2-tracks/issues"
-"Source" = "https://github.com/brown-ccv/icesat2-tracks"
+"Homepage" = "https://github.com/brown-ccv/icesat2waves"
+"Bug Reports" = "https://github.com/brown-ccv/icesat2waves/issues"
+"Source" = "https://github.com/brown-ccv/icesat2waves"
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
