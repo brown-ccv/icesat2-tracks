@@ -147,10 +147,6 @@ class Spectrum:
         # calculate total var
         calc_var(self)
 
-    #    def calc_var(self):
-    #        """ Compute total variance from spectrum """
-    #        self.var = self.df*self.spec[1:].sum()  # do not consider zeroth frequency
-
     def parceval(self):
 
         print("Parcevals Theorem:")
@@ -163,7 +159,7 @@ class Spectrum:
         print("variance of the Spectrum: ", self.var)
 
 
-class moments:
+class Moments:
     def __init__(
         self,
         data_org,
@@ -194,7 +190,6 @@ class moments:
         elif prewhite == 2:
             data = np.gradient(np.gradient(np.array(data_org), axis=1), axis=1)
 
-        # self.data = data      # field to be analyzed
         self.dt = dt  # sampling interval
         self.save_chunks = save_chunks
 
@@ -205,8 +200,6 @@ class moments:
         if type(L) != int:
             M.echo_dt(L)
             L = L.item().total_seconds()
-        # else:
-        # print('unknown L type')
 
         ov = int(np.round(L / 2)) if ov is None else ov
 
@@ -230,8 +223,7 @@ class moments:
 
         # exclude 0 freq.
         self.f = self.f[1:]
-        # print('fsize', self.f.size)
-        # print(data.size, L, ov, int(L-ov) )
+
         nbin = int(np.floor(data_size / (L - ov))) - 1
         self.nbin = nbin
         if save_chunks:
@@ -241,7 +233,6 @@ class moments:
         specs = np.empty([data_dim, int(nbin), self.f.size])
         self.mom_list = list()
         k = 0
-        # print('iter range', np.arange(0,data.size,int(L-ov)))
         for i in np.arange(0, data_size - int(L - ov) + 1, int(L - ov)):
 
             if (plot_chunks) and (i >= data_size - 6 * int(L - ov)):
@@ -249,40 +240,22 @@ class moments:
 
             self.phi = data[:, int(i) : int(i + L)]
 
-            # self.ii=np.append(self.ii,[i,i+L])
-            # print(self.phi.max())
-
-            # print(self.phi.mean())
-            # print(self.phi.shape)
-            # print('i',int(i), int(i+L))
-            # print(chunk.size, l)
             if int(i + L) <= data_size - 1:
                 if save_chunks:
                     chunks[:, k, :] = self.phi
 
-                # normalizing
-                # print('normalizing')
-                # self.phi=signal.detrend(self.phi,axis=1)*win
-                # self.phi=(self.phi.T/np.std(self.phi, axis=1)).T
-
-                # non normalizing
-                # de trending and prewhitening
                 self.phi = signal.detrend(self.phi, axis=1) * win
 
                 if plot_chunks:
-                    # MT.stats_format(self.phi, 'chunk '+str(i))
                     plt.plot(self.phi)
 
                 X = self.calc_spectral_density()
-                # print(np.shape(X))
                 self.mom = self.calc_moments(X)
 
                 self.mom_list.append(self.mom)
 
                 last_k = k
                 last_used_TS = int(i + L)
-                # if plot_chunks:
-                #    MT.stats_format(self.spec, 'spec '+str(i))
 
             else:
                 if plot_chunks:
@@ -294,26 +267,15 @@ class moments:
 
             k += 1
 
-        # print('last k', last_k)
-        # print('len mom_list', len(self.mom_list)  )
-        # print('nbin', nbin)
-
         if save_chunks:
             self.chunks = chunks
-            # del(chunks)
 
         self.moments_stack = dict()
         self.moments_est = dict()
         for k in self.mom.keys():
-            # print(k)
             stack = np.empty([nbin, self.f.size])
             for i in range(len(self.mom_list)):
-                # stack=np.vstack((stack,I[k])) #stack them
-                # print(i, k)
-                stack[i, :] = self.mom_list[i][k]  # stack them
-                # print(stack.shape)
-            # mom_est[k]=stack.mean(axis=0)
-            # mean them and decide prewhitheing or nots
+                stack[i, :] = self.mom_list[i][k]  # stack the
             if prewhite is None:
                 self.moments_stack[k] = stack
                 self.moments_est[k] = np.nanmean(stack, axis=0)
@@ -328,9 +290,6 @@ class moments:
 
         self.moments_unit = "[data]^2"
         self.n_spec = len(self.mom_list)
-        # self.calc_var()
-        # self.phi=self.data
-        # self.phi*=win*np.sqrt(factor)
 
     def calc_spectral_density(self):
         """compute the 1d spectraln density of a field phi"""
@@ -341,7 +300,6 @@ class moments:
         # the 1/n**2 is debatalbe. Sarahs notes say, 1/n should be enough.
 
         # the zeroth frequency should be counted only once
-        # phih[0] = phih[0]/2.
 
         if self.neven:
             phih[-1] = phih[-1] / 2.0
@@ -403,25 +361,8 @@ class moments:
 
         self.MEM = MEM
 
-    # def error(self, ci=0.95):
-    #    self.El, self.Eu =spec_error(self.spec_est,self.n_spec,ci=ci)
 
-    # def parceval(self):
-    ## method not checked jet
-    #    print('Parcevals Theorem:')
-    #    print('variance of unweighted timeseries: ',self.data.var())
-    #    print('mean variance of timeseries chunks: ',self.chunks.var(axis=1).mean() if self.save_chunks is True else 'data not saved')
-    # print('variance of weighted timeseries: ',self.phi.var() )
-    # self.calc_var(self)
-    #    print('variance of the pwelch Spectrum: ',self.var)
-
-    # def calc_var(self):
-
-    #    """ Compute total variance from spectral density """
-    #    self.var = self.specs[1:].mean(axis=0).sum()  # do not consider zeroth frequency
-
-
-class pwelch:
+class Pwelch:
     def __init__(
         self,
         data,
@@ -459,8 +400,6 @@ class pwelch:
         if type(L) != int:
             M.echo_dt(L)
             L = L.item().total_seconds()
-        # else:
-        # print('unknown L type')
 
         ov = int(np.round(L / 2)) if ov is None else ov
 
@@ -480,9 +419,7 @@ class pwelch:
             self.neven = True
         # calculate freq
         calc_freq(self)
-        # print(data.size, L, ov, int(L-ov) )
         nbin = int(np.floor(dsize / (L - ov)))
-        # print(nbin)
         if periodogram:
             self.nbin = nbin
             self.dt_periodogram = L - ov
@@ -491,13 +428,8 @@ class pwelch:
             chunks = np.empty([int(nbin), int(L)])
 
         specs = np.empty([int(nbin), self.f.size])
-        # print(chunks.shape)
-        # result_array = np.empty((0, 100))
-        # if plot_chunks:
-        # M.figure_axis_xy()
         last_k = 0
         k = 0
-        # print('iter range', np.arange(0,data.size,int(L-ov)))
         for i in np.arange(0, dsize - int(L - ov) + 1, int(L - ov)):
 
             if (plot_chunks) and (i >= dsize - 6 * int(L - ov)):
@@ -505,28 +437,19 @@ class pwelch:
 
             self.phi = data[int(i) : int(i + L)]
 
-            # self.ii=np.append(self.ii,[i,i+L])
-            # print(self.phi.max())
-
-            # print(self.phi.mean())
-            # print(self.phi.shape)
-            # print('i',int(i), int(i+L))
-            # print(chunk.size, l)
             if int(i + L) <= data.size - 1:
                 if save_chunks:
                     chunks[k, :] = self.phi
 
                 self.phi = signal.detrend(self.phi) * win
                 if plot_chunks:
-                    # MT.stats_format(self.phi, 'chunk '+str(i))
                     plt.plot(self.phi)
 
                 calc_spectrum(self)
                 specs[k, :] = self.spec
                 last_k = k
                 last_used_TS = int(i + L)
-                # if plot_chunks:
-                #    MT.stats_format(self.spec, 'spec '+str(i))
+
                 del self.spec
             else:
                 if plot_chunks:
@@ -540,7 +463,6 @@ class pwelch:
 
         if save_chunks:
             self.chunks = chunks
-            # del(chunks)
 
         if prewhite is None:
             self.specs = specs[:last_k, :]
@@ -554,8 +476,6 @@ class pwelch:
 
         self.n_spec, _ = self.specs.shape
         self.calc_var()
-        # self.phi=self.data
-        # self.phi*=win*np.sqrt(factor)
 
     def error(self, ci=0.95):
         self.El, self.Eu = spec_error(self.spec_est, self.n_spec, ci=ci)
@@ -571,8 +491,7 @@ class pwelch:
                 else "data not saved"
             ),
         )
-        # print('variance of weighted timeseries: ',self.phi.var() )
-        # self.calc_var(self)
+
         print("variance of the pwelch Spectrum: ", self.var)
 
     def calc_var(self):
@@ -582,7 +501,7 @@ class pwelch:
         )  # do not consider zeroth frequency
 
 
-class SpectogramSubsample(pwelch):
+class SpectogramSubsample(Pwelch):
     def __init__(
         self,
         data,
@@ -601,7 +520,6 @@ class SpectogramSubsample(pwelch):
         self.hist = "Subsampled Spectogram"
         L = int(np.round(data.size / 10)) if L is None else L
         if type(L) != int:
-            # print('Length = ')
             M.echo_dt(L)
             self.write_log("Length = " + M.echo_dt(L, as_string=True))
             L = int(L.item().total_seconds())
@@ -611,22 +529,17 @@ class SpectogramSubsample(pwelch):
 
         subL = int(np.round(L / 10)) if subL is None else subL
         if type(subL) != int:
-            # print('Subsample Length= ')
-            # M.echo_dt(subL)
+
             self.write_log("Subsample Length= " + M.echo_dt(subL, as_string=True))
             subL = int(subL.item().total_seconds())
         else:
-            # print('unknown subL type')
             self.write_log("Length = " + "unknown subL type")
 
         ov = int(np.round(L / 2.0)) if ov is None else ov
         if type(ov) != int:
-            # print('overlab Length= ')
-            # M.echo_dt(ov)
             ov = int(ov.item().total_seconds())
         else:
             pass
-            # print('ov type:', type(ov))
 
         self.n = subL
         if window is None:
@@ -643,15 +556,15 @@ class SpectogramSubsample(pwelch):
 
         calc_freq(self)
 
-        # dt_inms             = np.timedelta64(dt, dt_unit).astype('m8[ms]').astype(float)
-        data_size_adjust = dt * data.size  # datasize in seconds
+        # datasize in seconds
+        data_size_adjust = dt * data.size
 
         nbin = np.floor(data_size_adjust / (L - ov))
         self.nbin = nbin
         self.dt_periodogram = L - ov
         specs = np.empty([int(nbin), self.f.size])
-        error_El = []  # np.empty([int(nbin),self.f.size])
-        error_Ey = []  # np.empty([int(nbin),self.f.size])
+        error_El = []
+        error_Ey = []
         dbin = 0.005
         yN = np.arange(0, 2.0 + dbin, dbin)
 
@@ -660,18 +573,11 @@ class SpectogramSubsample(pwelch):
         print("subL", subL)
         print("L", L)
         print(data_size_adjust)
-        # print(specs.shape, np.arange(0,data.size,int(L-ov)), np.arange(0,data.size-L,int(L-ov)).shape, )
-        # print(specs.shape,np.arange(0,data_size_adjust-int(L-ov)+1,int(L-ov)) )
+
         for i in np.arange(0, data_size_adjust - int(L - ov) + 1, int(L - ov)):
 
             phi = data[int(i) : int(i + L)]
-            # self.ii=np.append(self.ii,[i,i+L])
-            # print(self.phi.max())
 
-            # print(self.phi.mean())
-            # print(phi.shape)
-            # print('i',i, i+L, data.size, i+L <= data.size)
-            # print(chunk.size, l)
             if i + L <= data.size:
 
                 if plot_chunks:
@@ -679,9 +585,9 @@ class SpectogramSubsample(pwelch):
                 if save_chunks:
                     chunks[k, :] = phi
 
-                phi = signal.detrend(phi)  # *win
+                phi = signal.detrend(phi)
 
-                pwelch.__init__(
+                Pwelch.__init__(
                     self,
                     phi,
                     dt,
@@ -698,21 +604,19 @@ class SpectogramSubsample(pwelch):
                 El, Ey = yNlu(sn, yN, ci=0.95)
                 error_El = np.append(error_El, El)
                 error_Ey = np.append(error_Ey, Ey)
-                # error_El[k,:]=El
-                # error_Ey[k,:]=Ey
 
                 del self.spec_est
             elif i + L > data.size:
                 phi = data[-L:]
-                # print('phi shape',phi.shape )
+
                 if plot_chunks:
                     plt.plot(phi)
                 if save_chunks:
                     chunks[k, :] = phi
 
-                phi = signal.detrend(phi)  # *win
+                phi = signal.detrend(phi)
 
-                pwelch.__init__(
+                Pwelch.__init__(
                     self,
                     phi,
                     dt,
@@ -729,13 +633,9 @@ class SpectogramSubsample(pwelch):
                 El, Ey = yNlu(sn, yN, ci=0.95)
                 error_El = np.append(error_El, El)
                 error_Ey = np.append(error_Ey, Ey)
-                # error_El[k,:]=El
-                # error_Ey[k,:]=Ey
 
                 del self.spec_est
 
-            # print(k)
-            # print('------')
             k += 1
 
         self.n_specs = n_specs
@@ -754,15 +654,12 @@ class SpectogramSubsample(pwelch):
             dt_unit = "s"
             dt_timedelta = np.timedelta64(dt, dt_unit)
 
-        # print('sample resolution:')
-        # M.echo_dt(dt_timedelta)
         self.write_log(
             "basic sample resolution:" + M.echo_dt(dt_timedelta, as_string=True)
         )
 
         timeres = np.timedelta64(int(self.dt_periodogram), "s")
-        # print('time resolution:')
-        # M.echo_dt(timeres)
+
         self.write_log("Spectogram time res:" + M.echo_dt(timeres, as_string=True))
 
         if timestamp is None:
@@ -772,21 +669,17 @@ class SpectogramSubsample(pwelch):
             start_time = timestamp[0]
             end_time = timestamp[-1]
 
-        # print('Periodogram starttime and endtime:')
-        # print(start_time)
-        # print(end_time)
         self.write_log("Spectogram starttme:" + str(start_time))
         self.write_log("            endtime:" + str(end_time))
 
-        # print(type(start_time), type(L), type(end_time), type(dt_timedelta), print(timeres) )
         time = np.arange(start_time + int(L / 2), end_time + dt_timedelta, timeres)
-        # print(time)
+
         if time.shape[0] != self.data.shape[0]:
             time = time[0 : self.data.shape[0]]
         self.time = time
         self.timeres = timeres
         self.dt_unit = dt_unit
-        # print(self.time)
+
         self.time_dict = create_timeaxis_collection(self.time)
         self.write_log("created timestamp collection")
 
@@ -801,10 +694,6 @@ class SpectogramSubsample(pwelch):
 
     def power_anomalie(self, clim=None):
         dd = 10 * np.log10(self.data[:, :])
-        # print(dd)
-        # if anomalie is True:
-        #    dd_tmp=dd.mean(axis=0).repeat(self.time.size-1)
-        #        dd=dd- dd_tmp.reshape(self.fs.size,self.time.size-1).T
 
         self.data_power_mean = (
             np.nanmedian(dd, axis=0) if clim is None else 10 * np.log10(clim)
@@ -815,18 +704,12 @@ class SpectogramSubsample(pwelch):
         self.data_power_ano = dd - dd_tmp.reshape(self.f.size, self.time.size).T
 
     def anomalie(self, clim=None):
-        # dd=
-        # print(dd)
-        # if anomalie is True:
-        #    dd_tmp=dd.mean(axis=0).repeat(self.time.size-1)
-        #        dd=dd- dd_tmp.reshape(self.fs.size,self.time.size-1).T
-
         self.data_mean = np.nanmedian(self.data, axis=0) if clim is None else clim
         dd_tmp = self.data_mean.repeat(self.time.size)
         self.data_ano = self.data - dd_tmp.reshape(self.f.size, self.time.size).T
 
 
-class Periodogram(pwelch):
+class Periodogram(Pwelch):
     def __init__(
         self,
         data,
@@ -840,7 +723,7 @@ class Periodogram(pwelch):
         plot_chunks=False,
     ):
 
-        pwelch.__init__(
+        Pwelch.__init__(
             self, data, dt, L, ov, window, save_chunks, plot_chunks, periodogram=True
         )
         self.data = self.specs
@@ -869,15 +752,11 @@ class Periodogram(pwelch):
         print(end_time)
 
         time = np.arange(start_time + L / 2, end_time + dt_timedelta, timeres)
-        # print(time)
         if time.shape[0] != self.data.shape[0]:
             time = time[0 : self.data.shape[0]]
         self.time = time
         self.timeres = timeres
         self.dt_unit = dt_unit
-        # G.dt_data=dt_data
-
-        # self.time=np.arange(,nin*)
 
     def save_data(self, path=None, S=None):
         P = SaveDataPeriodogram(self, S=S)
@@ -895,7 +774,6 @@ class SaveDataPeriodogram:
         self.data = P.data
         self.dt_unit = P.dt_unit
         self.time = P.time
-        # self.y_lim=y_lim
         self.timeres = P.timeres
 
 
@@ -939,13 +817,13 @@ def MEM_cal(moments_est, freq, theta=None, flim=None):
         N_sel[k] = moments_est[k][freq_sel_bool]
 
     d1 = N_sel["Q12"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
-    # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
+
     d2 = N_sel["Q13"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
 
     d3 = (N_sel["P22"] - N_sel["P33"]) / (N_sel["P22"] + N_sel["P33"])
     d4 = 2 * N_sel["P23"] / (N_sel["P22"] + N_sel["P33"])
-
-    S = N_sel["P11"] / freq_sel  # define power spectrum
+    # define power spectrum
+    S = N_sel["P11"] / freq_sel
 
     D = GetMem(d1, d2, d3, d3, theta)
     E = np.tile(S.T, (theta.size, 1)).T * D
@@ -1021,16 +899,12 @@ def peak_angle(data, freq, fpos, max_jump=5, smooth_l=5):
     Return:
     peak angles index orded buy the peak height
     """
-    # max_jump=5
-    # smooth_l=5
 
     if data.shape[0] != freq.size:
         raise Warning("shape of data in dim=0 must be equal to freq")
 
     f_bool = M.cut_nparray(freq, fpos[0], fpos[-1])
     dregree_series = data[f_bool, :].mean(0)
-    # plt.plot(dregree_series)
-    # print(dregree_series)
 
     a = M.find_max_ts(
         dregree_series,

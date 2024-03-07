@@ -38,10 +38,9 @@ def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
 
 
 def freq_lim_string(low, high):
-    a = "%2.1e" % low
-    b = "%2.1e" % high
-
-    return a[0:3] + "-" + b + " Hz"
+    a = f"{low:.1e}"
+    b = f"{high:.1e}"
+    return f"{a[0:3]}-{b} Hz"
 
 
 def float_to_str(flt, r=1):
