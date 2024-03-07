@@ -324,7 +324,8 @@ def save_log_txt(name, path, hist, verbose=False):
 def load_log_txt(hist_file, path):
     f = []
     for h in glob.glob(os.path.join(path, hist_file)):
-        f.append(open(h, "r").read())
+        with open(h, "r") as file:
+            f.append(file.read())
     return "\n".join(f)
 
 

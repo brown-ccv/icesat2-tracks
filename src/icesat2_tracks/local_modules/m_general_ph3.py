@@ -722,15 +722,14 @@ class PlotPolarspectra:
             self.title = plt.suptitle(
                 "  Polar Spectrum", y=0.95, x=0.5, horizontalalignment="center"
             )
-        else:
-            ax = ax
+        
 
         # left turned postive
         ax.set_theta_direction(-1)
         ax.set_theta_zero_location("N")
 
         ax.set_yticks(self.ylabels)
-        ax.set_yticklabels(" " + str(y) + " s" for y in self.ylabels)
+        ax.set_yticklabels(f" {y} s" for y in self.ylabels)
 
         ## Set titles and colorbar
         grid = ax.grid(color="k", alpha=0.5, linestyle="--", linewidth=0.5)
@@ -746,7 +745,7 @@ class PlotPolarspectra:
             cm.set_bad = "w"
             colorax = ax.contourf(
                 self.thetas, 1 / self.f, self.data, self.clevs, cmap=cm, zorder=1
-            )  # , vmin=self.ctrs_min)
+            )
 
         if circles is not None:
             theta = np.linspace(0, 2 * np.pi, 360)
@@ -759,7 +758,7 @@ class PlotPolarspectra:
         if self.data_type == "fraction":
             cbar.set_label("Fraction of Energy", rotation=0)
         elif self.data_type == "energy":
-            cbar.set_label("Energy Density (" + self.unit + ")", rotation=0)
+            cbar.set_label(f"Energy Density ({self.unit})", rotation=0)
         cbar.ax.get_yaxis().labelpad = 30
         cbar.outline.set_visible(False)
 
@@ -954,23 +953,22 @@ def boxmean(data, lon, lat, xlim, ylim):
     else:
         ybool = (lat >= ylim[1]) & (lat <= ylim[0])
 
-    if xp == 0 and yp == 1:
-        datan = data[xbool, :, :][:, ybool, :].mean()
+    match (xp, yp):
+        case (0, 1):
+            datan = data[xbool, :, :][:, ybool, :].mean()
+        case (0, 2):
+            datan = data[xbool, :, :][:, :, ybool]
+        case (1, 0):
+            datan = data[:, xbool, :][ybool, :, :]
+        case (1, 2):
+            datan = data[:, xbool, :][:, :, ybool]
+        case (2, 0):
+            datan = data[:, :, xbool][ybool, :, :]
+        case (2, 1):
+            datan = data[:, :, xbool][:, ybool, :]
+        case _:
+            print("arrays have not the same shape")
 
-    elif xp == 0 and yp == 2:
-        datan = data[xbool, :, :][:, :, ybool]
-    elif xp == 1 and yp == 0:
-        datan = data[:, xbool, :][ybool, :, :]
-
-    elif xp == 1 and yp == 2:
-        datan = data[:, xbool, :][:, :, ybool]
-
-    elif xp == 2 and yp == 0:
-        datan = data[:, :, xbool][ybool, :, :]
-    elif xp == 2 and yp == 1:
-        datan = data[:, :, xbool][:, ybool, :]
-    else:
-        print("arrays have not the same shape")
 
     print("new shape", datan.shape)
 
@@ -1001,7 +999,7 @@ def detrend(data, od=None, x=None, plot=False, verbose=False):
         dline = np.polyval(px, x)
         d_detrend = d_org - dline
 
-    if plot == True:
+    if plot:
         F = FigureAxisXY(15, 5)
         if od > 0:
             plt.plot(d_org, Color="black")
