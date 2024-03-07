@@ -124,6 +124,8 @@ dependencies = [ # Optional
   "h5py >=3.5.0, < 4.0.0",
   "termcolor >=2.4.0, < 3.0.0",
   "typer >=0.9.0, < 1.0.0",
+  "getmem >=1.0, <= 1.0.0",
+  "astropy >=5.2, <= 6.0.0"
 ]
 
 # List additional groups of dependencies   here (e.g. development
