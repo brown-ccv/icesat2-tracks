@@ -1269,7 +1269,7 @@ class CompIter:
         for s in self.span:
             assert type(s) is int, "span is not an integrer!"
 
-        self.length = -self.span[0] + self.span[1]
+        self.length = self.span[1] -self.span[0]
         self.loop_iter = np.arange(0, self.length, 1)
         self.index_iter = np.arange(self.span[0], self.span[1], 1)
         if dt:
