@@ -44,7 +44,7 @@ def create_chunk_boundaries(L, dsize, ov=None, iter_flag=True):
 
 def create_chunk_boundaries_unit_lengths(L_unit, data_limits, ov=None, iter_flag=True):
     """
-    returns all need chunk boudaries and center position given L, and ov
+    returns all need chunk boundaries and center position given L, and ov
     inputs:
     L desired length of window in units of the x axis of the data,
     data_limits (x_min, x_max) tuple with the beginning and end the the derived window stancils
@@ -65,11 +65,8 @@ def create_chunk_boundaries_unit_lengths(L_unit, data_limits, ov=None, iter_flag
     position_stancil = np.vstack(
         [xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]]
     )
-
-    if iter_flag is True:
-        return iter(position_stancil.T.tolist())
-    else:
-        return position_stancil
+    
+    return iter(position_stancil.T.tolist()) if iter_flag else position_stancil
 
 
 def Z_to_power(Z, df, N):
@@ -174,11 +171,7 @@ def calc_freq_fft(x_grid, N):
 
     dx = np.round(np.median(np.diff(x_grid)), 1)
     df = 1.0 / ((N - 1) * dx)
-
-    if neven:
-        f = df * np.arange(N / 2 + 1)
-    else:
-        f = df * np.arange((N - 1) / 2.0 + 1)
+    f = df * np.arange(N / 2 + 1) if neven else df * np.arange((N - 1) / 2.0 + 1)
     return f, df
 
 
@@ -192,11 +185,7 @@ def calc_freq_fft_given_dx(dx, N):
 
     neven = is_not_even(N)
     df = 1.0 / ((N - 1) * dx)
-
-    if neven:
-        f = df * np.arange(N / 2 + 1)
-    else:
-        f = df * np.arange((N - 1) / 2.0 + 1)
+    f = df * np.arange(N / 2 + 1) if neven else df * np.arange((N - 1) / 2.0 + 1)
     return f, df
 
 
@@ -224,19 +213,13 @@ def calc_freq_LS(
         neven = is_not_even(N)
         dx = np.diff(x).mean() if dx is None else dx
         df = 1.0 / ((N - 1) * dx) / 2
-        if neven:
-            f = df * np.arange(df, N + 1)
-        else:
-            f = df * np.arange(df, (N - 1) + 1)
+        f = df * np.arange(df, N + 1) if neven else df * np.arange(df, N)
 
     elif method is "fft":
         neven = is_not_even(N)
         dx = np.diff(x).mean() if dx is None else dx
         df = 1.0 / ((N - 1) * dx)
-        if neven:
-            f = df * np.arange(N / 2 + 1)
-        else:
-            f = df * np.arange((N - 1) / 2.0 + 1)
+        f = df * np.arange(N / 2 + 1) if neven else df * np.arange((N - 1) / 2.0 + 1)
 
     elif method is "LS_auto":
 
