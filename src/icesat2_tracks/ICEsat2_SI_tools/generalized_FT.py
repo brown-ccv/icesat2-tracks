@@ -668,7 +668,7 @@ class wavenumber_spectrogram_gFT:
             self.G.attrs["mean_variance_LS_pwelch_spectrum"] = self.calc_var()
 
     def mean_spectral_error(self, mask=None, confidence=0.95):
-        return spec.wavenumber_spectrogram.mean_spectral_error(
+        return spec.WavenumberSpectrogram.mean_spectral_error(
             self, mask=mask, confidence=confidence
         )
 
