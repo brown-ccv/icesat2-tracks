@@ -9,7 +9,7 @@
 
 Prerequisites:
 - A POSIX-compatible system (Linux or macOS)
-- Python 3.9 (run `python --version` to check that your version of python is correct)
+- Python 3.10 (run `python --version` to check that your version of python is correct)
 - MPI (e.g. from `brew install open-mpi` on macOS)
 - HDF5 (e.g. from `brew install hdf5` on macOS)
 
