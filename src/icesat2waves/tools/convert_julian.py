@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-u"""
+"""
 convert_julian.py
 Written by Tyler Sutterley (10/2017)
 
@@ -50,60 +50,62 @@ UPDATE HISTORY:
 """
 import numpy as np
 
-def convert_julian(JD, ASTYPE=None, FORMAT='dict'):
-	#-- convert to array if only a single value was imported
-	if (np.ndim(JD) == 0):
-		JD = np.array([JD])
-		SINGLE_VALUE = True
-	else:
-		SINGLE_VALUE = False
 
-	JDO = np.floor(JD + 0.5)
-	C = np.zeros_like(JD)
-	#-- calculate C for dates before and after the switch to Gregorian
-	IGREG = 2299161.0
-	ind1, = np.nonzero(JDO < IGREG)
-	C[ind1] = JDO[ind1] + 1524.0
-	ind2, = np.nonzero(JDO >= IGREG)
-	B = np.floor((JDO[ind2] - 1867216.25)/36524.25)
-	C[ind2] = JDO[ind2] + B - np.floor(B/4.0) + 1525.0
-	#-- calculate coefficients for date conversion
-	D = np.floor((C - 122.1)/365.25)
-	E = np.floor((365.0 * D) + np.floor(D/4.0))
-	F = np.floor((C - E)/30.6001)
-	#-- calculate day, month, year and hour
-	DAY = np.floor(C - E + 0.5) - np.floor(30.6001*F)
-	MONTH = F - 1.0 - 12.0*np.floor(F/14.0)
-	YEAR = D - 4715.0 - np.floor((7.0+MONTH)/10.0)
-	HOUR = np.floor(24.0*(JD + 0.5 - JDO))
-	#-- calculate minute and second
-	G = (JD + 0.5 - JDO) - HOUR/24.0
-	MINUTE = np.floor(G*1440.0)
-	SECOND = (G - MINUTE/1440.0) * 86400.0
+def convert_julian(JD, ASTYPE=None, FORMAT="dict"):
+    # -- convert to array if only a single value was imported
+    if np.ndim(JD) == 0:
+        JD = np.array([JD])
+        SINGLE_VALUE = True
+    else:
+        SINGLE_VALUE = False
 
-	#-- convert all variables to output type (from float)
-	if ASTYPE is not None:
-		YEAR = YEAR.astype(ASTYPE)
-		MONTH = MONTH.astype(ASTYPE)
-		DAY = DAY.astype(ASTYPE)
-		HOUR = HOUR.astype(ASTYPE)
-		MINUTE = MINUTE.astype(ASTYPE)
-		SECOND = SECOND.astype(ASTYPE)
+    JDO = np.floor(JD + 0.5)
+    C = np.zeros_like(JD)
+    # -- calculate C for dates before and after the switch to Gregorian
+    IGREG = 2299161.0
+    (ind1,) = np.nonzero(JDO < IGREG)
+    C[ind1] = JDO[ind1] + 1524.0
+    (ind2,) = np.nonzero(JDO >= IGREG)
+    B = np.floor((JDO[ind2] - 1867216.25) / 36524.25)
+    C[ind2] = JDO[ind2] + B - np.floor(B / 4.0) + 1525.0
+    # -- calculate coefficients for date conversion
+    D = np.floor((C - 122.1) / 365.25)
+    E = np.floor((365.0 * D) + np.floor(D / 4.0))
+    F = np.floor((C - E) / 30.6001)
+    # -- calculate day, month, year and hour
+    DAY = np.floor(C - E + 0.5) - np.floor(30.6001 * F)
+    MONTH = F - 1.0 - 12.0 * np.floor(F / 14.0)
+    YEAR = D - 4715.0 - np.floor((7.0 + MONTH) / 10.0)
+    HOUR = np.floor(24.0 * (JD + 0.5 - JDO))
+    # -- calculate minute and second
+    G = (JD + 0.5 - JDO) - HOUR / 24.0
+    MINUTE = np.floor(G * 1440.0)
+    SECOND = (G - MINUTE / 1440.0) * 86400.0
 
-	#-- if only a single value was imported initially: remove singleton dims
-	if SINGLE_VALUE:
-		YEAR = YEAR.item(0)
-		MONTH = MONTH.item(0)
-		DAY = DAY.item(0)
-		HOUR = HOUR.item(0)
-		MINUTE = MINUTE.item(0)
-		SECOND = SECOND.item(0)
+    # -- convert all variables to output type (from float)
+    if ASTYPE is not None:
+        YEAR = YEAR.astype(ASTYPE)
+        MONTH = MONTH.astype(ASTYPE)
+        DAY = DAY.astype(ASTYPE)
+        HOUR = HOUR.astype(ASTYPE)
+        MINUTE = MINUTE.astype(ASTYPE)
+        SECOND = SECOND.astype(ASTYPE)
 
-	#-- return date variables in output format (default python dictionary)
-	if (FORMAT == 'dict'):
-		return dict(year=YEAR, month=MONTH, day=DAY,
-			hour=HOUR, minute=MINUTE, second=SECOND)
-	elif (FORMAT == 'tuple'):
-		return (YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
-	elif (FORMAT == 'zip'):
-		return zip(YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
+    # -- if only a single value was imported initially: remove singleton dims
+    if SINGLE_VALUE:
+        YEAR = YEAR.item(0)
+        MONTH = MONTH.item(0)
+        DAY = DAY.item(0)
+        HOUR = HOUR.item(0)
+        MINUTE = MINUTE.item(0)
+        SECOND = SECOND.item(0)
+
+    # -- return date variables in output format (default python dictionary)
+    if FORMAT == "dict":
+        return dict(
+            year=YEAR, month=MONTH, day=DAY, hour=HOUR, minute=MINUTE, second=SECOND
+        )
+    elif FORMAT == "tuple":
+        return (YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
+    elif FORMAT == "zip":
+        return zip(YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
