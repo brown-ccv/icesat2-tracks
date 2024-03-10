@@ -176,12 +176,12 @@ class SubplotRoutines(FigureAxisXY):
 
 
 class PlotSprecta:
-    def __init__(self, fs, Xdata, sample_unit=None, data_unit=None):
+    def __init__(self, fs, Xdata, sample_unit="df", data_unit= "X"):
 
         self.fs = fs
         self.Xdata = Xdata
-        self.sample_unit = sample_unit if sample_unit is not None else "df"
-        self.data_unit = data_unit if data_unit is not None else "X"
+        self.sample_unit = sample_unit
+        self.data_unit = data_unit
 
     def linear(self, Color="b", fig_scale=2, fax="f"):
         self.F = FigureAxisXY(fig_scale=fig_scale)
@@ -248,7 +248,7 @@ class PlotSprecta:
 
         self.line = plt.semilogx(xax[1:], 10 * np.log10(self.Xdata[1:]), Color=Color)
 
-        plt.ylabel(("Power db(" + self.data_unit + "^2/" + self.sample_unit + ")"))
+        plt.ylabel(f"Power db({self.data_unit }^2/ {self.sample_unit} )")
         plt.xlabel(xlabelstr)
         plt.xlim(xax[1], xax[-1])
         self.F.make_clear()
