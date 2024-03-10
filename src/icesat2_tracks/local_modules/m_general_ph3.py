@@ -223,14 +223,14 @@ class PlotSprecta:
         self.F = FigureAxisXY(fig_scale=2)
         if fax == "f":
             xax = self.fs
-            xlabelstr = "f  (" + self.sample_unit + ")"
+            xlabelstr = f"f ({self.sample_unit})"
         elif fax == "w":
             xax = 2 * np.pi * self.fs
-            xlabelstr = "w  (rad " + self.sample_unit + ")"
+            xlabelstr = f"w (rad {self.sample_unit})"
 
         self.line = plt.loglog(xax[1:], (self.Xdata[1:]), Color=Color)
 
-        plt.ylabel(("|X|^2/f (" + self.data_unit + "^2/" + self.sample_unit + ")"))
+        plt.ylabel(f"|X|^2/f ({self.data_unit}^2/{self.sample_unit})")
         plt.xlabel(xlabelstr)
         plt.xlim(xax[1], xax[-1])
 
@@ -1262,7 +1262,7 @@ class CompositeData:
 
 
 class CompIter:
-    def __init__(self, span, dt=None, unit=None):
+    def __init__(self, span, dt=None, unit="h"):
         self.span = list(span)
         for s in self.span:
             assert type(s) is int, "span is not an integrer!"
@@ -1275,7 +1275,6 @@ class CompIter:
             self.time_iter = self.index_iter * dt
             time_str = []
             time_iter_axis = []
-            self.unit = "h" if unit is None else unit
             for p in self.loop_iter:
                 time_str = np.append(
                     time_str, str(self.time_iter[p].astype("timedelta64[" + unit + "]"))
