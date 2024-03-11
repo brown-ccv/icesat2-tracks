@@ -196,15 +196,11 @@ def h5_load(name, path, verbose=False):
 
 def h5_load_v2(name, path, verbose=False):
 
-    h5f = h5py.File(path + name + ".h5", "r")
-    if verbose:
-        print(h5f.keys())
+    with h5py.File(path + name + '.h5','r') as h5f:
+        if verbose:
+            print(h5f.keys())
 
-    data_dict = dict()
-    for k, I in h5f.iteritems():
-        data_dict[k] = I[:]
-
-    h5f.close()
+        data_dict = {k: v[:] for k, v in h5f.items()}
 
     return data_dict
 
@@ -215,12 +211,9 @@ def h5_save(name, path, data_dict, verbose=False, mode="w"):
         os.makedirs(path)
 
     full_name = os.path.join(path, name + ".h5")
-    store = h5py.File(full_name, mode)
-
-    for k, I in list(data_dict.items()):
-        store[k] = I
-
-    store.close()
+    with h5py.File(full_name, mode) as store:
+        for k, I in data_dict.items():
+            store[k] = I
 
     if verbose:
         print("saved at: " + full_name)
@@ -232,13 +225,10 @@ def h5_save(name, path, data_dict, verbose=False, mode="w"):
         os.makedirs(path)
 
     full_name = os.path.join(path, name + ".h5")
-    store = h5py.File(full_name, mode)
-
-    for k, I in list(data_dict.items()):
-        store[k] = I
-
-    store.close()
-
+    with h5py.File(full_name, mode) as store:
+        for k, I in list(data_dict.items()):
+            store[k] = I
+    
     if verbose:
         print("saved at: " + full_name)
 
@@ -269,19 +259,15 @@ def save_pandas_table(table_dict, ID, save_path):
 
 def write_log(hist, string, verbose=False, short=True, date=True):
 
-    if short:
-        now = datetime.now().strftime("%Y%m%d")
-    else:
-        now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    if date:
-        message = "\n" + now + " " + string
-    else:
-        message = "\n ".ljust(2) + " " + string
+    _now = datetime.datetime.now()
+    _short =  "%Y%m%d"
+    _long = "%Y-%m-%d %H:%M"
+    now = _now.strftime(_short) if short else _now.strftime(_long)
+    message = f"\n{now} {string}" if date else f"\n  {string}"
 
-    if verbose == True:
-        print(message)
-    elif verbose == "all":
-        print(hist + message)
+    if verbose in [True, 'all']:
+        print(hist + message if verbose == 'all' else message)
+    
     return hist + message
 
 
@@ -298,10 +284,7 @@ def write_variables_log(hist, var_list, locals, verbose=False, date=False):
     for name, I in var_dict.items():
         stringg = stringg + "\n " + name.ljust(5) + str(I)
 
-    if date:
-        message = "\n" + now + " " + stringg
-    else:
-        message = "\n ".ljust(5) + " " + stringg
+    message = f"\n{now} {stringg}" if date else f"\n{' '.ljust(5)} {stringg}"
 
     if verbose == True:
         print(message)
