@@ -1,5 +1,5 @@
 #%matplotlib inline
-from icesat2_tracks.local_modules import m_colormanager_ph3 as M_color
+from icesat2waves.local_modules import m_colormanager_ph3 as M_color
 
 mconfig['paths']
 path=mconfig['paths']['config']

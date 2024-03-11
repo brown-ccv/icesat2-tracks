@@ -6,7 +6,7 @@ This is python 3
 
 import itertools
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2waves.config.startup import (
     mconfig,
     color_schemes,
     font_for_print,
@@ -15,7 +15,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
 
 
 import h5py
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
+import icesat2waves.tools.iotools as io
 import xarray as xr
 import numpy as np
 from scipy.constants import g
@@ -25,11 +25,11 @@ from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
 from numba import jit  # maybe for later optimizations?  # noqa: F401
 
-from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
+from icesat2waves.tools import angle_optimizer
 
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-import icesat2_tracks.local_modules.m_general_ph3 as M
-from icesat2_tracks.ICEsat2_SI_tools import angle_optimizer
+import icesat2waves.local_modules.m_tools_ph3 as MT
+import icesat2waves.local_modules.m_general_ph3 as M
+from icesat2waves.tools import angle_optimizer
 
 import pandas as pd
 
@@ -38,7 +38,7 @@ import time
 
 from typer import Option
 
-from icesat2_tracks.clitools import (
+from icesat2waves.clitools import (
     validate_batch_key,
     validate_output_dir,
     suppress_stdout,
