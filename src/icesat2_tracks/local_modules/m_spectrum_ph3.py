@@ -22,12 +22,14 @@ def calc_freq(self):
     """calculate array of spectral variable (frequency or
     wavenumber) in cycles per unit of L"""
 
+
     self.df = 1.0 / ((self.n - 1) * self.dt)
 
-    if self.neven:
-        self.f = self.df * np.arange(self.n / 2 + 1)
-    else:
-        self.f = self.df * np.arange((self.n - 1) / 2.0 + 1)
+    self.f = (
+        self.df * np.arange(self.n / 2 + 1)
+        if self.neven
+        else self.df * np.arange((self.n - 1) / 2.0 + 1)
+    )
 
 
 def calc_spectrum(self):
@@ -51,13 +53,20 @@ def calc_var(self):
 
 def create_timeaxis_collection(time_as_datetime64):
 
-    T = dict()
-    T["sec"] = time_as_datetime64.astype("M8[s]").astype("float")
-    T["day"] = time_as_datetime64.astype("M8[D]").astype("float")
-    T["datetime"] = time_as_datetime64.astype(DT.datetime)
+    sec = time_as_datetime64.astype("M8[s]").astype("float")
+    day = time_as_datetime64.astype("M8[D]").astype("float")
+    datetime = time_as_datetime64.astype(DT.datetime)
+    float_plot = dates.date2num(datetime)
+    dt64 = time_as_datetime64
+    
+    T = {
+        "sec": sec,
+        "day": day,
+        "datetime": datetime,
+        "float_plot": float_plot,
+        "dt64": dt64
+    }
 
-    T["float_plot"] = dates.date2num(T["datetime"])
-    T["dt64"] = time_as_datetime64
     return T
 
 
@@ -76,26 +85,24 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0, verbose=False)
     peak_remove = True
     looper_count = 0
     act_flag = False
-    while peak_remove is True:
-        if nstd * data.std() < np.max(np.abs(data2)):
+    while peak_remove:
+        data_std = nstd * data.std()
+        max_abs_data2 = np.max(np.abs(data2))
+    
+        if data_std < max_abs_data2:
             act_flag = True
-            if verbose:
-                print(
-                    "true: " + str(nstd * datastd) + " < " + str(np.max(np.abs(data)))
-                )
             data2 = M.spickes_to_mean(data2, nloop=0, spreed=spreed, gaussian=False)
             looper_count += 1
         else:
-            if verbose:
-                print(
-                    "False: " + str(nstd * datastd) + " > " + str(np.max(np.abs(data)))
-                )
             peak_remove = False
-
+    
+        if verbose:
+            print(f"{'True' if act_flag else 'False'}: {data_std} {'<' if act_flag else '>'} {max_abs_data2}")
+    
         if looper_count > max_loops:
             peak_remove = False
             if verbose:
-                print("stoped by max#")
+                print("Stopped by max#")
 
     if verbose:
         plt.plot(data, "r")
@@ -274,20 +281,20 @@ class Moments:
         self.moments_est = dict()
         for k in self.mom.keys():
             stack = np.empty([nbin, self.f.size])
-            for i in range(len(self.mom_list)):
-                stack[i, :] = self.mom_list[i][k]  # stack the
+            for i, mom in enumerate(self.mom_list):
+                stack[i, :] = mom[k]  # stack them
+            
+            # mean them and decide prewhitening
             if prewhite is None:
-                self.moments_stack[k] = stack
-                self.moments_est[k] = np.nanmean(stack, axis=0)
+                factor = 1
             elif prewhite == 1:
-                self.moments_stack[k] = stack * (2 * np.pi * self.f)
-                self.moments_est[k] = np.nanmean(stack, axis=0) * (2 * np.pi * self.f)
+                factor = 2 * np.pi * self.f
             elif prewhite == 2:
-                self.moments_stack[k] = stack * (2 * np.pi * self.f) ** 2
-                self.moments_est[k] = (
-                    np.nanmean(stack, axis=0) * (2 * np.pi * self.f) ** 2
-                )
-
+                factor = (2 * np.pi * self.f) ** 2
+        
+            self.moments_stack[k] = stack * factor
+            self.moments_est[k] = np.nanmean(stack, axis=0) * factor
+        
         self.moments_unit = "[data]^2"
         self.n_spec = len(self.mom_list)
 
@@ -817,7 +824,7 @@ def MEM_cal(moments_est, freq, theta=None, flim=None):
         N_sel[k] = moments_est[k][freq_sel_bool]
 
     d1 = N_sel["Q12"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
-
+    # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
     d2 = N_sel["Q13"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
 
     d3 = (N_sel["P22"] - N_sel["P33"]) / (N_sel["P22"] + N_sel["P33"])
