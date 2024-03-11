@@ -13,15 +13,13 @@ from pandas.io.pytables import PerformanceWarning
 import glob
 
 
-def dt_form_timestamp(timestamp, unit=None):
-    unit = "h" if unit is None else unit
-    return (timestamp[1] - timestamp[0]).astype("m8[" + unit + "]")
+def dt_form_timestamp(timestamp, unit="h"):
+    return (timestamp[1]-timestamp[0]).astype(f"m8[{unit}]")
 
 
 def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
 
-    O = int(np.log10(a.max()))
-    fact = 10 ** (O - 1)
+    fact = 10**(int(np.log10(a.max())) - 1)
     b = np.round(a / fact, rounder + 1) * fact
     ticklabels = [" " for i in range(len(b))]
 
@@ -29,10 +27,10 @@ def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
 
     for t in tt:
         if expt_flag:
-            ticklabels[int(t)] = "{:.2e}".format(b[t])
+            ticklabels[int(t)] = f"{b[t]:.2e}"
         else:
 
-            ticklabels[int(t)] = format(b[t], ".2f").rstrip("0").rstrip(".")
+            ticklabels[int(t)] = f"{b[t]:.2f}".rstrip("0").rstrip(".")
 
     return ticklabels, b
 
@@ -58,8 +56,7 @@ def mkdirs_r(path):
 
 
 def check_year(inputstr, yearstring):
-    a = np.datetime64(inputstr).astype(object).year
-    ref = np.datetime64(yearstring).astype(object).year
+    a, ref = [np.datetime64(t).astype(object).year for t in (inputstr, yearstring)]
     return a == ref
 
 
@@ -84,7 +81,6 @@ def sec_to_dt64(pp):
 
 
 def sec_to_float_plot(pp):
-
     return dates.date2num(pp.astype("M8[s]").astype(datetime))
 
 
@@ -153,8 +149,6 @@ def json_save(name, path, data, verbose=False, return_name=False):
         print("save at: ", full_name)
     if return_name:
         return full_name_root
-    else:
-        return
 
 
 def json_save2(name, path, data, verbose=False, return_name=False):
@@ -173,8 +167,6 @@ def json_save2(name, path, data, verbose=False, return_name=False):
         print("save at: ", full_name)
     if return_name:
         return full_name_root
-    else:
-        return
 
 
 def json_load(name, path, verbose=False):
@@ -206,7 +198,6 @@ def h5_load_v2(name, path, verbose=False):
 
 
 def h5_save(name, path, data_dict, verbose=False, mode="w"):
-    mode = "w" if mode is None else mode
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -272,17 +263,15 @@ def write_log(hist, string, verbose=False, short=True, date=True):
 
 
 def add_line_var(ss, name, var):
-    return ss + "\n  " + name.ljust(5) + str(var)
+    return f"{ss}\n  {name.ljust(5)} {var}"
 
 
 def write_variables_log(hist, var_list, locals, verbose=False, date=False):
 
     now = datetime.now().strftime("%Y%m%d")
 
-    var_dict = dict((name, locals[name]) for name in var_list)
-    stringg = ""
-    for name, I in var_dict.items():
-        stringg = stringg + "\n " + name.ljust(5) + str(I)
+    var_dict = {name: locals[name] for name in var_list}
+    stringg = "\n".join([f"{name.ljust(5)}{I}" for name, I in var_dict.items()])
 
     message = f"\n{now} {stringg}" if date else f"\n{' '.ljust(5)} {stringg}"
 
@@ -338,25 +327,19 @@ def find_O(a, case="round"):
 
 
 def stats(a):
-    print("shape", a.shape)
-    print("Nans", np.sum(np.isnan(a)))
-    print("max", np.nanmax(a))
-    print("min", np.nanmin(a))
-    print("mean", np.nanmean(a))
+    print(
+        f"shape: {a.shape}\n"
+        f"Nans: {np.sum(np.isnan(a))}\n"
+        f"max: {np.nanmax(a)}\n"
+        f"min: {np.nanmin(a)}\n"
+        f"mean: {np.nanmean(a)}"
+    )
 
 
 def stats_format(a, name=None):
-    print(
-        "Name:",
-        str(name),
-        "   Shape:",
-        a.shape,
-        "   NaNs:",
-        np.sum(np.isnan(a)),
-        " max:",
-        np.nanmax(a),
-        " min",
-        np.nanmin(a),
-        " mean:",
-        np.nanmean(a),
-    )
+       print(f"Name: {name}"
+      f"   Shape: {a.shape}"
+      f"   NaNs: {np.sum(np.isnan(a))}"
+      f"   max: {np.nanmax(a)}"
+      f"   min: {np.nanmin(a)}"
+      f"   mean: {np.nanmean(a)}")
