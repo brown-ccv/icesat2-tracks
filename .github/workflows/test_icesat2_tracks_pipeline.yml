@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: ${{ matrix.version }} # install the python version needed
           cache: "pip"
-      - name: install icesat2-tracks using pip
+      - name: install icesat2waves using pip
         run: pip install .
       - name: List dependencies
         run: pip list
