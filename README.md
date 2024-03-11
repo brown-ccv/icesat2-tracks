@@ -22,7 +22,7 @@ Installation:
 
 
 - Clone the repository:
-  - Navigate to https://github.com/brown-ccv/icesat2-tracks
+  - Navigate to https://github.com/brown-ccv/icesat2waves
   - Click the "<> Code" button and select a method to clone the repository, then follow the prompts
 - Open a shell (bash, zsh) in the repository working directory
 - Create a new virtual environment named `.venv`:
