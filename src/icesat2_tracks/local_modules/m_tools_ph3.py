@@ -284,7 +284,7 @@ def write_variables_log(hist, var_list, locals, verbose=False, date=False):
 
     now = datetime.now().strftime("%Y%m%d")
 
-    var_dict = dict((name, locals[name]) for name in var_list)
+    var_dict = {name: locals[name] for name in var_list}
     stringg = "\n".join([f"{name.ljust(5)}{I}" for name, I in var_dict.items()])
 
     if date:
@@ -344,25 +344,19 @@ def find_O(a, case="round"):
 
 
 def stats(a):
-    print("shape", a.shape)
-    print("Nans", np.sum(np.isnan(a)))
-    print("max", np.nanmax(a))
-    print("min", np.nanmin(a))
-    print("mean", np.nanmean(a))
+    print(
+        f"shape: {a.shape}\n"
+        f"Nans: {np.sum(np.isnan(a))}\n"
+        f"max: {np.nanmax(a)}\n"
+        f"min: {np.nanmin(a)}\n"
+        f"mean: {np.nanmean(a)}"
+    )
 
 
 def stats_format(a, name=None):
-    print(
-        "Name:",
-        str(name),
-        "   Shape:",
-        a.shape,
-        "   NaNs:",
-        np.sum(np.isnan(a)),
-        " max:",
-        np.nanmax(a),
-        " min",
-        np.nanmin(a),
-        " mean:",
-        np.nanmean(a),
-    )
+       print(f"Name: {name}"
+      f"   Shape: {a.shape}"
+      f"   NaNs: {np.sum(np.isnan(a))}"
+      f"   max: {np.nanmax(a)}"
+      f"   min: {np.nanmin(a)}"
+      f"   mean: {np.nanmean(a)}")
