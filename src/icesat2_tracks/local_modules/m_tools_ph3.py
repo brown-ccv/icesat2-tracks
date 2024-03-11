@@ -81,7 +81,6 @@ def sec_to_dt64(pp):
 
 
 def sec_to_float_plot(pp):
-
     return dates.date2num(pp.astype("M8[s]").astype(datetime))
 
 
@@ -150,8 +149,6 @@ def json_save(name, path, data, verbose=False, return_name=False):
         print("save at: ", full_name)
     if return_name:
         return full_name_root
-    else:
-        return
 
 
 def json_save2(name, path, data, verbose=False, return_name=False):
@@ -170,8 +167,6 @@ def json_save2(name, path, data, verbose=False, return_name=False):
         print("save at: ", full_name)
     if return_name:
         return full_name_root
-    else:
-        return
 
 
 def json_load(name, path, verbose=False):
@@ -207,7 +202,6 @@ def h5_load_v2(name, path, verbose=False):
 
 
 def h5_save(name, path, data_dict, verbose=False, mode="w"):
-    mode = "w" if mode is None else mode
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -283,7 +277,7 @@ def write_log(hist, string, verbose=False, short=True, date=True):
 
 
 def add_line_var(ss, name, var):
-    return ss + "\n  " + name.ljust(5) + str(var)
+    return f"{ss}\n  {name.ljust(5)} {var}"
 
 
 def write_variables_log(hist, var_list, locals, verbose=False, date=False):
@@ -291,9 +285,7 @@ def write_variables_log(hist, var_list, locals, verbose=False, date=False):
     now = datetime.now().strftime("%Y%m%d")
 
     var_dict = dict((name, locals[name]) for name in var_list)
-    stringg = ""
-    for name, I in var_dict.items():
-        stringg = stringg + "\n " + name.ljust(5) + str(I)
+    stringg = "\n".join([f"{name.ljust(5)}{I}" for name, I in var_dict.items()])
 
     if date:
         message = "\n" + now + " " + stringg
