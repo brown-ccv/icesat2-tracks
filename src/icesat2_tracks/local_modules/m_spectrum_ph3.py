@@ -819,13 +819,12 @@ def MEM_cal(moments_est, freq, theta=None, flim=None):
     freq_sel_bool = M.cut_nparray(freq, flim[0], flim[1])
     freq_sel = freq[freq_sel_bool]
 
-    N_sel = dict()
-    for k, I in moments_est.iteritems():
-        N_sel[k] = moments_est[k][freq_sel_bool]
+    N_sel = {k: v[freq_sel_bool] for k, v in moments_est.items()}
 
     d1 = N_sel["Q12"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
     # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
     d2 = N_sel["Q13"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
+    # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
 
     d3 = (N_sel["P22"] - N_sel["P33"]) / (N_sel["P22"] + N_sel["P33"])
     d4 = 2 * N_sel["P23"] / (N_sel["P22"] + N_sel["P33"])
@@ -933,10 +932,10 @@ def peak_angle(data, freq, fpos, max_jump=5, smooth_l=5):
 
 def save_file(data, path):
     outfile = path
-    f = open(outfile, "wb")
-    pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+    with open(outfile, "wb") as f:
+        pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
     print("saved to:", outfile)
-    f.close()
+
 
 
 ## ceasars funcitons
