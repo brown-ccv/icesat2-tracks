@@ -13,15 +13,13 @@ from pandas.io.pytables import PerformanceWarning
 import glob
 
 
-def dt_form_timestamp(timestamp, unit=None):
-    unit = "h" if unit is None else unit
-    return (timestamp[1] - timestamp[0]).astype("m8[" + unit + "]")
+def dt_form_timestamp(timestamp, unit="h"):
+    return (timestamp[1]-timestamp[0]).astype(f"m8[{unit}]")
 
 
 def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
 
-    O = int(np.log10(a.max()))
-    fact = 10 ** (O - 1)
+    fact = 10**(int(np.log10(a.max())) - 1)
     b = np.round(a / fact, rounder + 1) * fact
     ticklabels = [" " for i in range(len(b))]
 
@@ -29,10 +27,10 @@ def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
 
     for t in tt:
         if expt_flag:
-            ticklabels[int(t)] = "{:.2e}".format(b[t])
+            ticklabels[int(t)] = f"{b[t]:.2e}"
         else:
 
-            ticklabels[int(t)] = format(b[t], ".2f").rstrip("0").rstrip(".")
+            ticklabels[int(t)] = f"{b[t]:.2f}".rstrip("0").rstrip(".")
 
     return ticklabels, b
 
@@ -58,8 +56,7 @@ def mkdirs_r(path):
 
 
 def check_year(inputstr, yearstring):
-    a = np.datetime64(inputstr).astype(object).year
-    ref = np.datetime64(yearstring).astype(object).year
+    a, ref = [np.datetime64(t).astype(object).year for t in (inputstr, yearstring)]
     return a == ref
 
 
