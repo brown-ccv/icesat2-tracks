@@ -8,33 +8,33 @@ from enum import Enum
 from typer import Typer, Option
 from typing_extensions import Annotated
 
-from icesat2_tracks.analysis_db.B01_SL_load_single_file import (
+from icesat2waves.analysis_db.B01_SL_load_single_file import (
     run_B01_SL_load_single_file as _loadfile,
 )
 
-from icesat2_tracks.analysis_db.B02_make_spectra_gFT import (
+from icesat2waves.analysis_db.B02_make_spectra_gFT import (
     run_B02_make_spectra_gFT as _makespectra,
 )
 
-from icesat2_tracks.analysis_db.B03_plot_spectra_ov import (
+from icesat2waves.analysis_db.B03_plot_spectra_ov import (
     run_B03_plot_spectra_ov as _plotspectra,
 )
 
-from icesat2_tracks.analysis_db.A02c_IOWAGA_thredds_prior import (
+from icesat2waves.analysis_db.A02c_IOWAGA_thredds_prior import (
     run_A02c_IOWAGA_thredds_prior as _threddsprior,
 )
 
 
-from icesat2_tracks.analysis_db.B04_angle import run_B04_angle as _run_B04_angle
+from icesat2waves.analysis_db.B04_angle import run_B04_angle as _run_B04_angle
 
-from icesat2_tracks.analysis_db.B05_define_angle import define_angle as _define_angle
+from icesat2waves.analysis_db.B05_define_angle import define_angle as _define_angle
 
-from icesat2_tracks.analysis_db.B06_correct_separate_var import (
+from icesat2waves.analysis_db.B06_correct_separate_var import (
     run_B06_correct_separate_var as _run_correct_separate_var,
 )
 
 
-from icesat2_tracks.clitools import (
+from icesat2waves.clitools import (
     validate_track_name,
     validate_batch_key,
     validate_output_dir,
@@ -60,8 +60,8 @@ class _LogLevel(str, Enum):
             _LogLevel.VERBOSE: logging.INFO,
             _LogLevel.DEBUG: logging.DEBUG,
         }[self.value]
- 
-       
+
+
 @app.callback()
 def main(
     log: Annotated[

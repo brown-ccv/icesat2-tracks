@@ -8,7 +8,7 @@ from scipy.signal import detrend
 import pandas as pd
 from scipy import signal
 import lmfit as LM
-import icesat2_tracks.local_modules.m_general_ph3 as M
+import icesat2waves.local_modules.m_general_ph3 as M
 from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
 
@@ -65,7 +65,7 @@ def create_chunk_boundaries_unit_lengths(L_unit, data_limits, ov=None, iter_flag
     position_stancil = np.vstack(
         [xleft[0:max_size], xcenter_pos[0:max_size], xright[0:max_size]]
     )
-    
+
     return iter(position_stancil.T.tolist()) if iter_flag else position_stancil
 
 

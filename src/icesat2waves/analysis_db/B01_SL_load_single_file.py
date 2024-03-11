@@ -17,19 +17,19 @@ from pandas.errors import (
     SettingWithCopyWarning,
 )  # TODO: remove when warnings are handled
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2waves.config.startup import (
     mconfig,
     color_schemes,
     font_for_pres,
     plt,
 )
-import icesat2_tracks.ICEsat2_SI_tools.sliderule_converter_tools as sct
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
-import icesat2_tracks.ICEsat2_SI_tools.beam_stats as beam_stats
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-from icesat2_tracks.local_modules import m_general_ph3 as M
+import icesat2waves.tools.sliderule_converter_tools as sct
+import icesat2waves.tools.iotools as io
+import icesat2waves.tools.beam_stats as beam_stats
+import icesat2waves.local_modules.m_tools_ph3 as MT
+from icesat2waves.local_modules import m_general_ph3 as M
 
-from icesat2_tracks.clitools import (
+from icesat2waves.clitools import (
     validate_track_name,
     validate_batch_key,
     validate_output_dir,
