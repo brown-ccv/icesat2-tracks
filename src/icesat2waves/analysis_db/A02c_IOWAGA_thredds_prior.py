@@ -13,15 +13,15 @@ import xarray as xr
 from siphon.catalog import TDSCatalog
 import typer
 
-from icesat2_tracks.config.IceSAT2_startup import mconfig
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
-import icesat2_tracks.ICEsat2_SI_tools.wave_tools as waves
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-import icesat2_tracks.local_modules.m_general_ph3 as M
-from icesat2_tracks.config.IceSAT2_startup import color_schemes
-from icesat2_tracks.config.IceSAT2_startup import font_for_print
+from icesat2waves.config.startup import mconfig
+import icesat2waves.tools.iotools as io
+import icesat2waves.tools.wave_tools as waves
+import icesat2waves.local_modules.m_tools_ph3 as MT
+import icesat2waves.local_modules.m_general_ph3 as M
+from icesat2waves.config.startup import color_schemes
+from icesat2waves.config.startup import font_for_print
 
-from icesat2_tracks.clitools import (
+from icesat2waves.clitools import (
     echo,
     validate_batch_key,
     validate_output_dir,

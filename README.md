@@ -9,7 +9,7 @@
 
 Prerequisites:
 - A POSIX-compatible system (Linux or macOS)
-- Python 3.9 (run `python --version` to check that your version of python is correct)
+- Python 3.10 (run `python --version` to check that your version of python is correct)
 - MPI (e.g. from `brew install open-mpi` on macOS)
 - HDF5 (e.g. from `brew install hdf5` on macOS)
 
@@ -55,9 +55,9 @@ Installation:
   > pip install --upgrade --editable ".[dev]"
   > ```
 
-- Check the module `icesat2_tracks` is available by loading the module:
+- Check the module `icesat2waves` is available by loading the module:
   ```shell
-  python -c "import icesat2_tracks; print(icesat2_tracks.__version__)"
+  python -c "import icesat2waves; print(icesat2waves.__version__)"
   ```
 
 ## Command line interface

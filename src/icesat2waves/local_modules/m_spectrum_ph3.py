@@ -2,13 +2,14 @@ import numpy as np
 from scipy.special import gammainc
 from scipy import signal
 import matplotlib.pyplot as plt
-from icesat2_tracks.local_modules import m_general_ph3 as M
-from icesat2_tracks.local_modules import m_tools_ph3 as MT
+from icesat2waves.local_modules import m_general_ph3 as M
+from icesat2waves.local_modules import m_tools_ph3 as MT
 import datetime as DT
 from matplotlib import dates
 import pickle
 
 import getmem as getmem
+
 
 try:
     import mkl

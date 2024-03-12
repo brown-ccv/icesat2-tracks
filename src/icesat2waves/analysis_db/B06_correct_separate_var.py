@@ -8,12 +8,12 @@ import os
 
 import h5py
 from pathlib import Path
-import icesat2_tracks.ICEsat2_SI_tools.iotools as io
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-from icesat2_tracks.local_modules import m_general_ph3 as M
+import icesat2waves.tools.iotools as io
+import icesat2waves.local_modules.m_tools_ph3 as MT
+from icesat2waves.local_modules import m_general_ph3 as M
 import time
 import copy
-import icesat2_tracks.ICEsat2_SI_tools.generalized_FT as gFT
+import icesat2waves.tools.generalized_FT as gFT
 import pandas as pd
 import xarray as xr
 import numpy as np
@@ -22,7 +22,7 @@ from matplotlib.gridspec import GridSpec
 import piecewise_regression
 import typer
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2waves.config.startup import (
     mconfig,
     color_schemes,
     font_for_pres,
@@ -31,7 +31,7 @@ from icesat2_tracks.config.IceSAT2_startup import (
     fig_sizes,
 )
 
-from icesat2_tracks.clitools import (
+from icesat2waves.clitools import (
     echo,
     validate_batch_key,
     validate_output_dir,

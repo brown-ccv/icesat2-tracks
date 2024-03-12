@@ -9,26 +9,26 @@ import matplotlib
 from matplotlib import pyplot as plt
 from typer import Option
 
-from icesat2_tracks.config.IceSAT2_startup import (
+from icesat2waves.config.startup import (
     mconfig,
     color_schemes,
     font_for_print,
 )
 
-from icesat2_tracks.ICEsat2_SI_tools.iotools import init_from_input, ID_to_str
-import icesat2_tracks.ICEsat2_SI_tools.spectral_estimates as spec
+from icesat2waves.tools.iotools import init_from_input, ID_to_str
+import icesat2waves.tools.spectral_estimates as spec
 
 import xarray as xr
 import numpy as np
 import time
-import icesat2_tracks.ICEsat2_SI_tools.lanczos as lanczos
-import icesat2_tracks.local_modules.m_tools_ph3 as MT
-import icesat2_tracks.local_modules.m_general_ph3 as M
+import icesat2waves.tools.lanczos as lanczos
+import icesat2waves.local_modules.m_tools_ph3 as MT
+import icesat2waves.local_modules.m_general_ph3 as M
 
 from matplotlib.gridspec import GridSpec
 from scipy.ndimage import label
 
-from icesat2_tracks.clitools import (
+from icesat2waves.clitools import (
     validate_batch_key,
     validate_output_dir,
     suppress_stdout,
