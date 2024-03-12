@@ -825,7 +825,7 @@ def MEM_cal(moments_est, freq, theta=None, flim=None):
     d1 = N_sel["Q12"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
     # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
     d2 = N_sel["Q13"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
-    # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
+    
 
     d3 = (N_sel["P22"] - N_sel["P33"]) / (N_sel["P22"] + N_sel["P33"])
     d4 = 2 * N_sel["P23"] / (N_sel["P22"] + N_sel["P33"])

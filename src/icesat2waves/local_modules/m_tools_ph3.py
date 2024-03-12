@@ -21,7 +21,7 @@ def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
 
     fact = 10**(int(np.log10(a.max())) - 1)
     b = np.round(a / fact, rounder + 1) * fact
-    ticklabels = [" " for i in range(len(b))]
+    ticklabels = [" "] * len(b)
 
     tt = np.arange(shift, len(b), interval)
 
@@ -210,20 +210,6 @@ def h5_save(name, path, data_dict, verbose=False, mode="w"):
         print("saved at: " + full_name)
 
 
-def h5_save(name, path, data_dict, verbose=False, mode="w"):
-    mode = "w" if mode is None else mode
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    full_name = os.path.join(path, name + ".h5")
-    with h5py.File(full_name, mode) as store:
-        for k, I in list(data_dict.items()):
-            store[k] = I
-    
-    if verbose:
-        print("saved at: " + full_name)
-
-
 def load_pandas_table_dict(name, save_path):
 
     warnings.filterwarnings("ignore", category=PerformanceWarning)
@@ -275,11 +261,8 @@ def write_variables_log(hist, var_list, locals, verbose=False, date=False):
 
     message = f"\n{now} {stringg}" if date else f"\n{' '.ljust(5)} {stringg}"
 
-    if verbose == True:
-        print(message)
-    elif verbose == "all":
-        print(hist + message)
-    return hist + message
+    if verbose in [True, 'all']:
+        print(hist + message if verbose == 'all' else message)
 
 
 def save_log_txt(name, path, hist, verbose=False):
