@@ -711,8 +711,8 @@ class SpectogramSubsample(Pwelch):
             np.nanmedian(dd, axis=0) if clim is None else 10 * np.log10(clim)
         )
         dd_tmp = self.data_power_mean.repeat(self.time.size)
-        _logger.debug("%s", self.data_power_mean.shape)
-        _logger.debug("%s %s", self.f.size, self.time.size)
+        _logger.debug("data power mean shape: %s", self.data_power_mean.shape)
+        _logger.debug("f size: %s, time size: %s", self.f.size, self.time.size)
         self.data_power_ano = dd - dd_tmp.reshape(self.f.size, self.time.size).T
 
     def anomalie(self, clim=None):
