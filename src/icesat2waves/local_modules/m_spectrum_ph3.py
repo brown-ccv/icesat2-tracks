@@ -586,7 +586,7 @@ class SpectogramSubsample(Pwelch):
         k = 0
         _logger.debug('subL %s', subL)
         _logger.debug('L %s', L)
-        _logger.debug("%s", data_size_adjust)
+        _logger.debug("data_size_adjust: %s", data_size_adjust)
 
         for i in np.arange(0, data_size_adjust - int(L - ov) + 1, int(L - ov)):
 
@@ -703,8 +703,7 @@ class SpectogramSubsample(Pwelch):
         self.hist = MT.write_log(self.hist, s, verbose=verbose)
 
     def log(self):
-        _logger.debug(".hist variable")
-        _logger.debug("%s", self.hist)
+        _logger.debug(".hist variable: %s", self.hist)
     def power_anomalie(self, clim=None):
         dd = 10 * np.log10(self.data[:, :])
 
@@ -773,7 +772,7 @@ class Periodogram(Pwelch):
 
     def save_data(self, path=None, S=None):
         P = SaveDataPeriodogram(self, S=S)
-        _logger.debug("%s", P.meta)
+        _logger.debug("P.meta: %s", P.meta)
         _logger.debug("constructed class for saving")
         save_file(P, path)
 
