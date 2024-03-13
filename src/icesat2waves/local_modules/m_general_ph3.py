@@ -76,7 +76,7 @@ class FigureAxisXY:
             ysize = y_size if y_size is not None else 5
 
 
-        self.label_letters = iter([i + ") " for i in list(string.ascii_lowercase)])
+        self.label_letters = iter(f"{i}) " for i in string.ascii_lowercase)
 
         if container:
             self.fig = plt.figure(
@@ -185,14 +185,14 @@ class PlotSprecta:
         self.F = FigureAxisXY(fig_scale=fig_scale)
         if fax == "f":
             xax = self.fs
-            xlabelstr = "f  (" + self.sample_unit + ")"
+            xlabelstr = f"f ({self.sample_unit})"
         elif fax == "w":
             xax = 2 * np.pi * self.fs
-            xlabelstr = "w  (rad " + self.sample_unit + ")"
+            xlabelstr = f"w (rad {self.sample_unit})"
 
         self.line = plt.plot(xax[1:], (self.Xdata[1:]), Color=Color)
 
-        plt.ylabel(("|X|^2/f (" + self.data_unit + "^2/" + self.sample_unit + ")"))
+        plt.ylabel(f"|X|^2/f ({self.data_unit}^2/{self.sample_unit})")
         plt.xlabel(xlabelstr)
         plt.xlim(xax[1], xax[-1])
 
@@ -211,7 +211,7 @@ class PlotSprecta:
 
         self.line = plt.plot(xax[1:], 10 * np.log10(self.Xdata[1:]), Color=Color)
 
-        plt.ylabel(("Power db(" + self.data_unit + "^2/" + self.sample_unit + ")"))
+        plt.ylabel(f"Power db({self.data_unit}^2/{self.sample_unit})")
         plt.xlabel(xlabelstr)
         plt.xlim(xax[1], xax[-1])
         self.F.make_clear()
@@ -239,10 +239,10 @@ class PlotSprecta:
         self.F = FigureAxisXY(fig_scale=fig_scale)
         if fax == "f":
             xax = self.fs
-            xlabelstr = "f  (" + self.sample_unit + ")"
+            xlabelstr = f"f  ({self.sample_unit})"
         elif fax == "w":
             xax = 2 * np.pi * self.fs
-            xlabelstr = "w  (rad " + self.sample_unit + ")"
+            xlabelstr = f"w  (rad {self.sample_unit})"
 
         self.line = plt.semilogx(xax[1:], 10 * np.log10(self.Xdata[1:]), Color=Color)
 
@@ -283,8 +283,8 @@ class PlotPeriodogram:
 
         plt.loglog(self.fs[1:], (self.Xdata[1:]))
 
-        plt.ylabel(("|X|^2/f (" + self.data_unit + "^2/" + self.sample_unit + ")"))
-        plt.xlabel(("f  (" + self.sample_unit + ")"))
+        plt.ylabel(f"|X|^2/f ({self.data_unit}^2/{self.sample_unit})")
+        plt.xlabel(f"f  ({self.sample_unit})")
         plt.xlim(self.fs[1], self.fs[-1])
 
         self.F.make_clear()
@@ -298,12 +298,12 @@ class PlotPeriodogram:
         tt = self.time.astype(DT.datetime)
         self.cs = plt.contourf(tt[:-2], self.fs[:], dd, self.clevs, cmap=self.cmap)
         print(self.clevs)
-        plt.ylabel(("Power db(" + self.data_unit + "^2/" + self.sample_unit + ")"))
-        plt.xlabel(("f  (" + self.sample_unit + ")"))
+        plt.ylabel(f"Power db({self.data_unit}^2/{self.sample_unit})")
+        plt.xlabel(f"f  ({self.sample_unit})")
         self.cbar = plt.colorbar(self.cs, pad=0.01)
         self.cbar.ax.aspect = 100
         self.cbar.outline.set_linewidth(0)
-        self.cbar.set_label("(" + self.data_unit + ")")
+        self.cbar.set_label(f"({self.data_unit})")
 
         ax = plt.gca()
         ax.set_ylim(self.ylim[0], self.ylim[1])
@@ -347,11 +347,11 @@ class PlotPeriodogram:
         self.x = np.arange(0, tt[:-1].size)
         print(self.clevs)
         plt.xlabel("Time")
-        plt.ylabel(("f  (" + self.sample_unit + ")"))
+        plt.ylabel(f"f  ({self.sample_unit})")
         self.cbar = plt.colorbar(self.cs, pad=0.01)
         self.cbar.ax.aspect = 100
         self.cbar.outline.set_linewidth(0)
-        self.cbar.set_label("Power db(" + self.data_unit + "^2/f ")
+        self.cbar.set_label(f"Power db({self.data_unit}^2/f )")
 
         ax = plt.gca()
         # Set y-lim
@@ -529,7 +529,7 @@ class PlotPeriodogram:
             ax.xaxis.set_major_formatter(dfmt)
             ax.xaxis.set_minor_locator(Day)
         else:
-            plt.xlabel("Time (" + self.time_unit + ")")
+            plt.xlabel(f"Time ({self.time_unit})")
             ax.set_ylim(self.ylim[0], self.ylim[1])
             ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
             ax.xaxis.set_minor_locator(ticker.MultipleLocator(1))
@@ -1598,7 +1598,7 @@ def find_max_along_line(
 
     if mode is None:
         mode = "free_limits"
-    if mode is "free_limits" or mode is "upper_limit":
+    if mode in ["free_limits", "upper_limit"]:
         if line_left[0] > time_lin[0]:
             f_start = 0
             print(" left line > time0")
@@ -1640,15 +1640,16 @@ def find_max_along_line(
         plt.plot(time_lin, time_lin * 0 + f1, Color="grey", linewidth=3)
         plt.plot(time_lin, time_lin * 0 + f2, Color="grey")
 
-    STR = dict()
-    STR["t_pos"] = []
-    STR["index"] = index
-    STR["amp"] = []
-    STR["freq"] = []
-    STR["out"] = []
-    STR["amp_shape"] = list()
-    STR["left_limit"] = line_left
-    STR["right_limit"] = line_right
+    STR = {
+        "t_pos": [],
+        "index": index,
+        "amp": [],
+        "freq": [],
+        "out": [],
+        "amp_shape": [],
+        "left_limit": line_left,
+        "right_limit": line_right,
+    }
 
     for i in enumerate(flin[f_start:f_end]):
         ii = f_start + i[0]
