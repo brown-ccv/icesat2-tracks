@@ -193,7 +193,7 @@ def h5_load_v2(name, path, verbose=False):
 
     with h5py.File(path + name + '.h5','r') as h5f:
         if verbose:
-            _logger.debug("%s", h5f.keys())
+            _logger.debug("%s h5f keys: %s", name, h5f.keys())
 
         data_dict = {k: v[:] for k, v in h5f.items()}
 
@@ -246,7 +246,7 @@ def write_log(hist, string, verbose=False, short=True, date=True):
     message = f"\n{now} {string}" if date else f"\n  {string}"
 
     if verbose in [True, 'all']:
-        _logger.debug("%s", hist + message if verbose == 'all' else message)
+        _logger.debug("hist message: %s", hist + message if verbose == 'all' else message)
 
     return hist + message
 
@@ -288,7 +288,7 @@ def load_log_txt(hist_file, path):
 
 def shape(a):
     for i in a:
-        _logger.debug(i.shape)
+        _logger.debug("shape of %s: %s", i, i.shape)
 
 
 def find_O(a, case="round"):
