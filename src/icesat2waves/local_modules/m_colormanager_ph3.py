@@ -12,7 +12,6 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-#path='/Projects/2016_AA/others/color_def_mhell1.ase'
 def ase_to_json(path):
     os.getcwd()
     import swatch
@@ -60,12 +59,9 @@ class color:
                     theme=json_load(name, path)
                     for k, v in theme.items():
                         setattr(self, k, v)
-                    #for k, v in theme['colors'].items():
-                        #    _logger.debug(k, v)
-                        #    setattr(self.colors, k, v)
                 except:
                     _logger.debug('fail load theme, fall back to default theme')
-                    _logger.debug("path: %s", path+'mhell_colortheme17')
+                    _logger.debug("path: %s%s", path, 'mhell_colortheme17')
                     self.default_colors()
 
             else:
@@ -183,7 +179,6 @@ class color:
             for key in self.rels.keys():
                 _logger.debug("   %s", key)
 
-            #_logger.debug(self.__dict__)
         def plot(self):
             dd=self.__dict__.copy()
             dd_colors=dd['rels']
@@ -211,7 +206,6 @@ class color:
 
             coldd=dd_colors
             ncolor=len(coldd)
-            #fig = plt.figure(figsize=[1.2, Y])
             ax1 = fig.add_axes([1.5, 0, .5, Y])
             dy=1/ncolor
             y=np.arange(0, 1, dy)
@@ -224,7 +218,6 @@ class color:
 
                 ax1.add_patch(r1)
                 j+=1
-            #return fig
             plt.title('rels')
 
         def add_standard_colors(self):
