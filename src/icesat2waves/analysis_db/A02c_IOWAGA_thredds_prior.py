@@ -387,7 +387,7 @@ def run_A02c_IOWAGA_thredds_prior(
 
         font_for_print()
 
-        F = M.figure_axis_xy(4, 3.5, view_scale=0.9, container=True)
+        F = M.FigureAxisXY(4, 3.5, view_scale=0.9, container=True)
 
         file_name_base = "LOPS_WW3-GLOB-30M_"
         plt.suptitle(
@@ -562,7 +562,7 @@ def run_A02c_IOWAGA_thredds_prior(
         # plot 2nd figure
 
         font_for_print()
-        F = M.figure_axis_xy(2, 4.5, view_scale=0.9, container=False)
+        F = M.FigureAxisXY(2, 4.5, view_scale=0.9, container=False)
 
         ax1 = F.ax
         lon, lat = G_beam.longitude, G_beam.latitude
