@@ -81,7 +81,7 @@ class FigureAxisXY:
         if container:
             self.fig = plt.figure(
                 edgecolor="None",
-                dpi=dpi * viewscale,
+                dpi=dpi * view_scale,
                 figsize=(xsize * fig_scale, ysize * fig_scale),
                 facecolor="w",
             )
@@ -89,7 +89,7 @@ class FigureAxisXY:
             self.fig, self.ax = plt.subplots(
                 num=None,
                 figsize=(xsize * fig_scale, ysize * fig_scale),
-                dpi=dpi * viewscale,
+                dpi=dpi * view_scale,
                 facecolor="w",
                 edgecolor="None",
             )
