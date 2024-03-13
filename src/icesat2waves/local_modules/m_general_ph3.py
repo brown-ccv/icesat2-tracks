@@ -1531,7 +1531,7 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None, plot=False):
 
     if f.shape[0] != data.shape[0]:
         _logger.error("ERROR: shapes are not correct")
-        _logger.error("%s %s %s", f.shape, time_lin.shape, data.shape)
+        _logger.error("f: %s; time_lin: %s; data: %s", f.shape, time_lin.shape, data.shape)
         return
 
     # find neerest discrete frequency
@@ -1616,7 +1616,7 @@ def find_max_along_line(
     if mode == "free_limits" or mode == "lower_limit":
         if line_right[-1] > time_lin[-1]:
             _logger.debug(" right line > time window")
-            _logger.debug("%s %s",line_right[-1], time_lin[-1])
+            _logger.debug("line_right[-1]: %s, time_lin[-1]: %s", line_right[-1], time_lin[-1])
             a = line_right - time_lin[-1]
             f_end = np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))[0] - 1
         else:
@@ -1748,7 +1748,7 @@ def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False, **kwa
 
     RAMS_predicted_line = time_lin * RAMS_slope + RAMS_intercept
 
-    _logger.debug("%s %s", RAMS_slope, RAMS_intercept)
+    _logger.debug("RAMS_slope: %s RAMS_intercept: %s", RAMS_slope, RAMS_intercept)
     RAMS_out = boot.ci(
         (time, freq), simple_RAMSAC_regression_estimator, method="bca", **kwargs
     )
