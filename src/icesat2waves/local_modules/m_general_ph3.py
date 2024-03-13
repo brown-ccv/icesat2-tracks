@@ -1600,7 +1600,7 @@ def find_max_along_line(
 
     if mode is None:
         mode = "free_limits"
-    if mode is "free_limits" or mode is "upper_limit":
+    if mode in ["free_limits", "upper_limit"]:
         if line_left[0] > time_lin[0]:
             f_start = 0
             print(" left line > time0")
@@ -1642,15 +1642,16 @@ def find_max_along_line(
         plt.plot(time_lin, time_lin * 0 + f1, Color="grey", linewidth=3)
         plt.plot(time_lin, time_lin * 0 + f2, Color="grey")
 
-    STR = dict()
-    STR["t_pos"] = []
-    STR["index"] = index
-    STR["amp"] = []
-    STR["freq"] = []
-    STR["out"] = []
-    STR["amp_shape"] = list()
-    STR["left_limit"] = line_left
-    STR["right_limit"] = line_right
+    STR = {
+        "t_pos": [],
+        "index": index,
+        "amp": [],
+        "freq": [],
+        "out": [],
+        "amp_shape": [],
+        "left_limit": line_left,
+        "right_limit": line_right,
+    }
 
     for i in enumerate(flin[f_start:f_end]):
         ii = f_start + i[0]
