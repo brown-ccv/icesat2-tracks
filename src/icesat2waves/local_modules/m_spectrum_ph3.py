@@ -358,14 +358,18 @@ class Moments:
         """
         # theta=np.arange(1,361) if theta is None else theta
 
-        MEM = dict()
+        MEM = {}
         MEM["D"], MEM["S"], MEM["E"], MEM["freq"], MEM["theta"] = MEM_cal(
             self.moments_est, self.f, theta=theta, flim=flim
         )
-        MEM["fmin"] = flim[0]
-        MEM["fmax"] = flim[1]
-        MEM["unit_power"] = self.moments_unit + "/Hz"
-        MEM["unit_dir"] = self.moments_unit + "/deg/Hz"
+        MEM.update(
+            {
+                "fmin": flim[0],
+                "fmax": flim[1],
+                "unit_power": self.moments_unit + "/Hz",
+                "unit_dir": self.moments_unit + "/deg/Hz",
+            }
+        )
 
         self.MEM = MEM
 
