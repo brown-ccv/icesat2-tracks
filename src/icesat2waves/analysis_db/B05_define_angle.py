@@ -300,7 +300,7 @@ def define_angle(
         col_dict = color_schemes.rels
         x_list = corrected_marginals.x
         for xi, xval in enumerate(x_list):
-            F = M.figure_axis_xy(7, 3.5, view_scale=0.8, container=True)
+            F = M.FigureAxisXY(7, 3.5, view_scale=0.8, container=True)
             gs = GridSpec(3, 2, wspace=0.1, hspace=0.8)
             x_str = convert_to_kilo_string(xval)
 
@@ -433,7 +433,7 @@ def define_angle(
             exit()
 
         font_for_print()
-        F = M.figure_axis_xy(6, 5.5, view_scale=0.7, container=True)
+        F = M.FigureAxisXY(6, 5.5, view_scale=0.7, container=True)
         gs = GridSpec(8, 6, wspace=0.1, hspace=3.1)
         color_schemes.colormaps2(21)
 
