@@ -272,7 +272,7 @@ def run_B02_make_spectra_gFT(
                 xi_1 = GG_x.x[i]
                 xi_2 = GG_x.x[i + 1]
 
-                F = M.figure_axis_xy(16, 2)
+                F = M.FigureAxisXY(16, 2)
                 eta = GG_x.eta
 
                 y_model = GG_x.y_model[:, i]

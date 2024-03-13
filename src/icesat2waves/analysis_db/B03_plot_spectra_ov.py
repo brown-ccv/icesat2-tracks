@@ -131,7 +131,7 @@ def run_B03_plot_spectra_ov(
     color_schemes.colormaps2(21)
 
     col_dict = color_schemes.rels
-    F = M.figure_axis_xy(9, 3, view_scale=0.5)
+    F = M.FigureAxisXY(9, 3, view_scale=0.5)
 
     plt.subplot(1, 3, 1)
     plt.title(track_name, loc="left")
@@ -203,7 +203,7 @@ def run_B03_plot_spectra_ov(
 
     k_max_range = (k_max * 0.75, k_max, k_max * 1.25)
     font_for_print()
-    F = M.figure_axis_xy(6.5, 5.6, container=True, view_scale=1)
+    F = M.FigureAxisXY(6.5, 5.6, container=True, view_scale=1)
     Lmeters = Gk.L.data[0]
 
     plt.suptitle("gFT Slope Spectrograms\n" + track_name, y=0.98)
@@ -381,7 +381,7 @@ def run_B03_plot_spectra_ov(
     xpp = np.insert(xpp, 0, x_pos_max)
 
     for i in xpp:
-        F = M.figure_axis_xy(6, 8, container=True, view_scale=0.8)
+        F = M.FigureAxisXY(6, 8, container=True, view_scale=0.8)
 
         plt.suptitle(
             "gFT Model and Spectrograms | x="
