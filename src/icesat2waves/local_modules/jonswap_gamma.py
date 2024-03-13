@@ -96,6 +96,8 @@ def JONSWAP_bulk(f, floc=0.04, famp=1e-2, gamma=3.3, peak_std=1e-1):
 
     delta = np.exp(-((w - wp) ** 2) / (2 * peak_std**2 * wp**2))
     peak_factor = gamma**delta
+    
+    # units of m^2 / Hz
     return alpha * w ** (-5) * np.exp(-stretch * (w / wp) ** -4) * peak_factor
 
 

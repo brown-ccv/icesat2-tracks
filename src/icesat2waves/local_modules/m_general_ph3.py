@@ -62,9 +62,9 @@ class FigureAxisXY:
         self,
         x_size=None,
         y_size=None,
-        view_scale=None,
+        view_scale=0.5,
         size_tuple=None,
-        fig_scale=None,
+        fig_scale=1,
         container=False,
         dpi=180,
     ):
@@ -75,8 +75,6 @@ class FigureAxisXY:
             xsize = x_size if x_size is not None else 8
             ysize = y_size if y_size is not None else 5
 
-        viewscale = view_scale if view_scale is not None else 0.5
-        fig_scale = fig_scale if fig_scale is not None else 1
 
         self.label_letters = iter([i + ") " for i in list(string.ascii_lowercase)])
 
