@@ -1748,7 +1748,8 @@ def RAMSAC_regression_bootstrap(time, freq, time_lin_arg=None, plot=False, **kwa
     RAMS_predicted_line = time_lin * RAMS_slope + RAMS_intercept
 
     _logger.debug("%s %s", RAMS_slope, RAMS_intercept)
-    RAMS_out=boot.ci((time, freq), simple_RAMSAC_regression_estimator, method="bca", **kwargs
+    RAMS_out = boot.ci(
+        (time, freq), simple_RAMSAC_regression_estimator, method="bca", **kwargs
     )
 
     slope = np.append(RAMS_slope, RAMS_out[:, 0])
