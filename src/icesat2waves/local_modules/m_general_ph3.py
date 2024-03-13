@@ -53,8 +53,8 @@ class Color:
         )
 
     def show(self):
-        for key in self.__dict__.keys():
-            _logger.debug(key)
+        for key, value in self.__dict__.items():
+            _logger.debug("Key: %s, Value: %s", key, value)
 
 
 class FigureAxisXY:
@@ -296,7 +296,7 @@ class PlotPeriodogram:
         self.F.ax.set_yscale("log", nonposy="clip")
         tt = self.time.astype(DT.datetime)
         self.cs = plt.contourf(tt[:-2], self.fs[:], dd, self.clevs, cmap=self.cmap)
-        _logger.debug("%s", self.clevs)
+        _logger.debug("clevels: %s", self.clevs)
         plt.ylabel(f"Power db({self.data_unit}^2/{self.sample_unit})")
         plt.xlabel(f"f  ({self.sample_unit})")
         self.cbar = plt.colorbar(self.cs, pad=0.01)
@@ -341,10 +341,11 @@ class PlotPeriodogram:
         self.F.ax.set_yscale("log", nonposy="clip")
         tt = self.time.astype(DT.datetime)
 
-        _logger.debug("%s %s", tt[:-1].shape, self.fs[:].shape,dd.T.shape)
+        _logger.debug("Shape of tt: %s, Shape of fs: %s, Shape of dd.T: %s",
+                      tt[:-1].shape, self.fs[:].shape, dd.T.shape)
         self.cs = plt.contourf(tt[:-1], self.fs[:], dd.T, self.clevs, cmap=self.cmap)
         self.x = np.arange(0, tt[:-1].size)
-        _logger.debug("%s", self.clevs)
+        _logger.debug("clevels: %s", self.clevs)
         plt.xlabel("Time")
         plt.ylabel(f"f  ({self.sample_unit})")
         self.cbar = plt.colorbar(self.cs, pad=0.01)
@@ -702,7 +703,7 @@ class PlotPolarspectra:
         self.min = np.nanmin(data[freq_sel_bool, :])
         self.max = np.nanmax(data[freq_sel_bool, :])
         if verbose:
-            _logger.debug(str(self.min), str(self.max))
+            _logger.debug("min: %s, max: %s", self.min, self.max)
 
         self.ylabels = np.arange(10, 100, 20)
         self.data_type = data_type
@@ -886,21 +887,21 @@ def save_anyfig(fig, name=None, path=None):
 def read_cdo(file):
     cdo = Cdo()
     G = cdo.readCdf(file).variables
-    _logger.debug(G.keys())
+    _logger.debug("keys in G: %s", list(G.keys()))
     return G
 
 
 def build_timestamp(time, unit, start, verbose=True):
     timestamp = np.datetime64(start) + time[:].astype("m8[" + unit + "]")
     if verbose:
-        _logger.debug(timestamp)
+        _logger.debug("timestamp: %s", timestamp)
     return timestamp
 
 
 def build_timestamp_v2(time, unit, start, verbose=True):
     timestamp = np.datetime64(start) + time[:].astype("datetime64[s]")
     if verbose:
-        _logger.debug(timestamp)
+        _logger.debug("timestamp: %s", timestamp)
     return timestamp
 
 
@@ -912,7 +913,7 @@ def cut_nparray(var, low, high, verbose=False):
         if high > var[-1]:
             if verbose:
                 _logger.debug('out of upper limit!')
-                _logger.debug("%s > %s", high, var[-1])
+                _logger.debug("high: %s, last var: %s", high, var[-1])
         return (var >= low) & (var <= high)
 
     elif high < low:
@@ -1014,7 +1015,7 @@ def detrend(data, od=None, x=None, plot=False, verbose=False):
         stats["polynom order"] = od
         stats["polyvals"] = px
     if verbose:
-        _logger.debug(stats)
+        _logger.debug("stats: %s", stats)
     return d_detrend / np.nanstd(d_detrend), stats
 
 
@@ -1331,7 +1332,7 @@ class Composite:
         for s in span_new:
             span.append(int(np.floor(s)))
 
-        _logger.debug(span)
+        _logger.debug("span: %s", span)
         self.iter2 = CompIter(span, dt, unit=unit)
 
     def iter_info(self):
@@ -1371,7 +1372,7 @@ class Composite:
             iindex = self.index
 
         span = self.iter_operate.span
-        _logger.debug(iindex)
+        _logger.debug("iindex: %s", iindex)
         if self.span != [0, 0]:
             comp = np.empty((-span[0] + span[1]))
             self.length = comp.size
@@ -1385,7 +1386,7 @@ class Composite:
                     return -1
                 elif i + span[1] > ts.size:
                     return -1
-                    _logger.debug(i, span[0], span[1])
+                    _logger.debug("%s %s %s", i, span[0], span[1])
                     _logger.debug('i: %s span: %s %s', i, span[0], span[1])
                     _logger.debug('right postion: %s',i+span[1])
                     raise ValueError("composite span exceeds ts limits")
@@ -1529,8 +1530,8 @@ def linefit2Points(time_lin, f, data, f1, f2, f_delta=None, plot=False):
         time_lin = time_lin.astype("m8[s]").astype(int)
 
     if f.shape[0] != data.shape[0]:
-        _logger.debug("ERROR: shapes are not correct")
-        _logger.debug("%s %s %s", f.shape, time_lin.shape, data.shape)
+        _logger.error("ERROR: shapes are not correct")
+        _logger.error("%s %s %s", f.shape, time_lin.shape, data.shape)
         return
 
     # find neerest discrete frequency
