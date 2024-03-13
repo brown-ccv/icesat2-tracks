@@ -470,10 +470,10 @@ class Pwelch:
             else:
                 if plot_chunks:
                     _logger.debug("end of TS is reached")
-                    _logger.debug("last spec No: " + str(last_k))
-                    _logger.debug("spec container: " + str(specs.shape))
-                    _logger.debug("last used Timestep: " + str(last_used_TS))
-                    _logger.debug("length of TS " + str(dsize) + "ms")
+                    _logger.debug("last spec No: %s", last_k)
+                    _logger.debug("spec container: %s", specs.shape)
+                    _logger.debug("last used Timestep: %s", last_used_TS)
+                    _logger.debug("length of TS %s ms", dsize)
 
             k += 1
 
