@@ -1392,9 +1392,9 @@ class Composite:
                     return -1
 
                 _logger.debug('comp %s', comp.shape)
-                _logger.debug('ts %s', ts[i+span[0]:i+span[1]].shape)
+                _logger.debug('ts %s', ts[i + span[0]:i + span[1]].shape)
                 _logger.debug("%s %s %s", i, span[0], span[1])
-                comp=np.vstack((comp,ts[i+span[0]:i+span[1]]))
+                comp = np.vstack((comp, ts[i + span[0]:i + span[1]]))
 
             comp = np.delete(comp, 0, 0)
             comp1 = CompositeData(comp, self.weigthing)
