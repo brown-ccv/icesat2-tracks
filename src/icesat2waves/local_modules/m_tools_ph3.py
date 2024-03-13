@@ -313,13 +313,20 @@ def find_O(a, case="round"):
 
 
 def stats(a):
-	_logger.debug("shape %s" , a.shape)
-	_logger.debug("Nans %s",np.sum(np.isnan(a)))
-	_logger.debug("max %s" , np.nanmax(a))
-	_logger.debug("min %s" ,np.nanmin(a))
-	_logger.debug("mean %s" ,np.nanmean(a))
+    _logger.debug(
+        f"shape: %s\n"
+        f"Nans: %s\n"
+        f"max: %s\n"
+        f"min: %s\n"
+        f"mean: %s"
+    , a.shape, np.sum(np.isnan(a)), np.nanmax(a), np.nanmin(a), np.nanmean(a))
+
 
 def stats_format(a, name=None):
-	_logger.debug("Name: %s   Shape: %s   NaNs: %s    max: %s    min: %s    mean: %s",
-                  str(name), a.shape , np.sum(np.isnan(a)), np.nanmax(a),
-                  np.nanmin(a), np.nanmean(a))
+    _logger.debug("Name: %s\n"
+                  "   Shape: %s\n"
+                  "   NaNs: %s\n"
+                  "   max: %s\n"
+                  "   min: %s\n"
+                  "   mean: %s",
+                  name, a.shape, np.sum(np.isnan(a)), np.nanmax(a), np.nanmin(a), np.nanmean(a))
