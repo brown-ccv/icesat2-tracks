@@ -61,7 +61,7 @@ class color:
                         setattr(self, k, v)
                 except:
                     _logger.debug('fail load theme, fall back to default theme')
-                    _logger.debug("path: %s", path+'mhell_colortheme17')
+                    _logger.debug("path: %s%s", path, 'mhell_colortheme17')
                     self.default_colors()
 
             else:

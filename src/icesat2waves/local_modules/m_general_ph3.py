@@ -133,7 +133,7 @@ class FigureAxisXY:
         extension = ".pdf"
         full_name = (os.path.join(savepath, name)) + extension
         self.fig.savefig(full_name, bbox_inches="tight", format="pdf", dpi=180)
-        _logger.info("save at: " + name)
+        _logger.info("save at: %s", name)
 
     def save_pup(self, name=None, path=None):
         name = re.sub("\.", "_", name)
@@ -148,7 +148,7 @@ class FigureAxisXY:
         extension = ".pdf"
         full_name = (os.path.join(savepath, name)) + extension
         self.fig.savefig(full_name, bbox_inches="tight", format="pdf", dpi=300)
-        _logger.info("save at: ", full_name)
+        _logger.info("save at: %s", full_name)
 
     def save_light(self, name=None, path=None):
 
@@ -164,7 +164,7 @@ class FigureAxisXY:
         extension = ".png"
         full_name = (os.path.join(savepath, name)) + extension
         self.fig.savefig(full_name, bbox_inches="tight", format="png", dpi=180)
-        _logger.info("save with: ", name)
+        _logger.info("save with: %s", name)
 
 
 class SubplotRoutines(FigureAxisXY):
