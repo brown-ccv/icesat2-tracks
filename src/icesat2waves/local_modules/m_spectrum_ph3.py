@@ -27,7 +27,6 @@ def calc_freq(self):
     """calculate array of spectral variable (frequency or
     wavenumber) in cycles per unit of L"""
 
-
     self.df = 1.0 / ((self.n - 1) * self.dt)
 
     self.f = (
@@ -69,7 +68,7 @@ def create_timeaxis_collection(time_as_datetime64):
         "day": day,
         "datetime": datetime,
         "float_plot": float_plot,
-        "dt64": dt64
+        "dt64": dt64,
     }
 
     return T
@@ -99,11 +98,15 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0, verbose=False)
             data2 = M.spickes_to_mean(data2, nloop=0, spreed=spreed, gaussian=False)
             looper_count += 1
         else:
-            peak_remove=False
+            peak_remove = False
 
-        _logger.debug("%s: %s %s %s",
-                      f"{'True' if act_flag else 'False'}", data_std,
-                      f" {'<' if act_flag else '>'}", max_abs_data2)
+        _logger.debug(
+            "%s: %s %s %s",
+            f"{'True' if act_flag else 'False'}",
+            data_std,
+            f" {'<' if act_flag else '>'}",
+            max_abs_data2,
+        )
 
         if looper_count > max_loops:
             peak_remove = False
@@ -166,8 +169,9 @@ class Spectrum:
         _logger.debug("variance of unweighted timeseries: %s", self.data.var())
         _logger.debug(
             "variance of weighted timeseries: %s",
-            self.phi.var() if self.win_flag is 1 else "data not windowed")
-        _logger.debug("variance of weighted timeseries: %s", self.phi.var() )
+            self.phi.var() if self.win_flag is 1 else "data not windowed",
+        )
+        _logger.debug("variance of weighted timeseries: %s", self.phi.var())
         _logger.debug("variance of the Spectrum: %s", self.var)
 
 
@@ -499,14 +503,15 @@ class Pwelch:
     def parceval(self):
         _logger.debug("Parcevals Theorem:")
         _logger.debug("variance of unweighted timeseries: %s", self.data.var())
-        _logger.debug("mean variance of timeseries chunks: %s",
+        _logger.debug(
+            "mean variance of timeseries chunks: %s",
             (
                 self.chunks.var(axis=1).mean()
                 if self.save_chunks is True
                 else "data not saved"
             ),
         )
-        _logger.debug("variance of the pwelch Spectrum: %s",self.var)
+        _logger.debug("variance of the pwelch Spectrum: %s", self.var)
 
     def calc_var(self):
         """Compute total variance from spectrum"""
@@ -584,8 +589,8 @@ class SpectogramSubsample(Pwelch):
 
         n_specs = []
         k = 0
-        _logger.debug('subL %s', subL)
-        _logger.debug('L %s', L)
+        _logger.debug("subL %s", subL)
+        _logger.debug("L %s", L)
         _logger.debug("data_size_adjust: %s", data_size_adjust)
 
         for i in np.arange(0, data_size_adjust - int(L - ov) + 1, int(L - ov)):
@@ -704,6 +709,7 @@ class SpectogramSubsample(Pwelch):
 
     def log(self):
         _logger.debug(".hist variable: %s", self.hist)
+
     def power_anomalie(self, clim=None):
         dd = 10 * np.log10(self.data[:, :])
 
@@ -830,7 +836,6 @@ def MEM_cal(moments_est, freq, theta=None, flim=None):
     # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
     d2 = N_sel["Q13"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
 
-
     d3 = (N_sel["P22"] - N_sel["P33"]) / (N_sel["P22"] + N_sel["P33"])
     d4 = 2 * N_sel["P23"] / (N_sel["P22"] + N_sel["P33"])
     # define power spectrum
@@ -939,8 +944,7 @@ def save_file(data, path):
     outfile = path
     with open(outfile, "wb") as f:
         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
-    _logger.debug('saved to: %s',outfile)
-
+    _logger.debug("saved to: %s", outfile)
 
 
 ## ceasars funcitons

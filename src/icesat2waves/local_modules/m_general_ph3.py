@@ -18,6 +18,7 @@ from sklearn import linear_model
 
 _logger = logging.getLogger(__name__)
 
+
 class Color:
     def __init__(self):
 
@@ -76,7 +77,6 @@ class FigureAxisXY:
         else:
             xsize = x_size if x_size is not None else 8
             ysize = y_size if y_size is not None else 5
-
 
         self.label_letters = iter(f"{i}) " for i in string.ascii_lowercase)
 
@@ -173,7 +173,7 @@ class SubplotRoutines(FigureAxisXY):
 
 
 class PlotSprecta:
-    def __init__(self, fs, Xdata, sample_unit="df", data_unit= "X"):
+    def __init__(self, fs, Xdata, sample_unit="df", data_unit="X"):
 
         self.fs = fs
         self.Xdata = Xdata
@@ -341,8 +341,12 @@ class PlotPeriodogram:
         self.F.ax.set_yscale("log", nonposy="clip")
         tt = self.time.astype(DT.datetime)
 
-        _logger.debug("Shape of tt: %s, Shape of fs: %s, Shape of dd.T: %s",
-                      tt[:-1].shape, self.fs[:].shape, dd.T.shape)
+        _logger.debug(
+            "Shape of tt: %s, Shape of fs: %s, Shape of dd.T: %s",
+            tt[:-1].shape,
+            self.fs[:].shape,
+            dd.T.shape,
+        )
         self.cs = plt.contourf(tt[:-1], self.fs[:], dd.T, self.clevs, cmap=self.cmap)
         self.x = np.arange(0, tt[:-1].size)
         _logger.debug("clevels: %s", self.clevs)
@@ -478,14 +482,18 @@ class PlotPeriodogram:
             fn = self.fs
 
         if isinstance(tt[0], np.datetime64):
-            _logger.debug('time axis is numpy.datetime64, converted to number for plotting')
+            _logger.debug(
+                "time axis is numpy.datetime64, converted to number for plotting"
+            )
             ttt = dates.date2num(tt.astype(DT.datetime))
 
         elif isinstance(tt[0], np.timedelta64):
-            _logger.debug('time axis is numpy.timedelta64, converted to number for plotting')
+            _logger.debug(
+                "time axis is numpy.timedelta64, converted to number for plotting"
+            )
             ttt = tt
         else:
-            _logger.debug('time axis is not converted')
+            _logger.debug("time axis is not converted")
             ttt = tt
 
         MT.stats_format(dd2)
@@ -623,14 +631,14 @@ class PlotPeriodogram:
             fn = self.fs
 
         if isinstance(tt[0], np.datetime64):
-            _logger.debug('numpy.datetime64')
+            _logger.debug("numpy.datetime64")
             ttt = dates.date2num(tt.astype(DT.datetime))
 
         elif isinstance(tt[0], np.timedelta64):
-            _logger.debug('numpy.timedelta64')
+            _logger.debug("numpy.timedelta64")
             ttt = tt
         else:
-            _logger.debug('something else')
+            _logger.debug("something else")
             ttt = tt
 
         self.cs = plt.pcolormesh(
@@ -720,7 +728,6 @@ class PlotPolarspectra:
             self.title = plt.suptitle(
                 "  Polar Spectrum", y=0.95, x=0.5, horizontalalignment="center"
             )
-
 
         # left turned postive
         ax.set_theta_direction(-1)
@@ -881,7 +888,7 @@ def save_anyfig(fig, name=None, path=None):
     extension = ".png"
     full_name = (os.path.join(savepath, name)) + extension
     fig.savefig(full_name, bbox_inches="tight", format="png", dpi=180)
-    _logger.debug('save at: %s',full_name)
+    _logger.debug("save at: %s", full_name)
 
 
 def read_cdo(file):
@@ -912,7 +919,7 @@ def cut_nparray(var, low, high, verbose=False):
                 _logger.debug("out of lower limit!")
         if high > var[-1]:
             if verbose:
-                _logger.debug('out of upper limit!')
+                _logger.debug("out of upper limit!")
                 _logger.debug("high: %s, last var: %s", high, var[-1])
         return (var >= low) & (var <= high)
 
@@ -965,8 +972,7 @@ def boxmean(data, lon, lat, xlim, ylim):
         case (2, 1):
             datan = data[:, :, xbool][:, ybool, :]
         case _:
-            _logger.debug('arrays have not the same shape')
-
+            _logger.debug("arrays have not the same shape")
 
     _logger.debug("new shape %s", datan.shape)
 
@@ -1265,7 +1271,7 @@ class CompIter:
         for s in self.span:
             assert type(s) is int, "span is not an integrer!"
 
-        self.length = self.span[1] -self.span[0]
+        self.length = self.span[1] - self.span[0]
         self.loop_iter = np.arange(0, self.length, 1)
         self.index_iter = np.arange(self.span[0], self.span[1], 1)
         if dt:
@@ -1326,8 +1332,8 @@ class Composite:
             .astype("float")
         )
         span_new = np.array(self.span) * dt_format / dt
-        _logger.debug('old span= %s',self.span)
-        _logger.debug('new span= %s',span_new )
+        _logger.debug("old span= %s", self.span)
+        _logger.debug("new span= %s", span_new)
 
         for s in span_new:
             span.append(int(np.floor(s)))
@@ -1379,23 +1385,23 @@ class Composite:
 
             for i in iindex:
                 if i + span[0] < 0:
-                    _logger.debug('i: %s span: %s %s', i, span[0], span[1])
-                    _logger.debug('left postion: %s', i+span[0])
+                    _logger.debug("i: %s span: %s %s", i, span[0], span[1])
+                    _logger.debug("left postion: %s", i + span[0])
                     raise ValueError("composite span exceeds ts limits")
 
                     return -1
                 elif i + span[1] > ts.size:
                     return -1
                     _logger.debug("%s %s %s", i, span[0], span[1])
-                    _logger.debug('i: %s span: %s %s', i, span[0], span[1])
-                    _logger.debug('right postion: %s',i+span[1])
+                    _logger.debug("i: %s span: %s %s", i, span[0], span[1])
+                    _logger.debug("right postion: %s", i + span[1])
                     raise ValueError("composite span exceeds ts limits")
                     return -1
 
-                _logger.debug('comp %s', comp.shape)
-                _logger.debug('ts %s', ts[i + span[0]:i + span[1]].shape)
+                _logger.debug("comp %s", comp.shape)
+                _logger.debug("ts %s", ts[i + span[0] : i + span[1]].shape)
                 _logger.debug("%s %s %s", i, span[0], span[1])
-                comp = np.vstack((comp, ts[i + span[0]:i + span[1]]))
+                comp = np.vstack((comp, ts[i + span[0] : i + span[1]]))
 
             comp = np.delete(comp, 0, 0)
             comp1 = CompositeData(comp, self.weigthing)
@@ -1416,7 +1422,7 @@ class Composite:
         span = self.iter_operate.span
 
         if span != [0, 0]:
-            _logger.debug("%s %s", -span[0]+span[1],field.shape[1])
+            _logger.debug("%s %s", -span[0] + span[1], field.shape[1])
             comp = np.empty((-span[0] + span[1], field.shape[1])) * np.NaN
             self.length = -span[0] + span[1]
             for i in iindex:
@@ -1438,7 +1444,7 @@ class Composite:
             comp1 = CompositeData(comp, self.weigthing)
             self.comp[name] = comp1
         else:
-            _logger.debug('no span defined')
+            _logger.debug("no span defined")
             comp = field[iindex, :]
 
             comp1 = CompositeData(comp, self.weigthing)
@@ -1526,12 +1532,14 @@ def gen_log_space(limit, n):
 
 def linefit2Points(time_lin, f, data, f1, f2, f_delta=None, plot=False):
     if isinstance(time_lin[0], np.datetime64):
-        _logger.debug('type is numpy.datetime64, shape %s', time_lin.shape)
+        _logger.debug("type is numpy.datetime64, shape %s", time_lin.shape)
         time_lin = time_lin.astype("m8[s]").astype(int)
 
     if f.shape[0] != data.shape[0]:
         _logger.error("ERROR: shapes are not correct")
-        _logger.error("f: %s; time_lin: %s; data: %s", f.shape, time_lin.shape, data.shape)
+        _logger.error(
+            "f: %s; time_lin: %s; data: %s", f.shape, time_lin.shape, data.shape
+        )
         return
 
     # find neerest discrete frequency
@@ -1616,12 +1624,14 @@ def find_max_along_line(
     if mode == "free_limits" or mode == "lower_limit":
         if line_right[-1] > time_lin[-1]:
             _logger.debug(" right line > time window")
-            _logger.debug("line_right[-1]: %s, time_lin[-1]: %s", line_right[-1], time_lin[-1])
+            _logger.debug(
+                "line_right[-1]: %s, time_lin[-1]: %s", line_right[-1], time_lin[-1]
+            )
             a = line_right - time_lin[-1]
             f_end = np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))[0] - 1
         else:
             _logger.debug(" right line < time window")
-            _logger.debug("%s %s",line_right[-1], time_lin[-1])
+            _logger.debug("%s %s", line_right[-1], time_lin[-1])
             f_end = time_lin.size - 2
     else:
         a = f - f2

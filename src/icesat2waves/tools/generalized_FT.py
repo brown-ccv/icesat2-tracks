@@ -408,8 +408,16 @@ class wavenumber_spectrogram_gFT:
             if prior[0] is False:
                 _logger.debug("1st GFD failed (priors[0]=false), skip 2nd step")
             else:
-                _logger.debug("2nd step: use set priors of types: %s %s", type(prior[0]), type(prior[1]))
-                _logger.debug("first three elements of priors: %s %s", prior[0][0:3], prior[1][0:3])
+                _logger.debug(
+                    "2nd step: use set priors of types: %s %s",
+                    type(prior[0]),
+                    type(prior[1]),
+                )
+                _logger.debug(
+                    "first three elements of priors: %s %s",
+                    prior[0][0:3],
+                    prior[1][0:3],
+                )
                 I_return = calc_gFT_apply(ss, prior=prior)
                 prior = I_return["PSD"], I_return["weight"]
 
@@ -661,7 +669,9 @@ class wavenumber_spectrogram_gFT:
         _logger.debug("Parcevals Theorem:")
         _logger.debug("variance of timeseries: %s", DATA.var())
         _logger.debug("mean variance of stancils: %s", stancil_weighted_variance)
-        _logger.debug("variance of the optimzed windowed LS Spectrum: %s", self.calc_var())
+        _logger.debug(
+            "variance of the optimzed windowed LS Spectrum: %s", self.calc_var()
+        )
 
         if add_attrs:
             self.G.attrs["variance_unweighted_data"] = DATA.var()

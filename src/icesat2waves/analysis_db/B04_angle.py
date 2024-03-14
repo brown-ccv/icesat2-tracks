@@ -142,12 +142,10 @@ def run_B04_angle(
 
     #### Define Prior
     Pperiod = Prior.loc[["ptp0", "ptp1", "ptp2", "ptp3", "ptp4", "ptp5"]]["mean"]
-    Pdir = Prior.loc[["pdp0", "pdp1", "pdp2", "pdp3", "pdp4", "pdp5"]][
-        "mean"
-    ].astype("float")
-    Pspread = Prior.loc[["pspr0", "pspr1", "pspr2", "pspr3", "pspr4", "pspr5"]][
-        "mean"
-    ]
+    Pdir = Prior.loc[["pdp0", "pdp1", "pdp2", "pdp3", "pdp4", "pdp5"]]["mean"].astype(
+        "float"
+    )
+    Pspread = Prior.loc[["pspr0", "pspr1", "pspr2", "pspr3", "pspr4", "pspr5"]]["mean"]
 
     Pperiod = Pperiod[~np.isnan(list(Pspread))]
     Pdir = Pdir[~np.isnan(list(Pspread))]
@@ -266,7 +264,9 @@ def run_B04_angle(
     prior_angle = Prior_smth.Prior_direction * 180 / np.pi
     if (abs(prior_angle) > 80).all():
         _logger.critical(
-            "Prior angle is %s %s. Quit.", prior_angle.min().data, prior_angle.max().data,
+            "Prior angle is %s %s. Quit.",
+            prior_angle.min().data,
+            prior_angle.max().data,
         )
         dd_save = {
             "time": time.asctime(time.localtime(time.time())),
@@ -452,9 +452,7 @@ def run_B04_angle(
                 "-",
                 c=next(col_list),
             )
-            plt.xlim(
-                x_concat[y_concat == y_pos][0], x_concat[y_concat == y_pos][-1]
-            )
+            plt.xlim(x_concat[y_concat == y_pos][0], x_concat[y_concat == y_pos][-1])
 
         plt.xlabel("meter")
         F.ax3 = F.fig.add_subplot(gs[2:, 0:-1])
@@ -465,9 +463,7 @@ def run_B04_angle(
             )
 
         if optimze is True:
-            SM.plot_optimze(
-                color="r", markersize=10, zorder=12, label="Dual Annealing"
-            )
+            SM.plot_optimze(color="r", markersize=10, zorder=12, label="Dual Annealing")
 
         if sample is True:
             SM.plot_sample(
@@ -624,9 +620,7 @@ def run_B04_angle(
         amp_Z = 1
         prior_sel = {
             "alpha": (
-                Prior_smth.sel(
-                    k=k_prime_max, method="nearest"
-                ).Prior_direction.data,
+                Prior_smth.sel(k=k_prime_max, method="nearest").Prior_direction.data,
                 Prior_smth.sel(k=k_prime_max, method="nearest").Prior_spread.data,
             )
         }
@@ -657,9 +651,7 @@ def run_B04_angle(
                     Prior_smth.sel(
                         k=k_prime_max, method="nearest"
                     ).Prior_direction.data,
-                    Prior_smth.sel(
-                        k=k_prime_max, method="nearest"
-                    ).Prior_spread.data,
+                    Prior_smth.sel(k=k_prime_max, method="nearest").Prior_spread.data,
                 )
             }
 
@@ -676,9 +668,7 @@ def run_B04_angle(
                 min=k_prime_max * 0.5,
                 max=k_prime_max * 1.5,
             )
-            SM.params.add(
-                "K_amp", amp_Z, vary=False, min=amp_Z * 0.0, max=amp_Z * 5
-            )
+            SM.params.add("K_amp", amp_Z, vary=False, min=amp_Z * 0.0, max=amp_Z * 5)
 
             L_sample_i = None
             L_optimize_i = None
@@ -714,9 +704,7 @@ def run_B04_angle(
                 "alpha", alpha_dx, burn=N_sample_chain_burn, plot_flag=False
             )
             fitter = SM.fitter  # MCMC results
-            z_model = SM.objective_func(
-                fitter.params, *fitting_args, test_flag=True
-            )
+            z_model = SM.objective_func(fitter.params, *fitting_args, test_flag=True)
             cost = (fitter.residual**2).sum() / (z_concat**2).sum()
 
             if plot_flag:
@@ -822,9 +810,7 @@ def run_B04_angle(
         cost_stack = dict()
         marginal_stack = dict()
         L_sample = pd.DataFrame(index=["alpha", "group_phase", "K_prime", "K_amp"])
-        L_optimize = pd.DataFrame(
-            index=["alpha", "group_phase", "K_prime", "K_amp"]
-        )
+        L_optimize = pd.DataFrame(index=["alpha", "group_phase", "K_prime", "K_amp"])
         L_brute = pd.DataFrame(index=["alpha", "group_phase", "K_prime", "K_amp"])
 
         for kk, I in A.items():

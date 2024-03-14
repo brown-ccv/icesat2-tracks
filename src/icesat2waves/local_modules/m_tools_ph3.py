@@ -18,12 +18,12 @@ _logger = logging.getLogger(__name__)
 
 
 def dt_form_timestamp(timestamp, unit="h"):
-    return (timestamp[1]-timestamp[0]).astype(f"m8[{unit}]")
+    return (timestamp[1] - timestamp[0]).astype(f"m8[{unit}]")
 
 
 def tick_formatter(a, interval=2, rounder=2, expt_flag=True, shift=0):
 
-    fact = 10**(int(np.log10(a.max())) - 1)
+    fact = 10 ** (int(np.log10(a.max())) - 1)
     b = np.round(a / fact, rounder + 1) * fact
     ticklabels = [" "] * len(b)
 
@@ -107,9 +107,9 @@ def fake_2d_data(verbose=True, timeaxis=False):
     z3 = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-((YY - mu) ** 2) / (2 * sigma**2))
     z3 = z3 / z3.max()
     if verbose:
-        _logger.debug("x %s" , x.shape)
-        _logger.debug("y %s" , y.shape)
-        _logger.debug("z %s" , z3.shape)
+        _logger.debug("x %s", x.shape)
+        _logger.debug("y %s", y.shape)
+        _logger.debug("z %s", z3.shape)
 
         plt.contourf(x, y, z2 / 2 + z3 / 2)
         plt.colorbar()
@@ -128,6 +128,7 @@ def pickle_save(name, path, data, verbose=True):
         pickle.dump(data, f2)
     if verbose:
         _logger.debug("save at: %s", full_name)
+
 
 def pickle_load(name, path, verbose=True):
     full_name = os.path.join(path, name + ".npy")
@@ -191,7 +192,7 @@ def h5_load(name, path, verbose=False):
 
 def h5_load_v2(name, path, verbose=False):
 
-    with h5py.File(path + name + '.h5','r') as h5f:
+    with h5py.File(path + name + ".h5", "r") as h5f:
         if verbose:
             _logger.debug("%s h5f keys: %s", name, h5f.keys())
 
@@ -240,13 +241,15 @@ def save_pandas_table(table_dict, ID, save_path):
 def write_log(hist, string, verbose=False, short=True, date=True):
 
     _now = datetime.datetime.now()
-    _short =  "%Y%m%d"
+    _short = "%Y%m%d"
     _long = "%Y-%m-%d %H:%M"
     now = _now.strftime(_short) if short else _now.strftime(_long)
     message = f"\n{now} {string}" if date else f"\n  {string}"
 
-    if verbose in [True, 'all']:
-        _logger.debug("hist message: %s", hist + message if verbose == 'all' else message)
+    if verbose in [True, "all"]:
+        _logger.debug(
+            "hist message: %s", hist + message if verbose == "all" else message
+        )
 
     return hist + message
 
@@ -264,8 +267,8 @@ def write_variables_log(hist, var_list, locals, verbose=False, date=False):
 
     message = f"\n{now} {stringg}" if date else f"\n{' '.ljust(5)} {stringg}"
 
-    if verbose in [True, 'all']:
-        _logger.debug("%s", hist + message if verbose == 'all' else message)
+    if verbose in [True, "all"]:
+        _logger.debug("%s", hist + message if verbose == "all" else message)
 
 
 def save_log_txt(name, path, hist, verbose=False):
@@ -275,7 +278,7 @@ def save_log_txt(name, path, hist, verbose=False):
     with open(full_name, "w") as ifile:
         ifile.write(str(hist))
     if verbose:
-        _logger.debug("saved at: %s",full_name)
+        _logger.debug("saved at: %s", full_name)
 
 
 def load_log_txt(hist_file, path):
@@ -314,19 +317,27 @@ def find_O(a, case="round"):
 
 def stats(a):
     _logger.debug(
-        f"shape: %s\n"
-        f"Nans: %s\n"
-        f"max: %s\n"
-        f"min: %s\n"
-        f"mean: %s"
-    , a.shape, np.sum(np.isnan(a)), np.nanmax(a), np.nanmin(a), np.nanmean(a))
+        f"shape: %s\n" f"Nans: %s\n" f"max: %s\n" f"min: %s\n" f"mean: %s",
+        a.shape,
+        np.sum(np.isnan(a)),
+        np.nanmax(a),
+        np.nanmin(a),
+        np.nanmean(a),
+    )
 
 
 def stats_format(a, name=None):
-    _logger.debug("Name: %s\n"
-                  "   Shape: %s\n"
-                  "   NaNs: %s\n"
-                  "   max: %s\n"
-                  "   min: %s\n"
-                  "   mean: %s",
-                  name, a.shape, np.sum(np.isnan(a)), np.nanmax(a), np.nanmin(a), np.nanmean(a))
+    _logger.debug(
+        "Name: %s\n"
+        "   Shape: %s\n"
+        "   NaNs: %s\n"
+        "   max: %s\n"
+        "   min: %s\n"
+        "   mean: %s",
+        name,
+        a.shape,
+        np.sum(np.isnan(a)),
+        np.nanmax(a),
+        np.nanmin(a),
+        np.nanmean(a),
+    )
