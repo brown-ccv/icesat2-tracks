@@ -1598,6 +1598,9 @@ def find_max_along_line(
 
     if mode is None:
         mode = "free_limits"
+
+    _logger.debug("find_max_along_line with %s", mode)
+
     if mode in ["free_limits", "upper_limit"]:
         if line_left[0] > time_lin[0]:
             f_start = 0
