@@ -268,7 +268,9 @@ def write_variables_log(hist, var_list, locals, verbose=False, date=False):
     message = f"\n{now} {stringg}" if date else f"\n{' '.ljust(5)} {stringg}"
 
     if verbose in [True, "all"]:
-        _logger.debug("write_variables_log: %s", hist + message if verbose == "all" else message)
+        _logger.debug(
+            "write_variables_log: %s", hist + message if verbose == "all" else message
+        )
 
 
 def save_log_txt(name, path, hist, verbose=False):

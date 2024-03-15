@@ -1624,7 +1624,9 @@ def find_max_along_line(
         f_start = np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))[0]
 
     if mode == "free_limits" or mode == "lower_limit":
-        _logger.debug("line_right[-1]: %s, time_lin[-1]: %s", line_right[-1], time_lin[-1])
+        _logger.debug(
+            "line_right[-1]: %s, time_lin[-1]: %s", line_right[-1], time_lin[-1]
+        )
         if line_right[-1] > time_lin[-1]:
             _logger.debug(" right line > time window")
             a = line_right - time_lin[-1]
