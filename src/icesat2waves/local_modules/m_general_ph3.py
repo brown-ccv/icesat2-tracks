@@ -965,7 +965,7 @@ def boxmean(data, lon, lat, xlim, ylim):
         case (2, 1):
             datan = data[:, :, xbool][:, ybool, :]
         case _:
-            _logger.debug('arrays have not the same shape')
+            _logger.debug('arrays do not have the same shape')
 
 
     _logger.debug("new shape %s", datan.shape)
