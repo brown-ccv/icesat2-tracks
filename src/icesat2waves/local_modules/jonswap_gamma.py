@@ -732,7 +732,7 @@ if __name__ == "__main__":
         vd[k] = I * np.random.rand()
 
     Jm = Jm_regulizer(vd, priors)
-    _logger.debug(Jm)
+    _logger.debug("Jm from regulizer: %s", Jm)
 
 
 def cost(value_dict, time, f, data=None, weight=None, prior=False, eps=None):

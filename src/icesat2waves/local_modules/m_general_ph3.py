@@ -938,7 +938,7 @@ def cut_nparray(var, low, high, verbose=False):
         return np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))
 
     else:
-        _logger.debug("error")
+        _logger.warning("error in cut_nparray()")
         return
 
 
@@ -972,7 +972,7 @@ def boxmean(data, lon, lat, xlim, ylim):
         case (2, 1):
             datan = data[:, :, xbool][:, ybool, :]
         case _:
-            _logger.debug("arrays have not the same shape")
+            _logger.debug("arrays do not have the same shape")
 
     _logger.debug("new shape %s", datan.shape)
 
@@ -1606,14 +1606,16 @@ def find_max_along_line(
 
     if mode is None:
         mode = "free_limits"
+
+    _logger.debug("find_max_along_line with %s", mode)
+
     if mode in ["free_limits", "upper_limit"]:
+        _logger.debug("line_left[0]: %s, time_lin[0]: %s", line_left[0], time_lin[0])
         if line_left[0] > time_lin[0]:
-            f_start = 0
             _logger.debug(" left line > time0")
-            _logger.debug("%s %s", line_left[0], time_lin[0])
+            f_start = 0
         else:
-            _logger.debug(" left line < time")
-            _logger.debug("%s %s", line_left[0], time_lin[0])
+            _logger.debug(" left line < time0")
             a = line_left - time_lin[0]
             f_start = np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))[0] + 1
     else:
@@ -1622,16 +1624,13 @@ def find_max_along_line(
         f_start = np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))[0]
 
     if mode == "free_limits" or mode == "lower_limit":
+        _logger.debug("line_right[-1]: %s, time_lin[-1]: %s", line_right[-1], time_lin[-1])
         if line_right[-1] > time_lin[-1]:
             _logger.debug(" right line > time window")
-            _logger.debug(
-                "line_right[-1]: %s, time_lin[-1]: %s", line_right[-1], time_lin[-1]
-            )
             a = line_right - time_lin[-1]
             f_end = np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))[0] - 1
         else:
             _logger.debug(" right line < time window")
-            _logger.debug("%s %s", line_right[-1], time_lin[-1])
             f_end = time_lin.size - 2
     else:
         a = f - f2
