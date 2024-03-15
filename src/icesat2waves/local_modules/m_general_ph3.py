@@ -931,7 +931,7 @@ def cut_nparray(var, low, high, verbose=False):
         return np.unravel_index(np.abs(a).argmin(), np.transpose(a.shape))
 
     else:
-        _logger.debug("error")
+        _logger.warning("error in cut_nparray()")
         return
 
 
