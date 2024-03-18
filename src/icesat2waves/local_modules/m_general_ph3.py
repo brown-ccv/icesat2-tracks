@@ -1340,10 +1340,10 @@ class Composite:
 
         _logger.debug("available iters")
         if self.iter is not None:
-            _logger.debug("self.iter")
+            _logger.debug("self.iter: %s", self.iter)
             self.iter.__dict__
         if self.iter2 is not None:
-            _logger.debug("self.iter2")
+            _logger.debug("self.iter2: %s", self.iter2)
             self.iter2.__dict__
 
     def info(self):
