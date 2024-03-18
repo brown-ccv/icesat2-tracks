@@ -1372,7 +1372,7 @@ class Composite:
             iindex = self.index
 
         span = self.iter_operate.span
-        _logger.debug("iindex: %s", iindex)
+        _logger.debug("index: %s", iindex)
         if self.span != [0, 0]:
             comp = np.empty((-span[0] + span[1]))
             self.length = comp.size
