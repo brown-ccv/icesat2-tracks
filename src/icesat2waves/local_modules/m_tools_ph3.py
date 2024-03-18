@@ -288,7 +288,7 @@ def load_log_txt(hist_file, path):
 
 def shape(a):
     for i in a:
-        _logger.debug("shape of %s: %s", i, i.shape)
+        _logger.debug("shape of i=%s: %s", i, i.shape)
 
 
 def find_O(a, case="round"):
