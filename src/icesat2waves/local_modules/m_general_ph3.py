@@ -1,4 +1,7 @@
+import logging
 import os
+import re
+import string
 
 from scipy import signal
 
@@ -9,12 +12,11 @@ import datetime as DT
 from . import m_tools_ph3 as MT
 import numpy as np
 import matplotlib.pyplot as plt
-import re
-import string
 import matplotlib.colors as colors
 import matplotlib.ticker as ticker
 from sklearn import linear_model
 
+_logger = logging.getLogger(__name__)
 
 class Color:
     def __init__(self):
@@ -131,10 +133,9 @@ class FigureAxisXY:
         extension = ".pdf"
         full_name = (os.path.join(savepath, name)) + extension
         self.fig.savefig(full_name, bbox_inches="tight", format="pdf", dpi=180)
-        if verbose:
-            print("save at: " + name)
+        _logger.info("save at: %s", name)
 
-    def save_pup(self, name=None, path=None, verbose=True):
+    def save_pup(self, name=None, path=None):
         name = re.sub("\.", "_", name)
         savepath = (
             path
@@ -147,10 +148,9 @@ class FigureAxisXY:
         extension = ".pdf"
         full_name = (os.path.join(savepath, name)) + extension
         self.fig.savefig(full_name, bbox_inches="tight", format="pdf", dpi=300)
-        if verbose:
-            print("save at: ", full_name)
+        _logger.info("save at: %s", full_name)
 
-    def save_light(self, name=None, path=None, verbose=True):
+    def save_light(self, name=None, path=None):
 
         savepath = (
             path
@@ -164,8 +164,7 @@ class FigureAxisXY:
         extension = ".png"
         full_name = (os.path.join(savepath, name)) + extension
         self.fig.savefig(full_name, bbox_inches="tight", format="png", dpi=180)
-        if verbose:
-            print("save with: ", name)
+        _logger.info("save with: %s", name)
 
 
 class SubplotRoutines(FigureAxisXY):
@@ -720,7 +719,7 @@ class PlotPolarspectra:
             self.title = plt.suptitle(
                 "  Polar Spectrum", y=0.95, x=0.5, horizontalalignment="center"
             )
-        
+
 
         # left turned postive
         ax.set_theta_direction(-1)

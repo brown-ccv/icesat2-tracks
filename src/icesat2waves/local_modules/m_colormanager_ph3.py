@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatch
 import os
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def ase_to_json(path):
@@ -15,12 +18,12 @@ def ase_to_json(path):
     A=swatch.parse(path)
 
     for i in A[0]['swatches']:
-        print(i['name'] + '  ' + str(i['data']['values']))
+        _logger.debug("swatch name: %s, swatch values: %s", i['name'], i['data']['values'])
 
     return A
 
 
-def json_save(name, path, data, verbose=False, return_name=False):
+def json_save(name, path, data, return_name=False):
     import json
     if not os.path.exists(path):
         os.makedirs(path)
@@ -28,22 +31,20 @@ def json_save(name, path, data, verbose=False, return_name=False):
     full_name= (os.path.join(full_name_root+ '.json'))
     with open(full_name, 'w') as outfile:
         json.dump(data, outfile)
-    if verbose:
-        print('save at: ',full_name)
+    _logger.debug('save at %s:', full_name)
     if return_name:
         return full_name_root
     else:
         return
 
 
-def json_load(name, path, verbose=False):
+def json_load(name, path):
     import json
     full_name= (os.path.join(path,name+ '.json'))
 
     with open(full_name, 'r') as ifile:
         data=json.load(ifile)
-    if verbose:
-        print('loaded from: ',full_name)
+    _logger.debug('loaded from: %s', full_name)
     return data
 
 
@@ -53,14 +54,14 @@ class color:
         def __init__(self, path=None, name=None):
             self.white=(1,1,1)
             if (path is not None) & (name is not None):
-                print('color theme: '+name)
+                _logger.debug("color theme: %s", name)
                 try:
-                    theme=json_load(name, path, verbose=True)
+                    theme=json_load(name, path)
                     for k, v in theme.items():
                         setattr(self, k, v)
                 except:
-                    print('fail load theme, fall back to default theme')
-                    print(path+'mhell_colortheme17')
+                    _logger.debug('fail load theme, fall back to default theme')
+                    _logger.debug("path: %s%s", path, 'mhell_colortheme17')
                     self.default_colors()
 
             else:
@@ -172,11 +173,11 @@ class color:
 
         def show(self):
             for key in self.__dict__.keys():
-                print(key)
+                _logger.debug(key)
 
-            print('  rels dict:')
+            _logger.debug('  rels dict keys:')
             for key in self.rels.keys():
-                print('  '+key)
+                _logger.debug("   %s", key)
 
         def plot(self):
             dd=self.__dict__.copy()

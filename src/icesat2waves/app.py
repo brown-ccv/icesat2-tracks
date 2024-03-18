@@ -2,7 +2,12 @@
 """
 Main CLI for icesat2waves.
 """
+import logging
+from enum import Enum
+
 from typer import Typer, Option
+from typing_extensions import Annotated
+
 from icesat2waves.analysis_db.B01_SL_load_single_file import (
     run_B01_SL_load_single_file as _loadfile,
 )
@@ -36,7 +41,38 @@ from icesat2waves.clitools import (
     validate_track_name_steps_gt_1,
 )
 
+_logger = logging.getLogger(__name__)
+
 app = Typer(add_completion=False)
+
+
+class _LogLevel(str, Enum):
+    QUIET = "quiet"
+    WARNING = "warning"
+    VERBOSE = "verbose"
+    DEBUG = "debug"
+
+    @property
+    def level(self):
+        return {
+            _LogLevel.QUIET: logging.CRITICAL,
+            _LogLevel.WARNING: logging.WARNING,
+            _LogLevel.VERBOSE: logging.INFO,
+            _LogLevel.DEBUG: logging.DEBUG,
+        }[self.value]
+
+
+@app.callback()
+def main(
+    log: Annotated[
+        _LogLevel,
+        Option(help="Set the log level"),
+    ] = "warning"
+):
+    """Analyze data from the ICESAT2 satellite."""
+    logging.basicConfig(level=log.level)
+
+
 validate_track_name_gt_1_opt = Option(..., callback=validate_track_name_steps_gt_1)
 validate_batch_key_opt = Option(..., callback=validate_batch_key)
 validate_output_dir_opt = Option(..., callback=validate_output_dir)
@@ -48,14 +84,12 @@ def run_job(
     batch_key: str,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     analysis_func(
         track_name=track_name,
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -65,7 +99,6 @@ def load_file(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_loadfile,
@@ -73,7 +106,6 @@ def load_file(
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -83,7 +115,6 @@ def make_spectra(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_makespectra,
@@ -91,7 +122,6 @@ def make_spectra(
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -101,7 +131,6 @@ def plot_spectra(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_plotspectra,
@@ -109,7 +138,6 @@ def plot_spectra(
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -119,7 +147,6 @@ def make_iowaga_threads_prior(  # TODO: revise naming @mochell
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_threddsprior,
@@ -127,7 +154,6 @@ def make_iowaga_threads_prior(  # TODO: revise naming @mochell
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -137,7 +163,6 @@ def make_b04_angle(  # TODO: revise naming @mochell
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_run_B04_angle,
@@ -145,7 +170,6 @@ def make_b04_angle(  # TODO: revise naming @mochell
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -155,7 +179,6 @@ def define_angle(
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_define_angle,
@@ -163,7 +186,6 @@ def define_angle(
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
 
 
@@ -173,7 +195,6 @@ def correct_separate(  # TODO: rename with a verb or something
     batch_key: str = validate_batch_key_opt,
     ID_flag: bool = True,
     output_dir: str = validate_output_dir_opt,
-    verbose: bool = False,
 ):
     run_job(
         analysis_func=_run_correct_separate_var,
@@ -181,8 +202,8 @@ def correct_separate(  # TODO: rename with a verb or something
         batch_key=batch_key,
         ID_flag=ID_flag,
         output_dir=output_dir,
-        verbose=verbose,
     )
+
 
 
 if __name__ == "__main__":
