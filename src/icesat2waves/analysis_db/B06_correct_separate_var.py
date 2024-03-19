@@ -172,7 +172,6 @@ def calculate_k_end(x, k, k_end_previous, G_gFT_smth):
         G_gFT_smth.sel(x=x) / k, plot_flag=False
     )
     k_save = k_end_previous if k_end == k[0] else k_end
-    _logger.debug("--------------------------")
     return k_save
 
 
