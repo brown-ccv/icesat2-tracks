@@ -1386,7 +1386,6 @@ class Composite:
                     return -1
                 elif i + span[1] > ts.size:
                     return -1
-                    _logger.debug("%s %s %s", i, span[0], span[1])
                     _logger.debug('i: %s span: %s %s', i, span[0], span[1])
                     _logger.debug('right postion: %s',i+span[1])
                     raise ValueError("composite span exceeds ts limits")
