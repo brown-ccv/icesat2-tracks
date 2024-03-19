@@ -314,12 +314,14 @@ def find_O(a, case="round"):
 
 def stats(a):
     _logger.debug(
-        f"shape: %s\n"
-        f"Nans: %s\n"
-        f"max: %s\n"
-        f"min: %s\n"
-        f"mean: %s"
-    , a.shape, np.sum(np.isnan(a)), np.nanmax(a), np.nanmin(a), np.nanmean(a))
+        "shape: %s\nNans: %s\nmax: %s\nmin: %s\nmean: %s",
+        a.shape,
+        np.sum(np.isnan(a)),
+        np.nanmax(a),
+        np.nanmin(a),
+        np.nanmean(a)
+    )
+
 
 
 def stats_format(a, name=None):
