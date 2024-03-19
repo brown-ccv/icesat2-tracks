@@ -1415,7 +1415,7 @@ class Composite:
         span = self.iter_operate.span
 
         if span != [0, 0]:
-            _logger.debug("%s %s", -span[0]+span[1],field.shape[1])
+            _logger.debug("span range: %s, field shape: %s", -span[0]+span[1],field.shape[1])
             comp = np.empty((-span[0] + span[1], field.shape[1])) * np.NaN
             self.length = -span[0] + span[1]
             for i in iindex:
