@@ -325,10 +325,12 @@ def stats(a):
 
 
 def stats_format(a, name=None):
-    _logger.debug("Name: %s\n"
-                  "   Shape: %s\n"
-                  "   NaNs: %s\n"
-                  "   max: %s\n"
-                  "   min: %s\n"
-                  "   mean: %s",
-                  name, a.shape, np.sum(np.isnan(a)), np.nanmax(a), np.nanmin(a), np.nanmean(a))
+    _logger.debug(
+        "Name: %s\n"
+        "   Shape: %s\n"
+        "   NaNs: %s\n"
+        "   max: %s\n"
+        "   min: %s\n"
+        "   mean: %s",
+        name, a.shape, np.sum(np.isnan(a)), np.nanmax(a), np.nanmin(a), np.nanmean(a)
+    )
