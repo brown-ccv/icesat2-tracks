@@ -2,7 +2,7 @@
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
-
+import logging
 import os
 
 
@@ -32,15 +32,15 @@ from icesat2waves.config.startup import (
 )
 
 from icesat2waves.clitools import (
-    echo,
     validate_batch_key,
     validate_output_dir,
-    suppress_stdout,
     update_paths_mconfig,
     report_input_parameters,
     validate_track_name_steps_gt_1,
     makeapp,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def get_correct_breakpoint(pw_results):
@@ -77,18 +77,18 @@ def get_correct_breakpoint(pw_results):
     alphas_v2_sorted = pd.Series(index=alphas_sorted, data=alphas_v2)
     br_points_sorted[f"breakpoint{br_points_sorted.size + 1}"] = "end"
 
-    echo("all alphas")
-    echo(alphas_v2_sorted)
+    _logger.debug("all alphas")
+    _logger.debug("%s", alphas_v2_sorted)
     slope_mask = alphas_v2_sorted < 0
 
     if sum(slope_mask) == 0:
-        echo("no negative slope found, set to lowest")
+        _logger.debug("no negative slope found, set to lowest")
         breakpoint = "start"
     else:
         # take steepest slope
         alpah_v2_sub = alphas_v2_sorted[slope_mask]
-        echo(alpah_v2_sub)
-        echo(alpah_v2_sub.argmin())
+        _logger.debug("alpah_v2_sub: %s", alpah_v2_sub)
+        _logger.debug("alpah_v2_sub.argmin: %s", alpah_v2_sub.argmin())
         break_point_name = alpah_v2_sub.index[alpah_v2_sub.argmin()].replace(
             "alpha", "breakpoint"
         )
@@ -105,7 +105,9 @@ def get_breakingpoints(xx, dd):
     n_breakpoints = 3
     while convergence_flag:
         pw_fit = piecewise_regression.Fit(xx, dd, n_breakpoints=n_breakpoints)
-        print("n_breakpoints", n_breakpoints, pw_fit.get_results()["converged"])
+        _logger.debug(
+            "n_breakpoints %s\n%s", n_breakpoints, pw_fit.get_results()["converged"]
+        )
         convergence_flag = not pw_fit.get_results()["converged"]
         n_breakpoints += 1
         if n_breakpoints >= 4:
@@ -134,10 +136,10 @@ def define_noise_wavenumber_piecewise(data_xr, plot_flag=False):
     pw_fit, breakpoint_log = get_breakingpoints(k_log, data_log.data)
 
     if breakpoint_log == "start":
-        echo("no decay, set to lowerst wavenumber")
+        _logger.debug("no decay, set to lowerst wavenumber")
         breakpoint_log = k_log[0]
     if (breakpoint_log == "end") | (breakpoint_log is False):
-        echo("higest wavenumner")
+        _logger.debug("higest wavenumner")
         breakpoint_log = k_log[-1]
 
     breakpoint_pos = abs(k_log - breakpoint_log).argmin()
@@ -165,12 +167,11 @@ def weighted_mean(data, weights, additional_data=None):
 
 
 def calculate_k_end(x, k, k_end_previous, G_gFT_smth):
-    echo(x)
+    _logger.debug("From calculate_k_end -- x: %s", x)
     k_end, _ = define_noise_wavenumber_piecewise(
         G_gFT_smth.sel(x=x) / k, plot_flag=False
     )
     k_save = k_end_previous if k_end == k[0] else k_end
-    echo("--------------------------")
     return k_save
 
 
@@ -249,7 +250,11 @@ def save_table(data, tablename, save_path):
         io.save_pandas_table(data, tablename, save_path)
     except Exception as e:
         tabletoremove = save_path + tablename + ".h5"
-        echo(e, f"Failed to save table. Removing {tabletoremove} and re-trying..")
+        _logger.warning(
+            "Failed to save table with error %s. Removing %s and re-trying..",
+            e,
+            tabletoremove,
+        )
         os.remove(tabletoremove)
         io.save_pandas_table(data, tablename, save_path)
 
@@ -657,7 +662,7 @@ def run_B06_correct_separate_var(
     Gx_v2, B2_v2, B3_v2 = dict(), dict(), dict()
 
     for bb in Gx.beam.data:
-        echo(bb)
+        _logger.debug("bb: %s", bb)
         Gx_k = Gx.sel(beam=bb)
         Gh = Gx["height_model"].sel(beam=bb).T
         Gh_err = Gx_k["model_error_x"].T
@@ -697,7 +702,7 @@ def run_B06_correct_separate_var(
         )
 
     except ValueError as e:
-        echo(f"{e} no angle data found, skip angle corretion")
+        _logger.warning("%s no angle data found, skip angle corretion", e)
         theta = 0
         theta_flag = False
     else:
@@ -773,11 +778,12 @@ def run_B06_correct_separate_var(
         (plot_path / "../"),
         {"time": time.asctime(time.localtime(time.time()))},
     )
-    echo("done. saved target at " + str(plot_path) + "../B06_success")
-    echo("Done B06_correct_separate_var")
+    _logger.info("done. saved target at %s../B06_success", plot_path)
+    _logger.info("Done B06_correct_separate_var")
 
 
 correct_separate_app = makeapp(run_B06_correct_separate_var, name="correct-separate")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     correct_separate_app()
