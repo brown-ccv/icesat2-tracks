@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import pandas as pd
 import icesat2waves.tools.spectral_estimates as spec
@@ -6,6 +8,8 @@ import icesat2waves.tools.iotools as io_local
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import h5py
+
+_logger = logging.getLogger(__name__)
 
 
 def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
@@ -24,7 +28,7 @@ def derive_beam_statistics(Gd, all_beams, Lmeter=10e3, dx=10):
         elif isinstance(Gd, h5py.File):
             Gi = io_local.get_beam_hdf_store(Gd[k])
         else:
-            print("Gd is neither dict nor hdf5 file")
+            _logger.debug("Gd is neither dict nor hdf5 file")
             break
 
         dd = Gi["h_mean"]

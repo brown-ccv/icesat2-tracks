@@ -1,3 +1,5 @@
+import logging
+
 from ipyleaflet import (
     Map,
     basemaps,
@@ -10,6 +12,8 @@ import pandas as pd
 import geopandas as gpd
 
 import matplotlib.pyplot as plt
+
+_logger = logging.getLogger(__name__)
 
 
 # height correction tools
@@ -362,11 +366,11 @@ def check_RGT_in_domain(Gtrack_lowest, gdf):
     interect_list = list(result)
     interect_list.sort()
 
-    print("RGT in domain: ", len(Gtrack_lowest["RGT"].unique()))
-    print("RGT with data found: ", len(gdf_list))
-    print("RGT in both: ", len(interect_list))
+    _logger.debug("RGT in domain: %s", len(Gtrack_lowest["RGT"].unique()))
+    _logger.debug("RGT with data found: %s", len(gdf_list))
+    _logger.debug("RGT in both: %s", len(interect_list))
     if len(interect_list) != len(gdf_list):
-        print("RGT not in both: ", list(set(gdf_list) - result))
+        _logger.debug("RGT not in both: %s", list(set(gdf_list) - result))
     return interect_list
 
 
