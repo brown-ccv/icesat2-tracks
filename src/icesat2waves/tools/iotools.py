@@ -268,7 +268,7 @@ def nsidc_icesat2_get_associated_file(
     remote_names = []
 
     for input_file in file_list:
-        # _logger.debug(input_file)
+        _logger.debug("input file: %s", input_file)
         # -- extract parameters from ICESat-2 ATLAS HDF5 file name
         SUB, PRD, HEM, YY, MM, DD, HH, MN, SS, TRK, CYC, GRN, RL, VRS = rx.findall(
             input_file
