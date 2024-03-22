@@ -325,9 +325,7 @@ def define_angle(
             ax_list[group] = ax0
 
             data = corrected_marginals.isel(x=xi).sel(beam_group=group)
-            weights = derive_weights(
-                Marginals.weight.isel(x=xi).sel(beam_group=group)
-            )
+            weights = derive_weights(Marginals.weight.isel(x=xi).sel(beam_group=group))
             weights = weights**2
 
             # derive angle axis
@@ -349,9 +347,9 @@ def define_angle(
             data_collect[group] = data_wmean
 
         data_collect = xr.concat(data_collect.values(), dim="beam_group")
-        final_data = (group_weight * data_collect).sum(
+        final_data = (group_weight * data_collect).sum("beam_group") / group_weight.sum(
             "beam_group"
-        ) / group_weight.sum("beam_group").data
+        ).data
 
         plt.sca(ax_sum)
         plt.stairs(final_data, x_angle, color="k", alpha=1, linewidth=0.8)
@@ -378,9 +376,7 @@ def define_angle(
 
         priors_k = Marginals.Prior_direction[~np.isnan(k_mask.isel(x=xi))]
         for pk in priors_k:
-            ax_final.axvline(
-                pk, color=color_schemes.cascade2, linewidth=1, alpha=0.7
-            )
+            ax_final.axvline(pk, color=color_schemes.cascade2, linewidth=1, alpha=0.7)
 
         plt.stairs(final_data, x_angle, color="k", alpha=0.5, linewidth=0.8)
 
@@ -466,9 +462,7 @@ def define_angle(
     _title = f"{track_name}\nPower Spectra (m/m)$^2$ k$^{{-1}}$"
     plt.title(_title, loc="left")
 
-    cbar = plt.colorbar(
-        fraction=0.018, pad=0.01, orientation="vertical", label="Power"
-    )
+    cbar = plt.colorbar(fraction=0.018, pad=0.01, orientation="vertical", label="Power")
     cbar.outline.set_visible(False)
     clev_ticks = np.round(clev_spec[::3], 0)
     cbar.set_ticks(clev_ticks)
@@ -529,9 +523,9 @@ def define_angle(
         i_spec = weighted_spec.sel(x=slice(x_range[0], x_range[-1]))
         i_dir = corrected_marginals.sel(x=slice(x_range[0], x_range[-1]))
 
-        dir_data = (i_dir * i_dir.N_data).sum(
+        dir_data = (i_dir * i_dir.N_data).sum(["beam_group", "x"]) / i_dir.N_data.sum(
             ["beam_group", "x"]
-        ) / i_dir.N_data.sum(["beam_group", "x"])
+        )
         lims = get_first_and_last_nonzero_data(dir_data)
 
         plot_data = build_plot_data(dir_data, i_spec, lims)

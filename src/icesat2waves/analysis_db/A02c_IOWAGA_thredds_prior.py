@@ -412,21 +412,13 @@ def run_A02c_IOWAGA_thredds_prior(
             draw_range(lon_range, lat_range, c="blue", linewidth=0.7, zorder=10)
 
             if fv != "ice":
-                cm = plt.pcolor(
-                    lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc
-                )
+                cm = plt.pcolor(lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc)
                 if G_beam.ice.shape[0] > 1:
-                    plt.contour(
-                        lon, lat, G_beam.ice, colors="black", linewidths=0.6
-                    )
+                    plt.contour(lon, lat, G_beam.ice, colors="black", linewidths=0.6)
             else:
-                cm = plt.pcolor(
-                    lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc
-                )
+                cm = plt.pcolor(lon, lat, G_beam[fv], vmin=cl[0], vmax=cl[-1], cmap=fc)
 
-            plt.title(
-                G_beam[fv].long_name.replace(" ", "\n") + "\n" + fv, loc="left"
-            )
+            plt.title(G_beam[fv].long_name.replace(" ", "\n") + "\n" + fv, loc="left")
             ax1.axis("equal")
 
             ax2 = F.fig.add_subplot(gs[-1, fp])
@@ -471,9 +463,7 @@ def run_A02c_IOWAGA_thredds_prior(
         }
 
         # flatten key_list_pairs.values to a list
-        key_list_pairs2 = [
-            item for pair in key_list_pairs.values() for item in pair
-        ]
+        key_list_pairs2 = [item for pair in key_list_pairs.values() for item in pair]
 
         key_list_scaler = set(key_list) - set(key_list_pairs2)
 
@@ -501,12 +491,8 @@ def run_A02c_IOWAGA_thredds_prior(
             "lontigude",  # TODO: fix typo?
         ]
         Tend["lat"] = [
-            ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0]
-            .mean()
-            .data,
-            ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0]
-            .std()
-            .data,
+            ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0].mean().data,
+            ice_mask_prior.latitude[ice_mask_prior.sum("longitude") == 0].std().data,
             "latitude",
         ]
         Tend = Tend.T

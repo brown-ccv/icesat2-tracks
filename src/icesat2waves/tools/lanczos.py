@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.signal as signal
-from scipy.ndimage import  convolve
+from scipy.ndimage import convolve
 import scipy.ndimage.filters as filters
 
 

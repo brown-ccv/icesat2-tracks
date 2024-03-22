@@ -8,6 +8,7 @@ import numpy as np
 
 _logger = logging.getLogger(__name__)
 
+
 #
 def normalize_time(time):
     """
@@ -122,7 +123,7 @@ def pierson_moskowitz_fetch_limit(f, X, U):
 
     """
 
-    w = 2.0 * np.pi * f # rad/sec
+    w = 2.0 * np.pi * f  # rad/sec
 
     # dimensionless
     alpha = 0.076 * (g * X / U**2) ** (-0.22)
@@ -156,7 +157,7 @@ def JONSWAP_default(f, X, U, gamma=3.3):
     varying gamma to less then its JONSWAP value will mimic the attenuation of the peak with travel time to the limit of gamma=1, which is the PM spectrums
     """
 
-    w = 2.0 * np.pi * f # rad/sec
+    w = 2.0 * np.pi * f  # rad/sec
 
     # dimensionless
     alpha = 0.076 * (g * X / U**2) ** (-0.22)
@@ -171,7 +172,7 @@ def JONSWAP_default(f, X, U, gamma=3.3):
 
     return (
         alpha * g**2.0 * w ** (-5.0) * np.exp(-5.0 / 4.0 * (w / wp) ** -4) * peak_factor
-    ) # Hz**-5 m**2 /s**4 = m**2 sec
+    )  # Hz**-5 m**2 /s**4 = m**2 sec
 
 
 """ add function for X_tilde(X, U10), alpha(f_max, U10) and f_max(U10, X_tilde) or f_max(U, X)"""
@@ -732,7 +733,6 @@ if __name__ == "__main__":
 
     Jm = Jm_regulizer(vd, priors)
     _logger.debug("Jm from regulizer: %s", Jm)
-
 
 
 def cost(value_dict, time, f, data=None, weight=None, prior=False, eps=None):

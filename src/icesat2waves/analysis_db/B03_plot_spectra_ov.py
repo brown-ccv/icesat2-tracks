@@ -139,9 +139,7 @@ def run_B03_plot_spectra_ov(
     for k in all_beams:
         I = Gk.sel(beam=k)
         I2 = Gx.sel(beam=k)
-        plt.plot(
-            I["lon"], I["lat"], ".", c=col_dict[k], markersize=0.7, linewidth=0.3
-        )
+        plt.plot(I["lon"], I["lat"], ".", c=col_dict[k], markersize=0.7, linewidth=0.3)
         plt.plot(I2["lon"], I2["lat"], "|", c=col_dict[k], markersize=0.7)
 
     plt.xlabel("lon")
@@ -185,8 +183,7 @@ def run_B03_plot_spectra_ov(
 
     # TODO: refactor to make more readable. CP
     G_gFT_wmean = (
-        Gk["gFT_PSD_data"].where(~np.isnan(Gk["gFT_PSD_data"]), 0)
-        * Gk["N_per_stancil"]
+        Gk["gFT_PSD_data"].where(~np.isnan(Gk["gFT_PSD_data"]), 0) * Gk["N_per_stancil"]
     ).sum("beam") / Gk["N_per_stancil"].sum("beam")
     G_gFT_wmean["N_per_stancil"] = Gk["N_per_stancil"].sum("beam")
 
@@ -219,9 +216,7 @@ def run_B03_plot_spectra_ov(
     )
     dd = 10 * np.log10(Gplot)
     dd = dd.where(~np.isinf(dd), np.nan)
-    clev_log = (
-        M.clevels([dd.quantile(0.01).data, dd.quantile(0.98).data * 1.2], 31) * 1
-    )
+    clev_log = M.clevels([dd.quantile(0.01).data, dd.quantile(0.98).data * 1.2], 31) * 1
 
     xlims = Gmean.x[0] / 1e3, Gmean.x[-1] / 1e3
 
@@ -313,9 +308,7 @@ def run_B03_plot_spectra_ov(
         I = Gfft.sel(beam=k)
         plt.scatter(
             (x0 + I.x.data) / 1e3,
-            I.power_spec.sel(k=slice(k_max_range[0], k_max_range[2])).integrate(
-                "k"
-            ),
+            I.power_spec.sel(k=slice(k_max_range[0], k_max_range[2])).integrate("k"),
             s=0.5,
             marker=".",
             c="blue",
@@ -376,19 +369,14 @@ def run_B03_plot_spectra_ov(
         .argmax()
         .data
     )
-    xpp = x_pos_sel[
-        [int(i) for i in np.round(np.linspace(0, x_pos_sel.size - 1, 4))]
-    ]
+    xpp = x_pos_sel[[int(i) for i in np.round(np.linspace(0, x_pos_sel.size - 1, 4))]]
     xpp = np.insert(xpp, 0, x_pos_max)
 
     for i in xpp:
         F = M.FigureAxisXY(6, 8, container=True, view_scale=0.8)
 
         plt.suptitle(
-            "gFT Model and Spectrograms | x="
-            + str(Gk.x[i].data)
-            + " \n"
-            + track_name,
+            "gFT Model and Spectrograms | x=" + str(Gk.x[i].data) + " \n" + track_name,
             y=0.95,
         )
         gs = GridSpec(5, 6, wspace=0.2, hspace=0.7)
@@ -457,9 +445,7 @@ def run_B03_plot_spectra_ov(
         plt.ylabel("relative slope (m/m)")
         # TODO: compute xlabel as fstring. CP
         plt.xlabel(
-            "segment distance $\eta$ (km) @ x="
-            + fltostr(Gx_1.x.data / 1e3, 2)
-            + "km"
+            "segment distance $\eta$ (km) @ x=" + fltostr(Gx_1.x.data / 1e3, 2) + "km"
         )
 
         # spectra
@@ -485,9 +471,7 @@ def run_B03_plot_spectra_ov(
                     dd = Gk_1.gFT_PSD_data
                     plt.plot(Gk_1.k, dd, color="gray", linewidth=0.5, alpha=0.5)
 
-                dd = Gk_1.gFT_PSD_data.rolling(
-                    k=10, min_periods=1, center=True
-                ).mean()
+                dd = Gk_1.gFT_PSD_data.rolling(k=10, min_periods=1, center=True).mean()
                 plt.plot(Gk_1.k, dd, color=col_d[k], linewidth=0.8)
                 # handle the 'All-NaN slice encountered' warning
                 if np.all(np.isnan(dd.data)):
@@ -567,14 +551,10 @@ def run_B03_plot_spectra_ov(
         plt.ylabel("relative slope (m/m)")
         # TODO: compute xlabel as fstring. CP
         plt.xlabel(
-            "segment distance $\eta$ (km) @ x="
-            + fltostr(Gx_1.x.data / 1e3, 2)
-            + "km"
+            "segment distance $\eta$ (km) @ x=" + fltostr(Gx_1.x.data / 1e3, 2) + "km"
         )
 
-        F.save_pup(
-            path=str(plot_path / "B03_spectra"), name=f"B03_freq_reconst_x{i}"
-        )
+        F.save_pup(path=str(plot_path / "B03_spectra"), name=f"B03_freq_reconst_x{i}")
 
     MT.json_save(
         "B03_success",

@@ -205,6 +205,5 @@ def correct_separate(  # TODO: rename with a verb or something
     )
 
 
-
 if __name__ == "__main__":
     app()

@@ -125,7 +125,7 @@ def likelyhood_func(
         tot_var = z_error**2 + z_model**2
 
     def simple_log_panelty(x, x0, sigma):
-        return -((x - x0) / sigma) ** 2.0 / 2.0
+        return -(((x - x0) / sigma) ** 2.0) / 2.0
 
     # try ot get prior
     if prior is not None:

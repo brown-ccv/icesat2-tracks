@@ -88,7 +88,6 @@ def run_B02_make_spectra_gFT(
     }
     report_input_parameters(**kargs)
 
-
     workdir, _ = update_paths_mconfig(output_dir, mconfig)
 
     load_path = Path(workdir, batch_key, "B01_regrid")
@@ -111,9 +110,7 @@ def run_B02_make_spectra_gFT(
     nan_fraction = list()
     for k in all_beams:
         heights_c_std = io.get_beam_var_hdf_store(Gd[k], "x")
-        nan_fraction.append(
-            np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0]
-        )
+        nan_fraction.append(np.sum(np.isnan(heights_c_std)) / heights_c_std.shape[0])
 
     del heights_c_std
 
@@ -185,7 +182,9 @@ def run_B02_make_spectra_gFT(
     for k in all_beams:
         dist_i = io.get_beam_var_hdf_store(Gd[k], "x")
         x_mask = (dist_i > xlims[0]) & (dist_i < xlims[1])
-        _logger.debug("k: %s, sum/range: %s", k, sum(x_mask["x"]) / (xlims[1] - xlims[0]))
+        _logger.debug(
+            "k: %s, sum/range: %s", k, sum(x_mask["x"]) / (xlims[1] - xlims[0])
+        )
 
     _logger.debug("-reduced frequency resolution")
     kk = kk[::2]

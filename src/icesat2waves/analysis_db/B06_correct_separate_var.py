@@ -2,6 +2,7 @@
 This file open a ICEsat2 track applied filters and corections and returns smoothed photon heights on a regular grid in an .nc file.
 This is python 3
 """
+
 import logging
 import os
 
@@ -316,9 +317,7 @@ def run_B06_correct_separate_var(
 
     file_suffixes = ["_gFT_k.nc", "_gFT_x.nc"]
     Gk, Gx = [
-        xr.open_dataset(
-            load_path_work / "B02_spectra" / f"B02_{track_name}{suffix}"
-        )
+        xr.open_dataset(load_path_work / "B02_spectra" / f"B02_{track_name}{suffix}")
         for suffix in file_suffixes
     ]
 
@@ -521,9 +520,7 @@ def run_B06_correct_separate_var(
         + " to "
         + str(np.round(Gx.isel(x=-1).lat.mean().data, 2))
     )
-    plt.title(
-        next(fn) + "Mean Displacement Spectra\n(lat=" + lat_str + ")", loc="left"
-    )
+    plt.title(next(fn) + "Mean Displacement Spectra\n(lat=" + lat_str + ")", loc="left")
 
     dd = 10 * np.log((G_gFT_smth / G_gFT_smth.k).isel(x=slice(0, -1)))
     dd = dd.where(~np.isinf(dd), np.nan)
@@ -689,17 +686,13 @@ def run_B06_correct_separate_var(
         T3["heights_c_model_err"] = np.interp(
             T3["dist"], continous_x_grid, concented_err
         )
-        T3["heights_c_residual"] = (
-            T3["heights_c_weighted_mean"] - T3["heights_c_model"]
-        )
+        T3["heights_c_residual"] = T3["heights_c_weighted_mean"] - T3["heights_c_model"]
 
         B3_v2[bb] = T3
         Gx_v2[bb] = Gx_k
 
     try:
-        G_angle = xr.open_dataset(
-            load_path_angle / (f"B05_{track_name}_angle_pdf.nc")
-        )
+        G_angle = xr.open_dataset(load_path_angle / (f"B05_{track_name}_angle_pdf.nc"))
 
     except ValueError as e:
         _logger.warning("%s no angle data found, skip angle corretion", e)
