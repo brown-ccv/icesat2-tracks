@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from scipy.special import gammainc
 from scipy import signal
@@ -17,6 +19,8 @@ try:
     np.use_fastnumpy = True
 except ImportError:
     pass
+
+_logger = logging.getLogger(__name__)
 
 
 def calc_freq(self):
@@ -59,7 +63,7 @@ def create_timeaxis_collection(time_as_datetime64):
     datetime = time_as_datetime64.astype(DT.datetime)
     float_plot = dates.date2num(datetime)
     dt64 = time_as_datetime64
-    
+
     T = {
         "sec": sec,
         "day": day,
@@ -89,21 +93,22 @@ def spicke_remover(data, nstd=20.0, spreed=500.0, max_loops=10.0, verbose=False)
     while peak_remove:
         data_std = nstd * data.std()
         max_abs_data2 = np.max(np.abs(data2))
-    
+
         if data_std < max_abs_data2:
             act_flag = True
             data2 = M.spickes_to_mean(data2, nloop=0, spreed=spreed, gaussian=False)
             looper_count += 1
         else:
-            peak_remove = False
-    
-        if verbose:
-            print(f"{'True' if act_flag else 'False'}: {data_std} {'<' if act_flag else '>'} {max_abs_data2}")
-    
+            peak_remove=False
+
+        _logger.debug("%s: %s %s %s",
+                      f"{'True' if act_flag else 'False'}", data_std,
+                      f" {'<' if act_flag else '>'}", max_abs_data2)
+
         if looper_count > max_loops:
             peak_remove = False
             if verbose:
-                print("Stopped by max#")
+                _logger.debug("Stopped by max#")
 
     if verbose:
         plt.plot(data, "r")
@@ -129,14 +134,14 @@ class Spectrum:
 
         if win_flag:
             if verbose:
-                print("window")
+                _logger.debug("window")
             MT.write_log(self.hist, "window")
             self.win_flag = win_flag
             self.phi = np.copy(self.data[:])
             self.phi *= win * np.sqrt(factor)
         else:
             if verbose:
-                print("no window")
+                _logger.debug("no window")
             MT.write_log(self.hist, "no window")
             self.win_flag = 0
             self.phi = np.copy(self.data[:])
@@ -157,14 +162,13 @@ class Spectrum:
 
     def parceval(self):
 
-        print("Parcevals Theorem:")
-        print("variance of unweighted timeseries: ", self.data.var())
-        print(
-            "variance of weighted timeseries: ",
-            self.phi.var() if self.win_flag is 1 else "data not windowed",
-        )
-        print("variance of weighted timeseries: ", self.phi.var())
-        print("variance of the Spectrum: ", self.var)
+        _logger.debug("Parcevals Theorem:")
+        _logger.debug("variance of unweighted timeseries: %s", self.data.var())
+        _logger.debug(
+            "variance of weighted timeseries: %s",
+            self.phi.var() if self.win_flag is 1 else "data not windowed")
+        _logger.debug("variance of weighted timeseries: %s", self.phi.var() )
+        _logger.debug("variance of the Spectrum: %s", self.var)
 
 
 class Moments:
@@ -193,7 +197,7 @@ class Moments:
         if prewhite is None:
             data = np.array(data_org)  # field to be analyzed
         elif prewhite == 1:
-            print("prewhite =1")
+            _logger.debug("prewhite =1")
             data = np.gradient(np.array(data_org), axis=1)
         elif prewhite == 2:
             data = np.gradient(np.gradient(np.array(data_org), axis=1), axis=1)
@@ -267,11 +271,11 @@ class Moments:
 
             else:
                 if plot_chunks:
-                    print("end of TS is reached")
-                    print("last spec No: " + str(last_k))
-                    print("spec container: " + str(specs.shape))
-                    print("last used Timestep: " + str(last_used_TS))
-                    print("length of TS " + str(data.size))
+                    _logger.debug("end of TS is reached")
+                    _logger.debug("last spec No: %s", last_k)
+                    _logger.debug("spec container: %s ", specs.shape)
+                    _logger.debug("last used Timestep: %s", last_used_TS)
+                    _logger.debug("length of TS %s", data.size)
 
             k += 1
 
@@ -284,7 +288,7 @@ class Moments:
             stack = np.empty([nbin, self.f.size])
             for i, mom in enumerate(self.mom_list):
                 stack[i, :] = mom[k]  # stack them
-            
+
             # mean them and decide prewhitening
             if prewhite is None:
                 factor = 1
@@ -292,10 +296,10 @@ class Moments:
                 factor = 2 * np.pi * self.f
             elif prewhite == 2:
                 factor = (2 * np.pi * self.f) ** 2
-        
+
             self.moments_stack[k] = stack * factor
             self.moments_est[k] = np.nanmean(stack, axis=0) * factor
-        
+
         self.moments_unit = "[data]^2"
         self.n_spec = len(self.mom_list)
 
@@ -398,7 +402,7 @@ class Pwelch:
         if prewhite is None:
             self.data = data  # field to be analyzed
         elif prewhite == 1:
-            print("prewhite =1")
+            _logger.debug("prewhite =1")
             self.data = np.gradient(data)
         elif prewhite == 2:
             self.data = np.gradient(np.gradient(data))
@@ -465,11 +469,11 @@ class Pwelch:
                 del self.spec
             else:
                 if plot_chunks:
-                    print("end of TS is reached")
-                    print("last spec No: " + str(last_k))
-                    print("spec container: " + str(specs.shape))
-                    print("last used Timestep: " + str(last_used_TS))
-                    print("length of TS " + str(dsize) + "ms")
+                    _logger.debug("end of TS is reached")
+                    _logger.debug("last spec No: %s", last_k)
+                    _logger.debug("spec container: %s", specs.shape)
+                    _logger.debug("last used Timestep: %s", last_used_TS)
+                    _logger.debug("length of TS %s ms", dsize)
 
             k += 1
 
@@ -493,18 +497,16 @@ class Pwelch:
         self.El, self.Eu = spec_error(self.spec_est, self.n_spec, ci=ci)
 
     def parceval(self):
-        print("Parcevals Theorem:")
-        print("variance of unweighted timeseries: ", self.data.var())
-        print(
-            "mean variance of timeseries chunks: ",
+        _logger.debug("Parcevals Theorem:")
+        _logger.debug("variance of unweighted timeseries: %s", self.data.var())
+        _logger.debug("mean variance of timeseries chunks: %s",
             (
                 self.chunks.var(axis=1).mean()
                 if self.save_chunks is True
                 else "data not saved"
             ),
         )
-
-        print("variance of the pwelch Spectrum: ", self.var)
+        _logger.debug("variance of the pwelch Spectrum: %s",self.var)
 
     def calc_var(self):
         """Compute total variance from spectrum"""
@@ -536,7 +538,7 @@ class SpectogramSubsample(Pwelch):
             self.write_log("Length = " + M.echo_dt(L, as_string=True))
             L = int(L.item().total_seconds())
         else:
-            print("unknown L type")
+            _logger.debug("unknown L type")
             self.write_log("Length = " + "unknown L type")
 
         subL = int(np.round(L / 10)) if subL is None else subL
@@ -582,9 +584,9 @@ class SpectogramSubsample(Pwelch):
 
         n_specs = []
         k = 0
-        print("subL", subL)
-        print("L", L)
-        print(data_size_adjust)
+        _logger.debug('subL %s', subL)
+        _logger.debug('L %s', L)
+        _logger.debug("data_size_adjust: %s", data_size_adjust)
 
         for i in np.arange(0, data_size_adjust - int(L - ov) + 1, int(L - ov)):
 
@@ -701,9 +703,7 @@ class SpectogramSubsample(Pwelch):
         self.hist = MT.write_log(self.hist, s, verbose=verbose)
 
     def log(self):
-        print(".hist variable")
-        print(self.hist)
-
+        _logger.debug(".hist variable: %s", self.hist)
     def power_anomalie(self, clim=None):
         dd = 10 * np.log10(self.data[:, :])
 
@@ -711,8 +711,8 @@ class SpectogramSubsample(Pwelch):
             np.nanmedian(dd, axis=0) if clim is None else 10 * np.log10(clim)
         )
         dd_tmp = self.data_power_mean.repeat(self.time.size)
-        print(self.data_power_mean.shape)
-        print(self.f.size, self.time.size)
+        _logger.debug("data power mean shape: %s", self.data_power_mean.shape)
+        _logger.debug("f size: %s, time size: %s", self.f.size, self.time.size)
         self.data_power_ano = dd - dd_tmp.reshape(self.f.size, self.time.size).T
 
     def anomalie(self, clim=None):
@@ -746,10 +746,10 @@ class Periodogram(Pwelch):
             dt_unit = "s"
             dt_timedelta = np.timedelta64(dt, dt_unit)
 
-        print("sample resolution:")
+        _logger.debug("sample resolution:")
         M.echo_dt(dt_timedelta)
         timeres = np.timedelta64(int(self.dt_periodogram), dt_unit)
-        print("time resolution:")
+        _logger.debug("time resolution:")
         M.echo_dt(timeres)
 
         if timestamp is None:
@@ -759,9 +759,9 @@ class Periodogram(Pwelch):
             start_time = timestamp[0]
             end_time = timestamp[-1]
 
-        print("Periodogram starttime and endtime:")
-        print(start_time)
-        print(end_time)
+        _logger.debug("Periodogram starttime and endtime:")
+        _logger.debug("%s", start_time)
+        _logger.debug("%s", end_time)
 
         time = np.arange(start_time + L / 2, end_time + dt_timedelta, timeres)
         if time.shape[0] != self.data.shape[0]:
@@ -772,8 +772,8 @@ class Periodogram(Pwelch):
 
     def save_data(self, path=None, S=None):
         P = SaveDataPeriodogram(self, S=S)
-        print(P.meta)
-        print("constructed class for saving")
+        _logger.debug("P.meta: %s", P.meta)
+        _logger.debug("constructed class for saving")
         save_file(P, path)
 
 
@@ -829,7 +829,7 @@ def MEM_cal(moments_est, freq, theta=None, flim=None):
     d1 = N_sel["Q12"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
     # Lygre and Krongstad 1986 have here sqrt(N_sel['P11'] *(N_sel['P22'] + N_sel['P33']). I guess its a typo.
     d2 = N_sel["Q13"] / np.sqrt(N_sel["P11"] * (N_sel["P22"] + N_sel["P33"]))
-    
+
 
     d3 = (N_sel["P22"] - N_sel["P33"]) / (N_sel["P22"] + N_sel["P33"])
     d4 = 2 * N_sel["P23"] / (N_sel["P22"] + N_sel["P33"])
@@ -939,7 +939,7 @@ def save_file(data, path):
     outfile = path
     with open(outfile, "wb") as f:
         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
-    print("saved to:", outfile)
+    _logger.debug('saved to: %s',outfile)
 
 
 

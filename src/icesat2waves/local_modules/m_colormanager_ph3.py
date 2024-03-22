@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from __future__ import print_function
 from __future__ import division
 
 from matplotlib.colors import LinearSegmentedColormap
@@ -54,7 +53,7 @@ class color:
         def __init__(self, path=None, name=None):
             self.white=(1,1,1)
             if (path is not None) & (name is not None):
-                _logger.debug("color theme: %s", name)
+                _logger.debug('color theme: %s', name)
                 try:
                     theme=json_load(name, path)
                     for k, v in theme.items():
@@ -173,7 +172,7 @@ class color:
 
         def show(self):
             for key in self.__dict__.keys():
-                _logger.debug(key)
+                _logger.debug("key: %s", key)
 
             _logger.debug('  rels dict keys:')
             for key in self.rels.keys():

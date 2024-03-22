@@ -1,4 +1,4 @@
-
+import logging
 from scipy.constants import g
 
 from lmfit import minimize, Parameters
@@ -6,6 +6,7 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
+_logger = logging.getLogger(__name__)
 
 #
 def normalize_time(time):
@@ -96,7 +97,7 @@ def JONSWAP_bulk(f, floc=0.04, famp=1e-2, gamma=3.3, peak_std=1e-1):
 
     delta = np.exp(-((w - wp) ** 2) / (2 * peak_std**2 * wp**2))
     peak_factor = gamma**delta
-    
+
     # units of m^2 / Hz
     return alpha * w ** (-5) * np.exp(-stretch * (w / wp) ** -4) * peak_factor
 
@@ -127,7 +128,7 @@ def pierson_moskowitz_fetch_limit(f, X, U):
     alpha = 0.076 * (g * X / U**2) ** (-0.22)
 
     wp = 7.0 * np.pi * (g / U) * (g * X / U**2) ** (-0.33)
-    print("wp=" + str(wp))
+    _logger.debug("wp=%s", wp)
 
     sigma_p = 0.07
     sigma_pp = 0.09
@@ -170,7 +171,7 @@ def JONSWAP_default(f, X, U, gamma=3.3):
 
     return (
         alpha * g**2.0 * w ** (-5.0) * np.exp(-5.0 / 4.0 * (w / wp) ** -4) * peak_factor
-    ) # Hz**-5 m**2 /s**4 = m**2 sec 
+    ) # Hz**-5 m**2 /s**4 = m**2 sec
 
 
 """ add function for X_tilde(X, U10), alpha(f_max, U10) and f_max(U10, X_tilde) or f_max(U, X)"""
@@ -730,7 +731,7 @@ if __name__ == "__main__":
         vd[k] = I * np.random.rand()
 
     Jm = Jm_regulizer(vd, priors)
-    print(Jm)
+    _logger.debug("Jm from regulizer: %s", Jm)
 
 
 
